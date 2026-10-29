@@ -1,0 +1,208 @@
+[
+  {
+    "id": "ai-gpt",
+    "cat": "ai",
+    "type": "quiz",
+    "q": "What does the \"T\" in GPT stand for?",
+    "options": ["Tensor", "Transformer", "Token", "Training"],
+    "answer": 1,
+    "why": "<b>Generative Pre-trained Transformer.</b> The transformer architecture came from Google's 2017 paper \"Attention Is All You Need\" and now sits under almost every modern LLM.",
+    "source": "Vaswani et al., 2017"
+  },
+  {
+    "id": "world-sun",
+    "cat": "world",
+    "type": "quiz",
+    "q": "How long does sunlight take to reach Earth?",
+    "options": ["About 8 seconds", "About 8 minutes", "About 8 hours", "About a day"],
+    "answer": 1,
+    "why": "<b>About 8 minutes 20 seconds.</b> Light covers the ~150 million km in that time, so you always see the Sun as it was a few minutes ago."
+  },
+  {
+    "id": "tech-gps",
+    "cat": "tech",
+    "type": "explainer",
+    "title": "How does GPS know where you are?",
+    "steps": [
+      {
+        "h": "Satellites shout the time",
+        "p": "About 30 GPS satellites each broadcast their exact position and the exact time from onboard atomic clocks."
+      },
+      {
+        "h": "Your phone times the signals",
+        "p": "It measures how long each signal took to arrive. Travel time multiplied by the speed of light gives the distance to each satellite."
+      },
+      {
+        "h": "Four distances, one answer",
+        "p": "With at least four satellites it solves for latitude, longitude, altitude, and its own clock error at the same time."
+      }
+    ],
+    "aside": "Bonus: the satellite clocks run about 38 microseconds a day fast because of relativity. Without correcting for it, GPS would drift by kilometers per day."
+  },
+  {
+    "id": "life-pause",
+    "cat": "life",
+    "type": "tip",
+    "title": "Pause instead of saying \"um\"",
+    "body": "A one or two second silence sounds confident to listeners. Filler words sound like you lost your place, even when you didn't.",
+    "challenge": "In your next meeting, catch one \"um\" and replace it with a silent breath."
+  },
+  {
+    "id": "math-11",
+    "cat": "math",
+    "type": "trick",
+    "title": "Multiply any two-digit number by 11",
+    "body": "Split the digits, add them, and put the sum in the middle. If the sum is 10 or more, carry the 1 to the left.",
+    "example": "43 × 11 → 4 (4+3) 3 = 473",
+    "example2": "78 × 11 → 7 (15) 8 → 858"
+  },
+  {
+    "id": "ai-ctx",
+    "cat": "ai",
+    "type": "tf",
+    "statement": "A bigger context window means an LLM permanently remembers your past conversations.",
+    "answer": false,
+    "why": "<b>False.</b> The context window is only what fits in the current request. Anything \"remembered\" across chats comes from a separate memory or retrieval system that re-inserts text into the prompt."
+  },
+  {
+    "id": "world-cleo",
+    "cat": "world",
+    "type": "fact",
+    "title": "Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.",
+    "detail": "The Great Pyramid of Giza was finished around 2560 BC. Cleopatra died in 30 BC, about 2,500 years later. The Moon landing in 1969 came about 2,000 years after her."
+  },
+  {
+    "id": "tech-anc",
+    "cat": "tech",
+    "type": "quiz",
+    "q": "Noise-cancelling headphones block sound mainly by…",
+    "options": [
+      "Using extra-thick foam",
+      "Playing an inverted copy of the incoming sound",
+      "Lowering the volume of everything",
+      "Vibrating the ear cups"
+    ],
+    "answer": 1,
+    "why": "<b>Destructive interference.</b> Microphones pick up outside noise and the headphones play the same wave flipped upside down. Peaks meet troughs and cancel out. It works best on steady, low sounds like engine hum."
+  },
+  { "id": "math-sprint", "cat": "math", "type": "sprint" },
+  {
+    "id": "life-bluf",
+    "cat": "life",
+    "type": "tip",
+    "title": "Put the bottom line up front",
+    "body": "Military writers call it BLUF: say the conclusion or the ask first, then the support. Busy readers decide in the first sentence whether to keep reading.",
+    "challenge": "Rewrite your next Slack message so the first sentence is the ask."
+  },
+  {
+    "id": "ai-rag",
+    "cat": "ai",
+    "type": "quiz",
+    "q": "In RAG (retrieval-augmented generation), what happens before the model answers?",
+    "options": [
+      "It retrains itself on your documents",
+      "It retrieves relevant passages and adds them to the prompt",
+      "It only uses what it learned in training",
+      "It sends the question to a human"
+    ],
+    "answer": 1,
+    "why": "<b>Retrieve, then generate.</b> A search step (often over embeddings) finds the most relevant chunks of your documents and pastes them into the prompt, so the answer is grounded without retraining."
+  },
+  {
+    "id": "world-canberra",
+    "cat": "world",
+    "type": "quiz",
+    "q": "What is the capital of Australia?",
+    "options": ["Sydney", "Melbourne", "Canberra", "Perth"],
+    "answer": 2,
+    "why": "<b>Canberra.</b> It was built from scratch as a compromise because Sydney and Melbourne both wanted to be the capital."
+  },
+  {
+    "id": "tech-touch",
+    "cat": "tech",
+    "type": "fact",
+    "title": "Your touchscreen works because your finger conducts electricity.",
+    "detail": "Capacitive screens keep a tiny electric field across a grid of sensors. Your finger disturbs that field at one spot. That is why ordinary gloves don't work but a damp fingertip still does."
+  },
+  {
+    "id": "life-2min",
+    "cat": "life",
+    "type": "quiz",
+    "q": "David Allen's \"two-minute rule\" from Getting Things Done says…",
+    "options": [
+      "Take a two-minute break every hour",
+      "If a task takes under two minutes, do it now",
+      "Spend two minutes planning each day",
+      "Never check email for more than two minutes"
+    ],
+    "answer": 1,
+    "why": "<b>Do it now.</b> Tracking a tiny task costs more attention than just finishing it. Anything longer goes on a list."
+  },
+  {
+    "id": "ai-emb",
+    "cat": "ai",
+    "type": "fact",
+    "title": "Embeddings turn meaning into coordinates.",
+    "detail": "A model maps text to a list of hundreds or thousands of numbers. Texts with similar meaning land close together, which is how semantic search finds \"car\" when you typed \"vehicle\"."
+  },
+  {
+    "id": "world-oxford",
+    "cat": "world",
+    "type": "tf",
+    "statement": "Oxford University is older than the Aztec Empire.",
+    "answer": true,
+    "why": "<b>True.</b> Teaching at Oxford existed by 1096. The Aztec capital, Tenochtitlan, was founded in 1325."
+  },
+  {
+    "id": "life-parkinson",
+    "cat": "life",
+    "type": "fact",
+    "title": "Work expands to fill the time you give it.",
+    "detail": "That is Parkinson's Law, from a 1955 essay by C. Northcote Parkinson. The practical fix: give tasks shorter deadlines than feel comfortable, and timebox them on your calendar."
+  },
+  {
+    "id": "tech-https",
+    "cat": "tech",
+    "type": "tf",
+    "statement": "The padlock in your browser means the website itself is safe and trustworthy.",
+    "answer": false,
+    "why": "<b>False.</b> HTTPS only means the connection is encrypted and the site controls that domain. Scam sites can have a padlock too."
+  },
+  {
+    "id": "world-wall",
+    "cat": "world",
+    "type": "tf",
+    "statement": "The Great Wall of China is visible from the Moon with the naked eye.",
+    "answer": false,
+    "why": "<b>False.</b> It is long but only a few meters wide, roughly the width of a road. From the Moon, even whole continents look small."
+  },
+  {
+    "id": "life-ifthen",
+    "cat": "life",
+    "type": "tip",
+    "title": "Plan habits as \"when X, I will Y\"",
+    "body": "Psychologist Peter Gollwitzer calls these implementation intentions. Tying a habit to a specific cue makes you noticeably more likely to follow through than a vague goal.",
+    "challenge": "Write one: \"When I open my laptop after lunch, I will do 10 minutes of my hardest task.\""
+  },
+  {
+    "id": "ai-temp",
+    "cat": "ai",
+    "type": "explainer",
+    "title": "How does an LLM write a sentence?",
+    "steps": [
+      {
+        "h": "Text becomes tokens",
+        "p": "Your words are split into tokens, chunks that average a bit less than one word in English."
+      },
+      {
+        "h": "Every next token gets a score",
+        "p": "The model scores every token in its vocabulary for how likely it is to come next, based on patterns from training."
+      },
+      {
+        "h": "Pick one, repeat",
+        "p": "It picks one, adds it to the text, and runs again. A whole answer is just this loop, one token at a time."
+      }
+    ],
+    "aside": "Temperature controls the randomness of the pick. Low means safe and predictable, high means creative and riskier."
+  }
+]

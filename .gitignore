@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# production
+dist/
+
+# env — never commit secrets
+.env
+.env.local
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# testing
+coverage/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# local pipeline scratch
+.cache/

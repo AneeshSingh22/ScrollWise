@@ -1,0 +1,479 @@
+<title>Scrollwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one-screen app. Fixed header, full-height snap-scrolling cards, action rail on the right like Reels. Dark-only by design. */
+:root{
+  --ground:#0b0c11;
+  --ink:#f4f2ee;
+  --ink-dim:#b6b3c2;
+  --line:rgba(244,242,238,.16);
+  --chip:rgba(244,242,238,.08);
+  --good:#5ee39a;
+  --bad:#ff7a7a;
+  --gold:#ffd166;
+  --font-display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --font-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html{box-sizing:border-box;height:100%;background:var(--ground)}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;margin:0;background:var(--ground);color:var(--ink);font-family:var(--font-body);font-size:16px;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.app{display:flex;flex-direction:column;height:100%}
+
+/* Header */
+.top{flex:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);background:var(--ground);position:relative;z-index:5}
+.row{display:flex;align-items:center;gap:10px}
+.mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin-right:auto}
+.mark span{color:var(--gold)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:0}
+.pill svg{width:15px;height:15px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-2px;padding-inline:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600;color:var(--ink-dim)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;background:transparent}
+.progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s ease}
+
+/* Feed */
+.feed{flex:1 1 0;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.card{height:var(--card-h,100%);scroll-snap-align:start;scroll-snap-stop:always;position:relative;overflow:hidden;background:var(--bg);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.c-ai{--bg:#0e2036;--acc:#7cc0ff;--acc-ink:#06223f}
+.c-tech{--bg:#2a1a0c;--acc:#ffb455;--acc-ink:#3a1f00}
+.c-life{--bg:#2a1226;--acc:#ff93c2;--acc-ink:#3e0a27}
+.c-world{--bg:#0d2a21;--acc:#63d6a6;--acc-ink:#00301f}
+.c-math{--bg:#1b1a30;--acc:#c8b7ff;--acc-ink:#21134f}
+.c-intro{--bg:#14151c;--acc:var(--gold);--acc-ink:#3a2a00}
+.glow{position:absolute;inset:-30% -40% auto auto;width:90%;aspect-ratio:1;max-width:none;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--acc) 22%,transparent),transparent);pointer-events:none}
+.content{position:relative;height:100%;display:flex;flex-direction:column;gap:18px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:calc(max(16px,env(safe-area-inset-right,0px)) + 60px);padding-block:22px 26px;overflow-y:auto;scrollbar-width:none}
+.content::-webkit-scrollbar{display:none}
+.meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:6px;background:var(--acc);color:var(--acc-ink)}
+.tag.review{background:var(--ink);color:var(--ground)}
+.kind{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim)}
+.body{margin-block:auto;display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+.big{margin:0;font-family:var(--font-display);font-weight:700;font-size:clamp(25px,7.2vw,36px);line-height:1.12;letter-spacing:-.015em;text-wrap:balance}
+.q{margin:0;font-family:var(--font-display);font-weight:500;font-size:clamp(21px,6vw,28px);line-height:1.2;text-wrap:balance}
+.lead{margin:0;font-size:17px;line-height:1.5;color:var(--ink);max-width:34ch}
+.source{margin:0;font-size:12px;color:var(--ink-dim)}
+
+.opts{display:flex;flex-direction:column;gap:10px}
+.opts.two{flex-direction:row}
+.opts.two button{flex:1}
+.opt{text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);background:rgba(255,255,255,.05);font-size:16px;font-weight:600;transition:transform .12s ease,background .2s,border-color .2s}
+.opts.two .opt{text-align:center}
+.opt:active{transform:scale(.98)}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 20%,transparent)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}
+.answered .opt:not(.right):not(.wrong){opacity:.45}
+.why{margin:0;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.28);font-size:15px;line-height:1.5}
+.why b{color:var(--acc)}
+
+.btn{align-self:flex-start;border:0;border-radius:999px;padding:12px 20px;font-weight:700;font-size:15px;background:var(--acc);color:var(--acc-ink);transition:transform .12s ease}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn[disabled]{opacity:.7;cursor:default}
+
+.segs{display:flex;gap:5px}
+.segs i{flex:1;height:3px;border-radius:2px;background:var(--line)}
+.segs i.on{background:var(--acc)}
+.step h3{margin:0 0 8px;font-size:19px;font-weight:700}
+.step p{margin:0;font-size:17px;line-height:1.5}
+.aside{margin:0;font-size:14px;line-height:1.45;color:var(--ink-dim);border-left:2px solid var(--acc);padding-left:10px}
+
+.challenge{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1.5px dashed color-mix(in srgb,var(--acc) 60%,transparent)}
+.challenge p{margin:0;font-size:16px;line-height:1.45}
+.example{font-family:var(--font-mono);font-size:clamp(20px,6vw,26px);font-weight:700;padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.28);line-height:1.5}
+.example small{display:block;font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--ink-dim)}
+
+/* Math sprint */
+.sprint{display:flex;flex-direction:column;gap:12px}
+.timer{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.timer i{display:block;height:100%;width:100%;background:var(--acc);transform-origin:left;transition:transform .25s linear}
+.problem{font-family:var(--font-mono);font-weight:700;font-size:clamp(30px,9vw,42px);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.entry{min-width:3ch;border-bottom:3px solid var(--acc);color:var(--acc)}
+.problem.ok .entry{color:var(--good);border-color:var(--good)}
+.problem.no{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.score{font-size:14px;font-weight:700;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px}
+.keys button{padding:12px 0;border-radius:12px;border:0;background:rgba(255,255,255,.08);font-family:var(--font-mono);font-weight:700;font-size:20px}
+.keys button:active{background:rgba(255,255,255,.18)}
+.keys .go{background:var(--acc);color:var(--acc-ink)}
+
+/* Rail */
+.rail{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:26px;display:flex;flex-direction:column;gap:16px;align-items:center;z-index:2}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font-size:11px;font-weight:600;color:var(--ink)}
+.rail svg{width:28px;height:28px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.rail .on svg{color:var(--acc)}
+.rail .liked svg{color:#ff4d6d}
+.rail .liked svg path{fill:currentColor}
+.rail .on svg path{fill:currentColor}
+
+.heart{position:absolute;width:110px;height:110px;color:#ff4d6d;pointer-events:none;animation:pop .7s ease forwards;z-index:3}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}60%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-70%) scale(1);opacity:0}}
+
+.float-xp{position:fixed;font-weight:800;font-size:14px;color:var(--gold);pointer-events:none;animation:rise .9s ease forwards;z-index:20}
+@keyframes rise{from{transform:translateY(0);opacity:1}to{transform:translateY(-26px);opacity:0}}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--ground);font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;z-index:30;max-width:calc(100% - 32px);text-align:center}
+
+.sheet{position:fixed;inset:auto 0 0 0;max-height:70%;background:#16171f;border-radius:20px 20px 0 0;border-top:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;z-index:25}
+.sheet h3{margin:0 0 12px;font-family:var(--font-display);font-weight:500;font-size:18px}
+.sheet ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sheet li{padding:12px 14px;border-radius:12px;background:var(--chip);font-size:15px;line-height:1.35}
+.sheet li span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:3px}
+.sheet .empty{color:var(--ink-dim);font-size:15px}
+.sheet .close{margin-top:14px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
+.stat b{display:block;font-family:var(--font-mono);font-size:24px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--ink-dim);font-weight:600}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="row">
+      <div class="mark">Scroll<span>wise</span></div>
+      <span class="pill" id="streak" title="Day streak"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3-1-3 0-6 1-8.5Z" fill="#ff8a3d"/></svg><span id="streakN">1</span></span>
+      <span class="pill" id="xpPill" title="XP earned"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="#ffd166"/></svg><span id="xpN">0</span> XP</span>
+      <button class="pill" id="savedBtn" aria-label="Saved cards"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span id="savedN">0</span></button>
+    </div>
+    <div class="chips" role="group" aria-label="Topics" id="chips"></div>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  </header>
+  <main class="feed" id="feed" aria-label="Learning feed"></main>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <h3>Saved cards</h3>
+  <ul id="savedList"></ul>
+  <button class="btn ghost close" id="closeSheet">Close</button>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS = {all:'For you', ai:'AI', tech:'How it works', life:'Level up', world:'World', math:'Mental math'};
+const KIND = {quiz:'Quiz', tf:'True or false', fact:'Did you know', explainer:'Explainer', tip:'Skill', trick:'Math trick', sprint:'Sprint', intro:'', summary:''};
+
+const DECK = [
+  {id:'intro', cat:'intro', type:'intro'},
+  {id:'ai-gpt', cat:'ai', type:'quiz', q:'What does the "T" in GPT stand for?', options:['Tensor','Transformer','Token','Training'], answer:1,
+   why:'<b>Generative Pre-trained Transformer.</b> The transformer architecture came from Google\'s 2017 paper "Attention Is All You Need" and now sits under almost every modern LLM.', source:'Vaswani et al., 2017'},
+  {id:'world-sun', cat:'world', type:'quiz', q:'How long does sunlight take to reach Earth?', options:['About 8 seconds','About 8 minutes','About 8 hours','About a day'], answer:1,
+   why:'<b>About 8 minutes 20 seconds.</b> Light covers the ~150 million km in that time, so you always see the Sun as it was a few minutes ago.'},
+  {id:'tech-gps', cat:'tech', type:'explainer', title:'How does GPS know where you are?', steps:[
+    {h:'Satellites shout the time', p:'About 30 GPS satellites each broadcast their exact position and the exact time from onboard atomic clocks.'},
+    {h:'Your phone times the signals', p:'It measures how long each signal took to arrive. Travel time multiplied by the speed of light gives the distance to each satellite.'},
+    {h:'Four distances, one answer', p:'With at least four satellites it solves for latitude, longitude, altitude, and its own clock error at the same time.'}],
+   aside:'Bonus: the satellite clocks run about 38 microseconds a day fast because of relativity. Without correcting for it, GPS would drift by kilometers per day.'},
+  {id:'life-pause', cat:'life', type:'tip', title:'Pause instead of saying "um"', body:'A one or two second silence sounds confident to listeners. Filler words sound like you lost your place, even when you didn\'t.',
+   challenge:'In your next meeting, catch one "um" and replace it with a silent breath.'},
+  {id:'math-11', cat:'math', type:'trick', title:'Multiply any two-digit number by 11', body:'Split the digits, add them, and put the sum in the middle. If the sum is 10 or more, carry the 1 to the left.',
+   example:'43 × 11 → 4 (4+3) 3 = 473', example2:'78 × 11 → 7 (15) 8 → 858'},
+  {id:'ai-ctx', cat:'ai', type:'tf', statement:'A bigger context window means an LLM permanently remembers your past conversations.', answer:false,
+   why:'<b>False.</b> The context window is only what fits in the current request. Anything "remembered" across chats comes from a separate memory or retrieval system that re-inserts text into the prompt.'},
+  {id:'world-cleo', cat:'world', type:'fact', title:'Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.',
+   detail:'The Great Pyramid of Giza was finished around 2560 BC. Cleopatra died in 30 BC, about 2,500 years later. The Moon landing in 1969 came about 2,000 years after her.'},
+  {id:'tech-anc', cat:'tech', type:'quiz', q:'Noise-cancelling headphones block sound mainly by…', options:['Using extra-thick foam','Playing an inverted copy of the incoming sound','Lowering the volume of everything','Vibrating the ear cups'], answer:1,
+   why:'<b>Destructive interference.</b> Microphones pick up outside noise and the headphones play the same wave flipped upside down. Peaks meet troughs and cancel out. It works best on steady, low sounds like engine hum.'},
+  {id:'math-sprint', cat:'math', type:'sprint'},
+  {id:'life-bluf', cat:'life', type:'tip', title:'Put the bottom line up front', body:'Military writers call it BLUF: say the conclusion or the ask first, then the support. Busy readers decide in the first sentence whether to keep reading.',
+   challenge:'Rewrite your next Slack message so the first sentence is the ask.'},
+  {id:'ai-rag', cat:'ai', type:'quiz', q:'In RAG (retrieval-augmented generation), what happens before the model answers?', options:['It retrains itself on your documents','It retrieves relevant passages and adds them to the prompt','It only uses what it learned in training','It sends the question to a human'], answer:1,
+   why:'<b>Retrieve, then generate.</b> A search step (often over embeddings) finds the most relevant chunks of your documents and pastes them into the prompt, so the answer is grounded without retraining.'},
+  {id:'world-canberra', cat:'world', type:'quiz', q:'What is the capital of Australia?', options:['Sydney','Melbourne','Canberra','Perth'], answer:2,
+   why:'<b>Canberra.</b> It was built from scratch as a compromise because Sydney and Melbourne both wanted to be the capital.'},
+  {id:'tech-touch', cat:'tech', type:'fact', title:'Your touchscreen works because your finger conducts electricity.',
+   detail:'Capacitive screens keep a tiny electric field across a grid of sensors. Your finger disturbs that field at one spot. That is why ordinary gloves don\'t work but a damp fingertip still does.'},
+  {id:'life-2min', cat:'life', type:'quiz', q:'David Allen\'s "two-minute rule" from Getting Things Done says…', options:['Take a two-minute break every hour','If a task takes under two minutes, do it now','Spend two minutes planning each day','Never check email for more than two minutes'], answer:1,
+   why:'<b>Do it now.</b> Tracking a tiny task costs more attention than just finishing it. Anything longer goes on a list.'},
+  {id:'ai-emb', cat:'ai', type:'fact', title:'Embeddings turn meaning into coordinates.',
+   detail:'A model maps text to a list of hundreds or thousands of numbers. Texts with similar meaning land close together, which is how semantic search finds "car" when you typed "vehicle".'},
+  {id:'world-oxford', cat:'world', type:'tf', statement:'Oxford University is older than the Aztec Empire.', answer:true,
+   why:'<b>True.</b> Teaching at Oxford existed by 1096. The Aztec capital, Tenochtitlan, was founded in 1325.'},
+  {id:'life-parkinson', cat:'life', type:'fact', title:'Work expands to fill the time you give it.',
+   detail:'That is Parkinson\'s Law, from a 1955 essay by C. Northcote Parkinson. The practical fix: give tasks shorter deadlines than feel comfortable, and timebox them on your calendar.'},
+  {id:'tech-https', cat:'tech', type:'tf', statement:'The padlock in your browser means the website itself is safe and trustworthy.', answer:false,
+   why:'<b>False.</b> HTTPS only means the connection is encrypted and the site controls that domain. Scam sites can have a padlock too.'},
+  {id:'world-wall', cat:'world', type:'tf', statement:'The Great Wall of China is visible from the Moon with the naked eye.', answer:false,
+   why:'<b>False.</b> It is long but only a few meters wide, roughly the width of a road. From the Moon, even whole continents look small.'},
+  {id:'life-ifthen', cat:'life', type:'tip', title:'Plan habits as "when X, I will Y"', body:'Psychologist Peter Gollwitzer calls these implementation intentions. Tying a habit to a specific cue makes you noticeably more likely to follow through than a vague goal.',
+   challenge:'Write one: "When I open my laptop after lunch, I will do 10 minutes of my hardest task."'},
+  {id:'ai-temp', cat:'ai', type:'explainer', title:'How does an LLM write a sentence?', steps:[
+    {h:'Text becomes tokens', p:'Your words are split into tokens, chunks that average a bit less than one word in English.'},
+    {h:'Every next token gets a score', p:'The model scores every token in its vocabulary for how likely it is to come next, based on patterns from training.'},
+    {h:'Pick one, repeat', p:'It picks one, adds it to the text, and runs again. A whole answer is just this loop, one token at a time.'}],
+   aside:'Temperature controls the randomness of the pick. Low means safe and predictable, high means creative and riskier.'}
+];
+
+/* ---------- state ---------- */
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem('scrollwise') || '{}'); } catch(e){ return {}; } },
+  set(v){ try { localStorage.setItem('scrollwise', JSON.stringify(v)); } catch(e){} }
+};
+const saved0 = store.get();
+const S = Object.assign({xp:0, streak:1, lastDay:'', saved:[], liked:[], fewer:[]}, saved0);
+(function streak(){
+  const d = new Date(); const key = d.toLocaleDateString('en-CA');
+  const y = new Date(d - 864e5).toLocaleDateString('en-CA');
+  if (S.lastDay !== key){ S.streak = S.lastDay === y ? S.streak + 1 : 1; S.lastDay = key; }
+})();
+const session = {seen:new Set(), answered:0, correct:0, xp:0, queued:new Set()};
+let filter = 'all';
+const $ = s => document.querySelector(s);
+const feed = $('#feed');
+
+function persist(){ store.set(S); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function byId(id){ return DECK.find(c => c.id === id.replace(/-r$/,'')); }
+
+function renderStats(){
+  $('#xpN').textContent = S.xp; $('#streakN').textContent = S.streak; $('#savedN').textContent = S.saved.length;
+}
+function addXP(n, fromEl){
+  S.xp += n; session.xp += n; persist(); renderStats();
+  const pill = $('#xpPill').getBoundingClientRect();
+  const f = document.createElement('div'); f.className='float-xp'; f.textContent = '+'+n;
+  f.style.left = (pill.left + 6)+'px'; f.style.top = (pill.bottom + 4)+'px';
+  document.body.appendChild(f); setTimeout(()=>f.remove(), 900);
+}
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2200); }
+
+/* ---------- icons ---------- */
+const ICON = {
+  heart:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  save:'<svg viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  less:'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+};
+
+/* ---------- cards ---------- */
+function bodyFor(c){
+  switch(c.type){
+    case 'intro': return `<p class="eyebrow">Your 15-minute feed</p><h2 class="big">Swap the scroll for something that sticks.</h2>
+      <p class="lead">AI, how tech works, life skills, the world, and mental math. Answer quizzes for XP. Misses come back later so they stick.</p>
+      <p class="aside">Swipe up to start. Double-tap any card to like it.</p>`;
+    case 'quiz': return `<h2 class="q">${esc(c.q)}</h2><div class="opts">${c.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join('')}</div><p class="why" hidden>${c.why}</p>`;
+    case 'tf': return `<p class="eyebrow">True or false?</p><h2 class="q">${esc(c.statement)}</h2><div class="opts two"><button class="opt" data-v="true">True</button><button class="opt" data-v="false">False</button></div><p class="why" hidden>${c.why}</p>`;
+    case 'fact': return `<h2 class="big">${esc(c.title)}</h2><button class="btn reveal">Why?</button><p class="why" hidden>${esc(c.detail)}</p>`;
+    case 'explainer': return `<div class="segs">${c.steps.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><h2 class="q">${esc(c.title)}</h2>
+      <div class="step"><h3>${esc(c.steps[0].h)}</h3><p>${esc(c.steps[0].p)}</p></div>
+      <p class="aside" hidden>${esc(c.aside||'')}</p><button class="btn next" data-step="0">Next step</button>`;
+    case 'tip': return `<h2 class="big">${esc(c.title)}</h2><p class="lead">${esc(c.body)}</p>
+      <div class="challenge"><p class="eyebrow">Try it today</p><p>${esc(c.challenge)}</p><button class="btn accept">I'll try it</button></div>`;
+    case 'trick': return `<h2 class="big">${esc(c.title)}</h2><p class="lead">${esc(c.body)}</p>
+      <div class="example">${esc(c.example)}<small>With a carry: ${esc(c.example2)}</small></div>`;
+    case 'sprint': return `<h2 class="big">45-second math sprint</h2><p class="lead">Addition, ×11, percentages, and times tables. How many can you get?</p>
+      <div class="sprint" hidden><div class="timer"><i></i></div><div class="problem"><span class="expr"></span><span>=</span><span class="entry"></span></div><div class="score">0 correct</div>
+      <div class="keys">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join('')}<button data-k="del" aria-label="Delete">⌫</button><button data-k="0">0</button><button data-k="go" class="go" aria-label="Submit">✓</button></div></div>
+      <button class="btn start">Start sprint</button>`;
+    case 'summary': return `<p class="eyebrow">Session complete</p><h2 class="big">Nice. That beat Reels.</h2>
+      <div class="stats"><div class="stat"><b data-s="seen">0</b><span>cards</span></div><div class="stat"><b data-s="acc">–</b><span>quiz accuracy</span></div><div class="stat"><b data-s="xp">0</b><span>XP earned</span></div></div>
+      <p class="lead" data-s="note"></p>
+      <div class="actions"><button class="btn more">Another round</button><button class="btn ghost done">I'm done</button></div>`;
+  }
+}
+function cardEl(c){
+  const el = document.createElement('section');
+  el.className = `card c-${c.cat}`; el.dataset.id = c.id;
+  const showRail = !['intro','summary'].includes(c.type);
+  const base = c.id.replace(/-r$/,'');
+  el.innerHTML = `<div class="glow"></div><div class="content">
+    <div class="meta">${c.cat!=='intro'&&c.type!=='summary'?`<span class="tag">${CATS[c.cat]}</span>`:''}<span class="kind">${KIND[c.type]}</span>${c.review?'<span class="tag review">Review</span>':''}</div>
+    <div class="body">${bodyFor(c)}</div>${c.source?`<p class="source">Source: ${esc(c.source)}</p>`:''}</div>
+    ${showRail?`<div class="rail">
+      <button class="r-like ${S.liked.includes(base)?'liked':''}" aria-label="Like">${ICON.heart}<span>Like</span></button>
+      <button class="r-save ${S.saved.includes(base)?'on':''}" aria-label="Save">${ICON.save}<span>Save</span></button>
+      <button class="r-less" aria-label="Fewer like this">${ICON.less}<span>Fewer</span></button></div>`:''}`;
+  return el;
+}
+
+function buildRound(){
+  let cards = DECK.filter(c => c.type !== 'intro' && (filter==='all' || c.cat===filter));
+  if (filter==='all' && S.fewer.length){
+    // keep every other card from muted topics
+    const seenCount = {}; cards = cards.filter(c => { if(!S.fewer.includes(c.cat)) return true; seenCount[c.cat]=(seenCount[c.cat]||0)+1; return seenCount[c.cat]%2===1; });
+  }
+  return cards;
+}
+function build(first){
+  feed.innerHTML=''; session.seen.clear(); session.answered=0; session.correct=0; session.xp=0; session.queued.clear();
+  const list = (first && filter==='all' ? [DECK[0]] : []).concat(buildRound());
+  list.forEach(c => feed.appendChild(cardEl(c)));
+  feed.appendChild(cardEl({id:'summary', cat:'intro', type:'summary'}));
+  sizeCards(); observe(); feed.scrollTop = 0; updateProgress(0);
+}
+
+/* ---------- sizing + progress ---------- */
+function sizeCards(){ feed.style.setProperty('--card-h', feed.clientHeight+'px'); }
+window.addEventListener('resize', sizeCards);
+let current = 0, io;
+function observe(){
+  if (io) io.disconnect();
+  io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const cards = [...feed.children]; current = cards.indexOf(e.target);
+    const id = e.target.dataset.id; if (!['intro','summary'].includes(id)) session.seen.add(id);
+    updateProgress(current);
+    if (id === 'summary') fillSummary(e.target);
+  }), {root:feed, threshold:.6});
+  [...feed.children].forEach(c => io.observe(c));
+}
+function updateProgress(i){ const n = feed.children.length; $('#prog').style.width = (n ? ((i+1)/n)*100 : 0)+'%'; }
+function fillSummary(el){
+  const acc = session.answered ? Math.round(session.correct/session.answered*100)+'%' : '–';
+  el.querySelector('[data-s=seen]').textContent = session.seen.size;
+  el.querySelector('[data-s=acc]').textContent = acc;
+  el.querySelector('[data-s=xp]').textContent = session.xp;
+  const misses = session.answered - session.correct;
+  el.querySelector('[data-s=note]').textContent = misses ? `${misses} miss${misses>1?'es':''} will show up again as review cards so they stick.` : 'Clean sweep on the quizzes. Tomorrow\'s feed gets harder.';
+}
+
+/* ---------- review queue ---------- */
+function queueReview(c){
+  if (c.review || session.queued.has(c.id)) return;
+  session.queued.add(c.id);
+  const clone = Object.assign({}, c, {id:c.id+'-r', review:true});
+  const el = cardEl(clone); const cards = [...feed.children];
+  const target = cards[Math.min(current+4, cards.length-1)]; // summary is last
+  feed.insertBefore(el, target); io.observe(el); updateProgress(current);
+}
+
+/* ---------- math sprint ---------- */
+function rnd(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function makeProblem(){
+  const t = rnd(0,4);
+  if (t===0){ const a=rnd(18,89), b=rnd(14,79); return [`${a} + ${b}`, a+b]; }
+  if (t===1){ const a=rnd(12,89); return [`${a} × 11`, a*11]; }
+  if (t===2){ const p=[10,15,20,25,50][rnd(0,4)], q=rnd(2,20)*20; return [`${p}% of ${q}`, p*q/100]; }
+  if (t===3){ const a=rnd(12,25), b=rnd(3,9); return [`${a} × ${b}`, a*b]; }
+  const a=rnd(52,99), b=rnd(13,a-11); return [`${a} − ${b}`, a-b];
+}
+function startSprint(card){
+  const ui = card.querySelector('.sprint'); const btn = card.querySelector('.start');
+  ui.hidden = false; btn.hidden = true;
+  const sp = card._sprint = {score:0, entry:'', end:Date.now()+45000, p:makeProblem()};
+  const draw = () => { ui.querySelector('.expr').textContent = sp.p[0]; ui.querySelector('.entry').textContent = sp.entry || ' '; ui.querySelector('.score').textContent = sp.score+' correct'; };
+  draw();
+  sp.timer = setInterval(() => {
+    const left = Math.max(0, sp.end - Date.now());
+    ui.querySelector('.timer i').style.transform = `scaleX(${left/45000})`;
+    if (!left){ clearInterval(sp.timer); finishSprint(card); }
+  }, 250);
+  sp.draw = draw;
+}
+function sprintKey(card, k){
+  const sp = card._sprint; if (!sp || sp.done) return;
+  const prob = card.querySelector('.problem');
+  if (k==='del') sp.entry = sp.entry.slice(0,-1);
+  else if (k==='go'){
+    if (!sp.entry) return;
+    if (Number(sp.entry) === sp.p[1]){ sp.score++; prob.classList.add('ok'); addXP(3); setTimeout(()=>{prob.classList.remove('ok'); sp.p = makeProblem(); sp.entry=''; sp.draw();}, 220); sp.draw(); return; }
+    prob.classList.remove('no'); void prob.offsetWidth; prob.classList.add('no'); sp.entry='';
+  } else if (sp.entry.length < 5) sp.entry += k;
+  sp.draw();
+}
+function finishSprint(card){
+  const sp = card._sprint; sp.done = true;
+  const ui = card.querySelector('.sprint');
+  ui.innerHTML = `<p class="big">${sp.score} correct</p><p class="lead">${sp.score>=10?'Fast. Try to beat it tomorrow.':'Do this daily and watch the number climb.'}</p><button class="btn again">Go again</button>`;
+}
+
+/* ---------- interactions ---------- */
+let lastTap = {t:0, el:null};
+feed.addEventListener('click', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const id = card.dataset.id; const data = id==='summary' ? null : (id==='intro'?DECK[0]:byId(id));
+  const b = e.target.closest('button');
+
+  if (!b){ // double tap to like
+    const now = Date.now();
+    if (lastTap.el === card && now - lastTap.t < 320 && data && data.type!=='intro'){ like(card, true, e); lastTap = {t:0, el:null}; }
+    else lastTap = {t:now, el:card};
+    return;
+  }
+  if (b.classList.contains('opt')){
+    const body = card.querySelector('.body'); if (body.classList.contains('answered')) return;
+    body.classList.add('answered');
+    const right = data.type==='quiz' ? Number(b.dataset.i)===data.answer : (b.dataset.v==='true')===data.answer;
+    const opts = [...card.querySelectorAll('.opt')];
+    if (data.type==='quiz') opts[data.answer].classList.add('right'); else opts.find(o=>(o.dataset.v==='true')===data.answer).classList.add('right');
+    if (!right) b.classList.add('wrong');
+    card.querySelector('.why').hidden = false;
+    session.answered++; if (right){ session.correct++; addXP(card.querySelector('.review')?15:10); } else { addXP(2); queueReview(Object.assign({}, data, {id:id.replace(/-r$/,'')})); }
+  }
+  else if (b.classList.contains('reveal')){ card.querySelector('.why').hidden=false; b.hidden=true; addXP(2); }
+  else if (b.classList.contains('next')){
+    let s = Number(b.dataset.step)+1;
+    if (s >= data.steps.length){ b.disabled = true; b.textContent='Got it'; addXP(5); return; }
+    b.dataset.step = s;
+    card.querySelectorAll('.segs i').forEach((seg,i)=>seg.classList.toggle('on', i<=s));
+    card.querySelector('.step').innerHTML = `<h3>${esc(data.steps[s].h)}</h3><p>${esc(data.steps[s].p)}</p>`;
+    if (s === data.steps.length-1){ card.querySelector('.aside').hidden = !data.aside; b.textContent = 'Got it'; }
+  }
+  else if (b.classList.contains('accept')){ b.disabled = true; b.textContent = 'Added to today'; addXP(5); }
+  else if (b.classList.contains('start')) startSprint(card);
+  else if (b.dataset.k) sprintKey(card, b.dataset.k);
+  else if (b.classList.contains('again')){
+    const ui = card.querySelector('.sprint'); const fresh = cardEl(byId('math-sprint'));
+    ui.replaceWith(fresh.querySelector('.sprint')); card._sprint = null; startSprint(card);
+  }
+  else if (b.classList.contains('r-like')) like(card, !b.classList.contains('liked'));
+  else if (b.classList.contains('r-save')) toggleSave(card, b);
+  else if (b.classList.contains('r-less')){
+    if (!S.fewer.includes(data.cat)) S.fewer.push(data.cat); persist();
+    toast(`You'll see fewer ${CATS[data.cat]} cards next round.`);
+  }
+  else if (b.classList.contains('more')) build(false);
+  else if (b.classList.contains('done')){ b.closest('.actions').innerHTML = '<p class="lead">See you tomorrow. Your streak is safe.</p>'; }
+});
+
+function like(card, on, e){
+  const base = card.dataset.id.replace(/-r$/,''); const btn = card.querySelector('.r-like');
+  S.liked = S.liked.filter(x=>x!==base); if (on) S.liked.push(base); persist();
+  if (btn) btn.classList.toggle('liked', on);
+  if (on && e){
+    const r = card.getBoundingClientRect(); const h = document.createElement('div'); h.className='heart';
+    h.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="currentColor"/></svg>';
+    h.style.left = (e.clientX - r.left)+'px'; h.style.top = (e.clientY - r.top)+'px';
+    card.appendChild(h); setTimeout(()=>h.remove(), 700);
+  }
+}
+function toggleSave(card, b){
+  const base = card.dataset.id.replace(/-r$/,''); const on = !S.saved.includes(base);
+  S.saved = S.saved.filter(x=>x!==base); if (on) S.saved.push(base); persist();
+  b.classList.toggle('on', on); renderStats(); toast(on ? 'Saved' : 'Removed from saved');
+}
+
+/* ---------- saved sheet + chips ---------- */
+function titleOf(c){ return c.q || c.statement || c.title || 'Math sprint'; }
+$('#savedBtn').addEventListener('click', () => {
+  const list = $('#savedList');
+  list.innerHTML = S.saved.length ? S.saved.map(id => { const c = byId(id); return c ? `<li><span>${CATS[c.cat]}</span>${esc(titleOf(c))}</li>` : ''; }).join('') : '<li class="empty">Tap the bookmark on any card to keep it here.</li>';
+  $('#sheet').hidden = false;
+});
+$('#closeSheet').addEventListener('click', () => $('#sheet').hidden = true);
+
+const chips = $('#chips');
+chips.innerHTML = Object.entries(CATS).map(([k,v]) => `<button class="chip" data-f="${k}" aria-pressed="${k==='all'}">${v}</button>`).join('');
+chips.addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  filter = b.dataset.f; chips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c===b));
+  build(false);
+});
+
+renderStats(); persist(); build(true);
+</script>
