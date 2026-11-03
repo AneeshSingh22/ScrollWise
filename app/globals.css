@@ -35,15 +35,27 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .app{display:flex;flex-direction:column;height:100%}
 
 /* Header */
-.top{flex:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);background:var(--ground);position:relative;z-index:5}
+/* CHANGED (Phase 1): added the top safe-area inset. Installed to the home
+   screen with status-bar-style black-translucent, iOS draws the status bar
+   over the page, so without this the header sits under the notch / Dynamic
+   Island — unreadable and hard to tap. In the browser the inset is 0 and
+   this is exactly the prototype's 10px. */
+.top{flex:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);background:var(--ground);position:relative;z-index:5}
 .row{display:flex;align-items:center;gap:10px}
 .mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin-right:auto}
 .mark span{color:var(--gold)}
-.pill{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:0}
+/* CHANGED (Phase 1): same tap-target fix as .chip. The saved pill is a
+   button, so it needs a real target; the streak and XP pills match it
+   so the row stays even. */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:0;min-height:38px}
 .pill svg{width:15px;height:15px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-2px;padding-inline:2px}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600;color:var(--ink-dim)}
+/* CHANGED (Phase 1): 6px vertical padding gave a ~27px tap target, well
+   under the 44px iOS minimum — the chips were hard to hit on a phone.
+   Padding goes to 10px and the row keeps its look; the pill shape and
+   type are the prototype's. */
+.chip{flex:none;border:1px solid var(--line);background:transparent;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--ink-dim);min-height:40px;display:inline-flex;align-items:center}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
 .progress{position:absolute;left:0;right:0;bottom:-1px;height:2px;background:transparent}
 .progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s ease}
