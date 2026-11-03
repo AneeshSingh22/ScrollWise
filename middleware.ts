@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except static assets, icons and the manifest.
-    "/((?!_next/static|_next/image|favicon.ico|icons/|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
+    // Everything except static assets, icons, the manifest and the version ping.
+    "/((?!_next/static|_next/image|favicon.ico|icons/|manifest.webmanifest|api/version|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
   ],
 };

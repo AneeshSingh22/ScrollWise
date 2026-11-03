@@ -216,6 +216,20 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .day-topic em.missed{background:transparent;color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 60%,transparent)}
 .day-prog{flex:none;margin-left:auto;font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink-dim)}
 
+/* ADDED: "Learn anything" box on the course screen. The input mirrors .opt
+   (radius, hairline border, faint fill). Cards set user-select:none, which
+   stops iOS Safari from focusing inputs, so the input turns it back on. 16px
+   text keeps iOS from zooming the page when the field is tapped. */
+.ask .aside{margin:0}
+.ask-input{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);font:inherit;font-size:16px;-webkit-user-select:text;user-select:text}
+.ask-input::placeholder{color:var(--ink-dim)}
+.ask-input:focus{outline:none;border-color:var(--acc)}
+.ask .btn[disabled]{opacity:.45}
+
+/* ADDED: "New content is live" banner, the toast's look as a button, sitting
+   above the regular toast so the two never overlap. */
+.toast.update{border:0;bottom:calc(72px + env(safe-area-inset-bottom,0px));background:var(--gold);color:#3a2a00;cursor:pointer}
+
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
 .stat b{display:block;font-family:var(--font-mono);font-size:24px;font-variant-numeric:tabular-nums}

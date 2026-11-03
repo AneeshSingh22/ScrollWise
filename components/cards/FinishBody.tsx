@@ -3,10 +3,10 @@
 import { useState } from "react";
 import {
   DAYS,
-  dayByNumber,
   dayProgress,
   lessonById,
   nextLesson,
+  unitOfLesson,
 } from "@/lib/curriculum";
 import type { SessionStats } from "./SummaryBody";
 
@@ -41,13 +41,15 @@ export function FinishBody({
   const [closed, setClosed] = useState(false);
 
   const lesson = lessonById(lessonId);
-  const day = lesson ? dayByNumber(lesson.day) : undefined;
+  const unit = unitOfLesson(lessonId);
   const next = nextLesson(lessonId);
+  const nextUnit = next ? unitOfLesson(next.id) : undefined;
   // Count this lesson as done even if the profile write hasn't landed yet.
   const doneNow = done.includes(lessonId) ? done : [...done, lessonId];
-  const dayDone = day ? dayProgress(day, doneNow) : 0;
-  const dayComplete = !!day && dayDone === day.lessons.length;
-  const courseComplete = DAYS.every((d) => dayProgress(d, doneNow) === d.lessons.length);
+  const unitDone = unit ? dayProgress(unit, doneNow) : 0;
+  const unitComplete = !!unit && unitDone === unit.lessons.length;
+  const courseComplete =
+    unit?.kind === "day" && DAYS.every((d) => dayProgress(d, doneNow) === d.lessons.length);
 
   const accuracy = stats.answered
     ? Math.round((stats.correct / stats.answered) * 100)
@@ -56,7 +58,8 @@ export function FinishBody({
   return (
     <div className="body">
       <p className="eyebrow">
-        {day ? `Day ${day.day} · ${day.topic}` : "Lesson"} · {dayDone}/{day?.lessons.length ?? 4}
+        {unit ? (unit.kind === "day" ? `Day ${unit.day} · ${unit.topic}` : unit.topic) : "Lesson"} ·{" "}
+        {unitDone}/{unit?.lessons.length ?? 4}
       </p>
       <h2 className="big">{praise(accuracy, stats.answered)}</h2>
 
@@ -79,10 +82,10 @@ export function FinishBody({
         <p className="lead">
           That was the last lesson of all {DAYS.length} days. You just finished the whole course.
         </p>
-      ) : dayComplete ? (
+      ) : unitComplete ? (
         <p className="lead">
-          That&apos;s all of Day {day!.day}. You now know more about {day!.topic.toLowerCase()} than
-          most people who use it every day.
+          {unit!.kind === "day" ? `That's all of Day ${unit!.day}. ` : "Topic complete. "}You now know
+          more about {unit!.topic.toLowerCase()} than most people ever will.
         </p>
       ) : (
         <p className="lead">
@@ -107,7 +110,9 @@ export function FinishBody({
       <div className="actions">
         {next && (
           <button className="btn ghost" onClick={() => onNext(next.id)}>
-            {next.day === lesson?.day ? `Next: ${next.title}` : `Start Day ${next.day}: ${dayByNumber(next.day)?.topic}`}
+            {next.unit === lesson?.unit
+              ? `Next: ${next.title}`
+              : `Start Day ${nextUnit?.day}: ${nextUnit?.topic}`}
           </button>
         )}
         <button className="btn ghost" onClick={onCourse}>

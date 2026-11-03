@@ -11,7 +11,11 @@ import {
   nextLesson,
   resumeLesson,
   todayDayNumber,
+  TOPICS,
+  unitByKey,
+  unitOfLesson,
 } from "@/lib/curriculum";
+import { claudeCodeUrl, GITHUB_REPO } from "@/lib/constants";
 import { DECK } from "@/lib/deck";
 import { isAnswerable } from "@/types/card";
 
@@ -182,5 +186,49 @@ describe("lessons and progress", () => {
     const d1 = dayByNumber(1)!;
     expect(resumeLesson(d1, ["d01-l1"]).id).toBe("d01-l2");
     expect(resumeLesson(d1, ["d01-l1", "d01-l2", "d01-l3", "d01-l4"]).id).toBe("d01-l1");
+  });
+});
+
+describe("custom topics", () => {
+  it("loads the quantum computing topic under Your topics", () => {
+    const q = TOPICS.find((t) => t.slug === "quantum-computing");
+    expect(q?.kind).toBe("topic");
+    expect(q?.lessons).toHaveLength(4);
+    expect(q?.lessons[0].cards[0].id).toBe("t-quantum-computing-l1-c1");
+  });
+
+  it("keeps topic lessons out of the 30-day course", () => {
+    expect(DAYS.every((d) => d.kind === "day")).toBe(true);
+    expect(DAYS.flatMap((d) => d.lessons).some((l) => l.id.startsWith("t-"))).toBe(false);
+  });
+
+  it("ends a topic after its last lesson instead of jumping to a course day", () => {
+    expect(nextLesson("t-quantum-computing-l1")?.id).toBe("t-quantum-computing-l2");
+    expect(nextLesson("t-quantum-computing-l4")).toBeUndefined();
+  });
+
+  it("finds a topic lesson's unit", () => {
+    expect(unitOfLesson("t-quantum-computing-l2")?.key).toBe("topic-quantum-computing");
+    expect(unitByKey("day-1")?.topic).toBe("Transformers");
+  });
+
+  it("builds a topic lesson the same way as a course lesson", () => {
+    const built = buildLesson("t-quantum-computing-l1");
+    expect(built[built.length - 1].type).toBe("summary");
+  });
+});
+
+describe("Claude Code hand-off link", () => {
+  it("pre-fills the prompt and selects the repo", () => {
+    const url = new URL(claudeCodeUrl("/new-topic Roman Empire & Rome"));
+    expect(url.origin + url.pathname).toBe("https://claude.ai/code");
+    expect(url.searchParams.get("prompt")).toBe("/new-topic Roman Empire & Rome");
+    expect(url.searchParams.get("repositories")).toBe(GITHUB_REPO);
+  });
+
+  it("opens with just the repo when there's no prompt", () => {
+    const url = new URL(claudeCodeUrl("  "));
+    expect(url.searchParams.has("prompt")).toBe(false);
+    expect(url.searchParams.get("repositories")).toBe(GITHUB_REPO);
   });
 });

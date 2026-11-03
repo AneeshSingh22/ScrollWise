@@ -1,0 +1,69 @@
+{
+  "slug": "quantum-computing",
+  "topic": "Quantum computing",
+  "cat": "tech",
+  "blurb": "How qubits really work, what quantum computers can and can't do, and why error correction decides everything.",
+  "created": "2026-11-03",
+  "lessons": [
+    {
+      "title": "Why qubits are different",
+      "cards": [
+        { "type": "explainer", "title": "Bits, qubits and interference", "steps": [
+          { "h": "Classical bits", "p": "A normal bit is 0 or 1. Every app, photo and website is ultimately billions of these tiny switches." },
+          { "h": "Qubits hold a blend", "p": "A qubit can be in a superposition of 0 and 1, described by two amplitudes. Measuring it forces a definite 0 or 1." },
+          { "h": "The trick is interference", "p": "Algorithms arrange amplitudes so wrong answers cancel and right answers reinforce, like waves. That only works for problems with special structure." }
+        ], "aside": "The popular line that a quantum computer \"tries every answer at once\" is wrong — you only ever read out one result." },
+        { "type": "quiz", "q": "You measure a qubit that is in superposition. What do you get?", "options": ["Both 0 and 1 at once", "A single 0 or 1, with odds set by its amplitudes", "A number between 0 and 1", "An error message"], "answer": 1, "why": "<b>One definite bit.</b> Measurement returns 0 or 1 at random, with probabilities from the squared amplitudes. You can't read out the whole superposition, which is why algorithms need clever interference." },
+        { "type": "tf", "statement": "A quantum computer speeds up any problem by trying all possible answers in parallel.", "answer": false, "why": "<b>False.</b> Measurement gives only one outcome. Speedups come from interference that boosts correct answers, which works only for problems with particular structure, like factoring or simulating molecules." },
+        { "type": "quiz", "q": "How many amplitudes does it take to fully describe the state of 50 qubits?", "options": ["50", "100", "About 2,500", "About a quadrillion (2⁵⁰)"], "answer": 3, "why": "<b>2⁵⁰, about 10¹⁵.</b> The state of n qubits needs 2ⁿ amplitudes. That exponential growth is why ordinary computers struggle to simulate even modest quantum machines." },
+        { "type": "fact", "title": "Richard Feynman proposed quantum computers in 1981 to simulate nature — not to break codes.", "detail": "He argued that nature is quantum mechanical, so simulating it efficiently needs a quantum machine. The code-breaking angle arrived in 1994 with Peter Shor's factoring algorithm." },
+        { "type": "tf", "statement": "Entangled qubits can be used to send messages faster than light.", "answer": false, "why": "<b>False.</b> Entangled qubits give correlated results, but each side's outcomes alone look random. No usable information moves until the results are compared over an ordinary channel." }
+      ]
+    },
+    {
+      "title": "How qubits are built",
+      "cards": [
+        { "type": "explainer", "title": "Making a qubit in the real world", "steps": [
+          { "h": "Many competing designs", "p": "Superconducting circuits, trapped ions, neutral atoms and photons are all serious ways to build qubits, each backed by major companies and labs." },
+          { "h": "Extreme isolation", "p": "Superconducting qubits sit in refrigerators at around 10 to 20 thousandths of a degree above absolute zero, to silence heat and noise." },
+          { "h": "Decoherence is the enemy", "p": "Any stray interaction with the surroundings scrambles a qubit's state. Depending on the design, qubits hold it for microseconds up to seconds." }
+        ], "aside": "Every qubit design trades speed, quality and how easily it scales up." },
+        { "type": "quiz", "q": "Roughly how cold are superconducting quantum chips kept?", "options": ["Room temperature", "About −80°C, like a lab freezer", "About 4 K, like liquid helium", "About 0.01 K — colder than deep space"], "answer": 3, "why": "<b>Around 10–20 millikelvin.</b> Deep space sits near 2.7 K. That extreme cold keeps the circuits superconducting and quiets the thermal noise that destroys quantum states." },
+        { "type": "quiz", "q": "In quantum computing, \"decoherence\" means…", "options": ["Qubits overheating and melting", "A qubit losing its quantum state through contact with its surroundings", "Two qubits becoming entangled", "The control software crashing"], "answer": 1, "why": "<b>Quantum information leaking away.</b> Heat, vibration and stray fields disturb the fragile superposition. A computation must finish, or be error-corrected, before decoherence wins." },
+        { "type": "tf", "statement": "Trapped-ion quantum computers use individual charged atoms held in place by electric fields.", "answer": true, "why": "<b>True.</b> Ions are trapped by electric fields and controlled with lasers. Every ion of an element is identical, giving very uniform qubits, though their operations run slower than superconducting ones." },
+        { "type": "fact", "title": "In 2019, Google said its Sycamore chip did in 200 seconds what a supercomputer would need 10,000 years for.", "detail": "IBM disputed the estimate, arguing it would take days, and later classical methods narrowed the gap further. The task was a benchmark with no practical use." },
+        { "type": "quiz", "q": "Which of these is NOT one of the leading ways to build qubits today?", "options": ["Superconducting circuits", "Trapped ions", "Neutral atoms held by lasers", "Vacuum tubes"], "answer": 3, "why": "<b>Vacuum tubes.</b> They powered 1940s classical computers. Today's qubit contenders are superconducting circuits, trapped ions, neutral atoms, photons and electron spins in silicon." }
+      ]
+    },
+    {
+      "title": "What quantum computers could do",
+      "cards": [
+        { "type": "explainer", "title": "Where the speedups are", "steps": [
+          { "h": "Breaking some encryption", "p": "Shor's algorithm factors large numbers dramatically faster than any known classical method, threatening RSA and other widely used public-key encryption." },
+          { "h": "Faster search, modestly", "p": "Grover's algorithm searches unstructured data in about √N steps instead of N — a quadratic speedup, not an exponential one." },
+          { "h": "Simulating molecules", "p": "Chemistry and materials are quantum systems, so quantum computers may model them directly — the use Feynman originally imagined." }
+        ], "aside": "Everyday software like email, spreadsheets or video gains nothing from a quantum computer." },
+        { "type": "quiz", "q": "With Grover's algorithm, roughly how many steps does it take to search 1,000,000 unsorted items?", "options": ["About 1,000,000", "About 500,000", "About 1,000", "About 20"], "answer": 2, "why": "<b>About 1,000.</b> Grover needs roughly √N queries, and √1,000,000 is 1,000. In practice, error-correction overheads eat much of that gain." },
+        { "type": "tf", "statement": "A powerful quantum computer would make all encryption useless.", "answer": false, "why": "<b>False.</b> Shor's algorithm threatens public-key schemes like RSA. Symmetric encryption such as AES mainly needs longer keys, and quantum-resistant public-key methods already exist." },
+        { "type": "fact", "title": "In 2024, the US standards body NIST published its first encryption standards designed to resist quantum computers.", "detail": "They include ML-KEM for exchanging keys and ML-DSA for digital signatures, built on lattice math believed to withstand quantum attacks. Organizations are migrating now." },
+        { "type": "quiz", "q": "What does \"harvest now, decrypt later\" refer to?", "options": ["Attackers storing encrypted data today to decrypt once quantum computers are strong enough", "Farming robots that use quantum sensors", "Backing up data to quantum memory", "Mining cryptocurrency with qubits"], "answer": 0, "why": "<b>Store now, crack later.</b> Secrets that must stay private for decades are already at risk, which is why governments push post-quantum migration years before a capable machine exists." },
+        { "type": "tf", "statement": "Grover's search algorithm gives an exponential speedup over classical search.", "answer": false, "why": "<b>False.</b> It's quadratic: about √N steps instead of N. Useful, but far smaller than Shor's advantage for factoring, and often erased by real-world overheads." }
+      ]
+    },
+    {
+      "title": "Errors, hype and the road ahead",
+      "cards": [
+        { "type": "explainer", "title": "Why error correction is the whole game", "steps": [
+          { "h": "Physical qubits are noisy", "p": "Even the best operations still fail roughly once every few hundred to few thousand tries — far too often for long algorithms." },
+          { "h": "Spread one qubit across many", "p": "Error-correcting codes encode one reliable logical qubit in many physical qubits, and continually catch errors without disturbing the stored data." },
+          { "h": "Cross the threshold", "p": "Below a certain physical error rate, adding more qubits makes the logical qubit better rather than worse. Google demonstrated this with its Willow chip in 2024." }
+        ], "aside": "Useful machines will likely need thousands of logical qubits, each built from many physical ones." },
+        { "type": "quiz", "q": "By recent estimates, roughly how many physical qubits might it take to break 2048-bit RSA encryption?", "options": ["About 50", "About 1,000", "Around a million", "About a trillion"], "answer": 2, "why": "<b>Around a million.</b> A 2025 Google estimate put it under a million noisy qubits running for about a week. Today's machines are far smaller and noisier." },
+        { "type": "tf", "statement": "A quantum computer with more qubits is always more powerful than one with fewer.", "answer": false, "why": "<b>False.</b> Quality matters as much as quantity: error rates, connectivity and how long qubits stay coherent. A few hundred excellent qubits can beat thousands of noisy ones." },
+        { "type": "fact", "title": "Several \"beyond any supercomputer\" quantum results were later matched or approached by cleverer classical methods.", "detail": "Better simulation techniques keep raising the bar, so claims of quantum advantage are now judged on whether the task is useful and whether classical experts have tried to beat it." },
+        { "type": "quiz", "q": "What does NISQ, the name for today's era of quantum computing, stand for?", "options": ["Noisy Intermediate-Scale Quantum", "New International Standard for Qubits", "Non-Interfering Superposition Qubits", "Networked Ion Superconducting Quantum"], "answer": 0, "why": "<b>Noisy Intermediate-Scale Quantum.</b> Physicist John Preskill coined it in 2018 for machines with tens to thousands of imperfect qubits and no full error correction." },
+        { "type": "tip", "title": "Run quantum headlines through three questions", "body": "Is the task actually useful? Are the qubits error-corrected? Has anyone tried hard to beat it on a classical computer? Most \"breakthroughs\" fail at least one.", "challenge": "Find one quantum computing headline from this month and check it against those three questions." }
+      ]
+    }
+  ]
+}

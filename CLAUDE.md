@@ -11,3 +11,4 @@
 - Write Vitest tests for procedural generators, the session builder, spaced repetition, and XP/streak logic.
 - Commit after each working step with clear messages. Keep .env.local in .gitignore.
 - If you need an account, key, or click in a website from me (GitHub, Vercel, Supabase), stop and give me numbered steps.
+- New learning topics: when asked for a new topic or lessons on a subject (often via "/new-topic <topic>" from the app's "Make it with Claude" button, in a cloud session on my phone), follow `.claude/skills/new-topic/SKILL.md` exactly: write `data/topics/<slug>.json`, do the checker pass, run `npm run content`, `npm test` and `npm run typecheck`, then push to main so Vercel deploys. Keep the reply short — I'm on my phone.

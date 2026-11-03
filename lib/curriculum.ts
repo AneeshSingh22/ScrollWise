@@ -1,25 +1,28 @@
 import type { Card, Category, SummaryCard } from "@/types/card";
 import { dayKey } from "./store";
 import { RAW_DAYS } from "./curriculum-data";
+import { RAW_TOPICS } from "./topics-data";
 import { shuffleQuiz } from "./shuffle";
 
 /**
- * The 30-day AI course: one topic per day, four lessons per day.
+ * Learning content, organized as units of lessons. There are two kinds:
  *
- * Day files (data/curriculum/day-NN.json) hold only content. This module fills
- * in the bookkeeping — lesson and card ids, category, difficulty — so a file
- * cannot get an id wrong, and every card id is stable for saving and reviews.
+ * - Course days: the 30-day AI course (data/curriculum/day-NN.json), one topic
+ *   per day, four lessons each. "Today" is computed from COURSE_START in local
+ *   time; every day stays open.
+ * - Custom topics: anything you ask for with /new-topic (data/topics/*.json),
+ *   shown under "Your topics".
  *
- * Every day is always open. "Today" is just the suggested day, computed from
- * COURSE_START in local time; missed days stay in the course list.
+ * Content files hold only content. This module fills in ids, category and
+ * difficulty, so a file can't get an id wrong and every card id is stable for
+ * saving and reviews. scripts/build-indexes.ts validates the files first.
  */
 
 export const COURSE_START = "2026-11-03";
 export const LESSONS_PER_DAY = 4;
 
-/** A card as written in a day file: no id or category yet. */
+/** A card as written in a content file: no id or category yet. */
 export type RawCard = Omit<Card, "id" | "cat"> & { cat?: Category; id?: string };
-
 export type RawLesson = { title: string; cards: RawCard[] };
 
 export type RawDay = {
@@ -31,39 +34,57 @@ export type RawDay = {
   lessons: RawLesson[];
 };
 
+export type RawTopic = Omit<RawDay, "day"> & { created: string };
+
 export type Lesson = {
   id: string;
-  /** 1-based position within its day. */
+  /** 1-based position within its unit. */
   n: number;
-  day: number;
+  /** Key of the unit this lesson belongs to. */
+  unit: string;
   title: string;
   cards: Card[];
 };
 
-export type Day = {
-  day: number;
+export type Unit = {
+  /** "day-1" or "topic-quantum-computing". */
+  key: string;
+  kind: "day" | "topic";
+  /** Course day number; undefined for custom topics. */
+  day?: number;
   slug: string;
   topic: string;
   cat: Category;
   blurb: string;
+  created?: string;
   lessons: Lesson[];
 };
 
+/** Back-compat name: a course day is a unit with a day number. */
+export type Day = Unit & { day: number };
+
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export function normalizeDay(raw: RawDay): Day {
+function buildUnit(
+  key: string,
+  idPrefix: string,
+  raw: Omit<RawTopic, "created"> & { created?: string },
+  extra: Pick<Unit, "kind" | "day">,
+): Unit {
   return {
-    day: raw.day,
+    key,
+    ...extra,
     slug: raw.slug,
     topic: raw.topic,
     cat: raw.cat,
     blurb: raw.blurb,
+    created: raw.created,
     lessons: raw.lessons.map((l, li) => {
-      const id = `d${pad(raw.day)}-l${li + 1}`;
+      const id = `${idPrefix}-l${li + 1}`;
       return {
         id,
         n: li + 1,
-        day: raw.day,
+        unit: key,
         title: l.title,
         cards: l.cards.map((c, ci) =>
           shuffleQuiz({
@@ -78,25 +99,58 @@ export function normalizeDay(raw: RawDay): Day {
   };
 }
 
+export function normalizeDay(raw: RawDay): Day {
+  return buildUnit(`day-${raw.day}`, `d${pad(raw.day)}`, raw, {
+    kind: "day",
+    day: raw.day,
+  }) as Day;
+}
+
+export function normalizeTopic(raw: RawTopic): Unit {
+  return buildUnit(`topic-${raw.slug}`, `t-${raw.slug}`, raw, { kind: "topic" });
+}
+
 export const DAYS: Day[] = RAW_DAYS.map(normalizeDay).sort((a, b) => a.day - b.day);
 
-export const ALL_LESSONS: Lesson[] = DAYS.flatMap((d) => d.lessons);
+/** Custom topics, newest first. */
+export const TOPICS: Unit[] = RAW_TOPICS.map(normalizeTopic).sort((a, b) =>
+  (b.created ?? "").localeCompare(a.created ?? "") || a.topic.localeCompare(b.topic),
+);
+
+export const UNITS: Unit[] = [...DAYS, ...TOPICS];
+export const ALL_LESSONS: Lesson[] = UNITS.flatMap((u) => u.lessons);
 
 export function dayByNumber(n: number): Day | undefined {
   return DAYS.find((d) => d.day === n);
+}
+
+export function unitByKey(key: string): Unit | undefined {
+  return UNITS.find((u) => u.key === key);
 }
 
 export function lessonById(id: string): Lesson | undefined {
   return ALL_LESSONS.find((l) => l.id === id);
 }
 
-/** The lesson after this one: next in the day, else the first of the next day. */
-export function nextLesson(id: string): Lesson | undefined {
-  const i = ALL_LESSONS.findIndex((l) => l.id === id);
-  return i >= 0 ? ALL_LESSONS[i + 1] : undefined;
+export function unitOfLesson(id: string): Unit | undefined {
+  const l = lessonById(id);
+  return l ? unitByKey(l.unit) : undefined;
 }
 
-/** Every course card, for looking a saved card up by id. */
+/**
+ * The lesson after this one: the next in its unit; after a course day's last
+ * lesson, the next day's first. A custom topic ends after its last lesson.
+ */
+export function nextLesson(id: string): Lesson | undefined {
+  const unit = unitOfLesson(id);
+  if (!unit) return undefined;
+  const i = unit.lessons.findIndex((l) => l.id === id);
+  if (unit.lessons[i + 1]) return unit.lessons[i + 1];
+  if (unit.kind === "day" && unit.day) return dayByNumber(unit.day + 1)?.lessons[0];
+  return undefined;
+}
+
+/** Every content card, for looking a saved card up by id. */
 export function courseCardById(id: string): Card | undefined {
   for (const l of ALL_LESSONS) {
     const c = l.cards.find((x) => x.id === id);
@@ -127,12 +181,12 @@ export function buildLesson(id: string): Card[] {
   return [...l.cards, finish];
 }
 
-/** Lessons finished out of a day's four. */
-export function dayProgress(day: Day, done: string[]): number {
-  return day.lessons.filter((l) => done.includes(l.id)).length;
+/** Lessons finished in a unit. */
+export function dayProgress(unit: Unit, done: string[]): number {
+  return unit.lessons.filter((l) => done.includes(l.id)).length;
 }
 
-/** The first unfinished lesson of a day, or its first lesson if all are done. */
-export function resumeLesson(day: Day, done: string[]): Lesson {
-  return day.lessons.find((l) => !done.includes(l.id)) ?? day.lessons[0];
+/** The first unfinished lesson of a unit, or its first lesson if all are done. */
+export function resumeLesson(unit: Unit, done: string[]): Lesson {
+  return unit.lessons.find((l) => !done.includes(l.id)) ?? unit.lessons[0];
 }

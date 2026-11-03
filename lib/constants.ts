@@ -49,3 +49,17 @@ export function levelFor(xp: number): number {
 }
 
 export const SPRINT_MS = 45_000;
+
+/**
+ * Claude Code hand-off: the course screen's "Make it with Claude" button opens
+ * a Claude Code cloud session on this repo with the prompt pre-filled
+ * (claude.ai/code supports ?prompt= and ?repositories=). The session runs the
+ * repo's /new-topic skill, validates, and pushes to main; Vercel deploys.
+ */
+export const GITHUB_REPO = "AneeshSingh22/ScrollWise";
+
+export function claudeCodeUrl(prompt: string): string {
+  const params = new URLSearchParams({ repositories: GITHUB_REPO });
+  if (prompt.trim()) params.set("prompt", prompt.trim());
+  return `https://claude.ai/code?${params.toString()}`;
+}

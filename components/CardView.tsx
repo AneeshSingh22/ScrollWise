@@ -29,8 +29,8 @@ export type CardCallbacks = {
   onSave: (card: Card) => void;
   onFewer: (card: Card) => void;
   onAnother: () => void;
-  /** Course: open a day on the course screen. */
-  onSelectDay: (day: number) => void;
+  /** Course: show a course day or custom topic on the course screen. */
+  onSelectUnit: (key: string) => void;
   /** Course: start (or replay) a lesson. */
   onStartLesson: (lessonId: string) => void;
   /** Course: back to the course screen. */
@@ -40,8 +40,8 @@ export type CardCallbacks = {
 /** Course context for the course screen and the end-of-lesson card. */
 export type LearnContext = {
   today: number | null;
-  /** Day shown on the course screen; null means today. */
-  selectedDay: number | null;
+  /** Unit shown on the course screen; null means today's course day. */
+  selectedUnit: string | null;
   /** The running lesson, when one is open. */
   lessonId: string | null;
   done: string[];
@@ -170,9 +170,9 @@ function Body({
       return learn ? (
         <LearnBody
           today={learn.today}
-          selected={learn.selectedDay}
+          selected={learn.selectedUnit}
           done={learn.done}
-          onSelectDay={cb.onSelectDay}
+          onSelectUnit={cb.onSelectUnit}
           onStartLesson={cb.onStartLesson}
         />
       ) : (

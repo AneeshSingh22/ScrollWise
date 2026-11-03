@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CATS, XP, type Filter } from "@/lib/constants";
 import { buildLesson, dayByNumber, dayProgress, todayDayNumber } from "@/lib/curriculum";
+import { useUpdateAvailable } from "@/lib/useUpdateAvailable";
 import { baseId, buildSession } from "@/lib/deck";
 import { useProfile } from "@/lib/useProfile";
 import type { Card, IntroCard } from "@/types/card";
@@ -20,7 +21,7 @@ type Float = { id: number; amount: number; left: number; top: number };
  * - feed:   the open-ended scroll feed for a topic chip
  */
 type Mode =
-  | { kind: "course"; day: number | null }
+  | { kind: "course"; unit: string | null }
   | { kind: "lesson"; id: string }
   | { kind: "feed" };
 
@@ -50,7 +51,9 @@ export function Feed() {
   } = useProfile();
 
   const [filter, setFilter] = useState<Filter>("all");
-  const [mode, setMode] = useState<Mode>({ kind: "course", day: null });
+  const [mode, setMode] = useState<Mode>({ kind: "course", unit: null });
+  // A newer deploy (e.g. a topic just added with /new-topic) is live.
+  const updateAvailable = useUpdateAvailable();
   // Today's course day depends on the local date, so it is only known on the
   // client — computing it during the static server render would bake in the
   // build date and mismatch on hydration.
@@ -191,13 +194,13 @@ export function Feed() {
   const onFilter = useCallback((f: Filter) => startFeed(f, false), [startFeed]);
 
   const onOpenCourse = useCallback(() => {
-    setMode({ kind: "course", day: null });
+    setMode({ kind: "course", unit: null });
     loadCards([COURSE_CARD]);
   }, [loadCards]);
 
-  const onSelectDay = useCallback((day: number) => {
-    // The course card stays mounted; only the day it shows changes.
-    setMode({ kind: "course", day });
+  const onSelectUnit = useCallback((unit: string) => {
+    // The course card stays mounted; only the unit it shows changes.
+    setMode({ kind: "course", unit });
   }, []);
 
   const onStartLesson = useCallback(
@@ -260,7 +263,7 @@ export function Feed() {
         showToast(`You'll see fewer ${CATS[card.cat]} cards next round.`);
       },
       onAnother: () => startFeed(filter, false),
-      onSelectDay,
+      onSelectUnit,
       onStartLesson,
       onOpenCourse,
     }),
@@ -273,7 +276,7 @@ export function Feed() {
       addFewer,
       startFeed,
       filter,
-      onSelectDay,
+      onSelectUnit,
       onStartLesson,
       onOpenCourse,
     ],
@@ -284,7 +287,7 @@ export function Feed() {
     if (mode.kind === "feed") return undefined;
     return {
       today,
-      selectedDay: mode.kind === "course" ? mode.day : null,
+      selectedUnit: mode.kind === "course" ? mode.unit : null,
       lessonId: mode.kind === "lesson" ? mode.id : null,
       done: hydrated ? state.lessonsDone : [],
     };
@@ -339,6 +342,11 @@ export function Feed() {
         />
       )}
       {toast && <div className="toast">{toast}</div>}
+      {updateAvailable && (
+        <button className="toast update" onClick={() => window.location.reload()}>
+          New content is live — tap to refresh
+        </button>
+      )}
       {floats.map((f) => (
         <div key={f.id} className="float-xp" style={{ left: f.left, top: f.top }}>
           +{f.amount}
