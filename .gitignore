@@ -34,3 +34,7 @@ npm-debug.log*
 
 # local pipeline scratch
 .cache/
+
+# supabase CLI scratch
+supabase/.temp/
+supabase/.branches/

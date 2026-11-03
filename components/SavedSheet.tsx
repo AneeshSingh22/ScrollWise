@@ -24,10 +24,15 @@ function titleOf(c: Card): string {
 
 export function SavedSheet({
   saved,
+  email,
   onClose,
+  onSignOut,
 }: {
   saved: string[];
+  /** Signed-in address, or null when the profile is device-only. */
+  email: string | null;
   onClose: () => void;
+  onSignOut: () => void;
 }) {
   const cards = saved
     .map((id) => byId(id))
@@ -48,6 +53,27 @@ export function SavedSheet({
           <li className="empty">Tap the bookmark on any card to keep it here.</li>
         )}
       </ul>
+
+      <div className="account">
+        {email ? (
+          <>
+            <p className="source">Signed in as {email}</p>
+            <button className="btn ghost" onClick={onSignOut}>
+              Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="source">
+              Your progress is saved on this device only.
+            </p>
+            <a className="btn" href="/signin">
+              Sign in to sync
+            </a>
+          </>
+        )}
+      </div>
+
       <button className="btn ghost close" onClick={onClose}>
         Close
       </button>

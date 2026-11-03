@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CATS, XP, type Filter } from "@/lib/constants";
 import { baseId, buildSession } from "@/lib/deck";
-import { applyStreak, read, write, EMPTY, type Persisted } from "@/lib/store";
+import { useProfile } from "@/lib/useProfile";
 import type { Card } from "@/types/card";
 import { CardView, type CardCallbacks } from "./CardView";
 import { Header } from "./Header";
@@ -15,10 +15,9 @@ type Float = { id: number; amount: number; left: number; top: number };
 const EMPTY_STATS: SessionStats = { seen: 0, answered: 0, correct: 0, xp: 0 };
 
 export function Feed() {
-  // Persisted profile. Starts from EMPTY so the server and first client render
-  // agree; the stored values load in an effect right after mount.
-  const [state, setState] = useState<Persisted>(EMPTY);
-  const [hydrated, setHydrated] = useState(false);
+  // Profile: localStorage when signed out, mirrored to Supabase when signed in.
+  const { state, user, hydrated, addXP: persistXP, toggleSave, setLiked, addFewer, signOut } =
+    useProfile();
 
   const [filter, setFilter] = useState<Filter>("all");
   const [cards, setCards] = useState<Card[]>(() => buildSession("all", [], true));
@@ -37,19 +36,6 @@ export function Feed() {
   const seenIds = useRef<Set<string>>(new Set());
   const queuedReviews = useRef<Set<string>>(new Set());
   const currentIndex = useRef(0);
-
-  // --- load persisted state + roll the streak over -------------------------
-  useEffect(() => {
-    const loaded = applyStreak(read());
-    setState(loaded);
-    write(loaded);
-    setHydrated(true);
-  }, []);
-
-  const persist = useCallback((next: Persisted) => {
-    setState(next);
-    write(next);
-  }, []);
 
   // --- card height: snap points must be exactly the viewport's feed area ---
   useEffect(() => {
@@ -112,11 +98,7 @@ export function Feed() {
   // --- XP ------------------------------------------------------------------
   const addXP = useCallback(
     (amount: number) => {
-      setState((prev) => {
-        const next = { ...prev, xp: prev.xp + amount };
-        write(next);
-        return next;
-      });
+      persistXP(amount);
       setStats((s) => ({ ...s, xp: s.xp + amount }));
 
       // Float rises from under the XP pill, as in the prototype.
@@ -130,7 +112,7 @@ export function Feed() {
         setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 900);
       }
     },
-    [],
+    [persistXP],
   );
 
   // --- session building ----------------------------------------------------
@@ -190,40 +172,28 @@ export function Feed() {
       onExplainerDone: () => addXP(XP.explainerDone),
       onChallengeAccepted: () => addXP(XP.challengeAccepted),
       onSprintCorrect: () => addXP(XP.sprintCorrect),
-      onLike: (card, on) => {
-        const base = baseId(card.id);
-        setState((prev) => {
-          const liked = prev.liked.filter((x) => x !== base);
-          if (on) liked.push(base);
-          const next = { ...prev, liked };
-          write(next);
-          return next;
-        });
-      },
+      onLike: (card, on) => setLiked(baseId(card.id), on),
       onSave: (card) => {
-        const base = baseId(card.id);
-        setState((prev) => {
-          const on = !prev.saved.includes(base);
-          const saved = prev.saved.filter((x) => x !== base);
-          if (on) saved.push(base);
-          const next = { ...prev, saved };
-          write(next);
-          showToast(on ? "Saved" : "Removed from saved");
-          return next;
-        });
+        const on = toggleSave(baseId(card.id));
+        showToast(on ? "Saved" : "Removed from saved");
       },
       onFewer: (card) => {
-        setState((prev) => {
-          if (prev.fewer.includes(card.cat)) return prev;
-          const next = { ...prev, fewer: [...prev.fewer, card.cat] };
-          write(next);
-          return next;
-        });
+        addFewer(card.cat);
         showToast(`You'll see fewer ${CATS[card.cat]} cards next round.`);
       },
       onAnother: () => rebuild(filter, state.fewer, false),
     }),
-    [addXP, queueReview, rebuild, showToast, filter, state.fewer],
+    [
+      addXP,
+      queueReview,
+      rebuild,
+      showToast,
+      filter,
+      state.fewer,
+      setLiked,
+      toggleSave,
+      addFewer,
+    ],
   );
 
   return (
@@ -254,7 +224,15 @@ export function Feed() {
       </div>
 
       {sheetOpen && (
-        <SavedSheet saved={state.saved} onClose={() => setSheetOpen(false)} />
+        <SavedSheet
+          saved={state.saved}
+          email={user?.email ?? null}
+          onClose={() => setSheetOpen(false)}
+          onSignOut={() => {
+            setSheetOpen(false);
+            void signOut();
+          }}
+        />
       )}
       {toast && <div className="toast">{toast}</div>}
       {floats.map((f) => (
