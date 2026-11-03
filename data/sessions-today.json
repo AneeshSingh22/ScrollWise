@@ -1,0 +1,697 @@
+{
+  "date": "2026-11-03",
+  "sessions": [
+    {
+      "id": "s1",
+      "title": "Inside the model",
+      "blurb": "Attention, sampling, and why LLMs fail the way they do.",
+      "minutes": 10,
+      "cards": [
+        {
+          "id": "s1-attn-cost",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Self-attention over a sequence of length n costs O(n²). What exactly is the n² counting?",
+          "options": [
+            "The parameters in the attention weight matrices",
+            "The pairwise query-key scores, one per token pair",
+            "The multiplications inside each feed-forward layer",
+            "The gradient terms stored for backpropagation"
+          ],
+          "answer": 1,
+          "why": "<b>Every token scores every other token.</b> The parameter count in W_q, W_k, W_v is fixed by the model dimension and does not grow with n. What grows is the attention matrix itself: n queries × n keys = n² dot products, each costing O(d). That matrix is also what you must hold in memory, which is why long context is a memory problem before it is a compute problem.",
+          "tags": ["transformers", "complexity"]
+        },
+        {
+          "id": "s1-temp",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Sampling at temperature T divides the logits by T before the softmax. What does T → 0 converge to?",
+          "options": [
+            "A uniform random choice over the vocabulary",
+            "Greedy decoding — always the single highest-logit token",
+            "The model's true probability distribution, unchanged",
+            "A distribution matching the training-data token frequencies"
+          ],
+          "answer": 1,
+          "why": "<b>Greedy argmax.</b> Dividing by a small T blows up the gaps between logits, so the softmax puts essentially all mass on the largest one. T → ∞ is the opposite limit: all logits get crushed toward equal and you approach the uniform distribution. T = 1 leaves the distribution as the model produced it.",
+          "tags": ["sampling", "decoding"]
+        },
+        {
+          "id": "s1-softmax-shift",
+          "cat": "ai",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "Adding the same constant to every logit before a softmax changes the resulting probabilities.",
+          "answer": false,
+          "why": "<b>False — softmax is shift-invariant.</b> The constant factors into e^c in both the numerator and every term of the denominator, so it cancels exactly. This is not a curiosity: production implementations subtract max(logits) from every logit precisely because it changes nothing mathematically while stopping e^x from overflowing to infinity.",
+          "tags": ["softmax", "numerics"]
+        },
+        {
+          "id": "s1-kv",
+          "cat": "ai",
+          "type": "explainer",
+          "difficulty": 3,
+          "title": "Why the KV cache is what fills your GPU",
+          "steps": [
+            {
+              "h": "Generation repeats itself",
+              "p": "To produce token 500, attention needs the keys and values of tokens 1 through 499. Recomputing them every step would make a sequence of length n cost O(n³) overall."
+            },
+            {
+              "h": "So you keep them",
+              "p": "The cache stores K and V per token, per layer, per head. Each new token appends one row and reads the whole cache, dropping generation to O(n²) total."
+            },
+            {
+              "h": "And it grows linearly with context",
+              "p": "Size is roughly 2 × layers × heads × head_dim × tokens × bytes. It scales with context length and batch size but not with how hard the prompt is, so long chats evict before they slow down."
+            }
+          ],
+          "aside": "This is the pressure behind grouped-query and multi-query attention: let several query heads share one set of K/V heads and the cache shrinks by that ratio, with little quality cost.",
+          "tags": ["inference", "kv-cache"]
+        },
+        {
+          "id": "s1-embed-dot",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Why do retrieval systems compare embeddings with cosine similarity rather than Euclidean distance?",
+          "options": [
+            "Cosine is cheaper to compute than a Euclidean distance",
+            "It compares direction and ignores vector magnitude, which often encodes frequency rather than meaning",
+            "Euclidean distance is undefined in high dimensions",
+            "Cosine similarity is always a proper distance metric"
+          ],
+          "answer": 1,
+          "why": "<b>Direction carries the semantics.</b> Magnitude in a learned embedding space tends to track things like token frequency or document length, so two passages about the same topic can sit far apart in Euclidean terms while pointing the same way. Note the trap in the last option: cosine *similarity* violates the triangle inequality and is not a metric. Also, on L2-normalized vectors the two rankings become equivalent — maximizing cosine is then the same as minimizing Euclidean distance.",
+          "tags": ["embeddings", "retrieval"]
+        },
+        {
+          "id": "s1-sprint",
+          "cat": "math",
+          "type": "sprint",
+          "difficulty": 3
+        },
+        {
+          "id": "s1-overfit",
+          "cat": "ai",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "A model that reaches zero training error is necessarily overfitting.",
+          "answer": false,
+          "why": "<b>False.</b> Overfitting is defined by the gap between training and held-out performance, not by the training number alone. Heavily over-parameterized networks routinely interpolate their training set — zero error — and still generalize well, the phenomenon called double descent: test error falls, rises near the interpolation threshold, then falls again as capacity keeps growing. Zero training error is evidence of nothing until you look at the validation curve.",
+          "tags": ["generalization"]
+        },
+        {
+          "id": "s1-grad-vanish",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Residual connections (x + f(x)) help train deep networks mainly because…",
+          "options": [
+            "They add parameters that increase model capacity",
+            "The identity path gives the gradient a route that does not get multiplied down through every layer",
+            "They normalize activations to zero mean and unit variance",
+            "They reduce the total number of matrix multiplications"
+          ],
+          "answer": 1,
+          "why": "<b>The gradient gets a shortcut.</b> Differentiating x + f(x) gives 1 + f'(x), so the derivative through the skip path is 1 rather than another factor below one. Stacked 50 layers deep, a chain of 0.9-sized factors decays to ~0.005 while the residual path carries signal intact. Residuals add no parameters — the normalizing job belongs to layer norm, which is a separate mechanism.",
+          "tags": ["architecture", "optimization"]
+        },
+        {
+          "id": "s1-tokenize",
+          "cat": "ai",
+          "type": "fact",
+          "difficulty": 3,
+          "title": "Most LLM arithmetic and spelling failures are tokenizer artifacts, not reasoning failures.",
+          "detail": "Byte-pair encoding splits by corpus frequency, so \"1729\" may arrive as \"17\"+\"29\" while \"1728\" arrives whole. The model never sees digits in aligned place-value columns, which is why column arithmetic and letter-counting are disproportionately hard for a system that handles far more abstract tasks easily.",
+          "tags": ["tokenization"]
+        },
+        {
+          "id": "s1-rlhf",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "In RLHF, the objective includes a KL penalty against the original pre-trained model. Drop that penalty and what typically happens?",
+          "options": [
+            "Training diverges immediately with exploding gradients",
+            "The policy drifts into degenerate text that scores high with the reward model but reads badly",
+            "The model forgets its tokenizer and emits invalid tokens",
+            "Nothing — the penalty is a convenience for faster convergence"
+          ],
+          "answer": 1,
+          "why": "<b>Reward hacking.</b> The reward model is a learned approximation of human preference, accurate near the distribution it was trained on and exploitable outside it. Unconstrained, the policy finds those exploits — sycophantic filler, hedging boilerplate, odd repetitions that happen to score well. The KL term tethers the policy to the pre-trained distribution so it optimizes reward only where the reward model is still trustworthy.",
+          "tags": ["rlhf", "alignment"]
+        },
+        {
+          "id": "s1-mixture",
+          "cat": "ai",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "A sparse mixture-of-experts model with 8 experts does roughly 8× the computation per token of a comparable dense model.",
+          "answer": false,
+          "why": "<b>False — that is the point of sparsity.</b> A router picks the top-k experts per token, typically k = 1 or 2, so compute per token stays close to a dense model of the active size while total parameter count multiplies. You buy capacity with memory rather than FLOPs. The real costs are elsewhere: all experts must be resident in memory, and load balancing across them is a genuine engineering problem.",
+          "tags": ["moe", "architecture"]
+        },
+        {
+          "id": "s1-eval",
+          "cat": "ai",
+          "type": "tip",
+          "difficulty": 3,
+          "title": "Judge a benchmark number by its contamination story",
+          "body": "A model trained on a web crawl has plausibly seen any public benchmark. A score is only informative if the authors say how they checked for overlap between test items and training data — n-gram matching, held-out-by-date splits, or a freshly written private set.",
+          "challenge": "Take one benchmark number you have cited recently and go find whether its paper documents a contamination check.",
+          "tags": ["evaluation"]
+        },
+        {
+          "id": "s1-scaling",
+          "cat": "ai",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "The Chinchilla result corrected earlier scaling practice by showing that, for a fixed compute budget, models were…",
+          "options": [
+            "Too small and trained on too much data",
+            "Too large and trained on too little data",
+            "Correctly sized but trained with the wrong learning rate",
+            "Limited by parameter count alone, independent of data"
+          ],
+          "answer": 1,
+          "why": "<b>Over-parameterized and under-trained.</b> Hoffmann et al. (2022) found parameters and training tokens should scale roughly together — on the order of 20 tokens per parameter — whereas the prevailing practice had been to grow parameters much faster than data. Chinchilla at 70B beat Gopher at 280B on equal compute. Inference economics push even further past the compute-optimal point, since a smaller model trained longer is cheaper to serve forever.",
+          "source": "Hoffmann et al., Training Compute-Optimal Large Language Models, 2022",
+          "source_url": "https://arxiv.org/abs/2203.15556",
+          "tags": ["scaling-laws"]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Information and chance",
+      "blurb": "Entropy, Bayes, and the statistics that fool careful people.",
+      "minutes": 10,
+      "cards": [
+        {
+          "id": "s2-entropy",
+          "cat": "math",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A fair coin carries 1 bit of entropy per flip. A biased coin landing heads 90% of the time carries…",
+          "options": [
+            "More than 1 bit — the bias is extra information",
+            "Exactly 1 bit — it still has two outcomes",
+            "About 0.47 bits — predictability reduces entropy",
+            "Zero bits — the outcome is effectively determined"
+          ],
+          "answer": 2,
+          "why": "<b>About 0.47 bits.</b> H = −(0.9 log₂0.9 + 0.1 log₂0.1) ≈ 0.137 + 0.332 ≈ 0.47. Entropy measures your average surprise, and a coin you can predict 90% of the time surprises you less. It is maximal at p = 0.5 and reaches zero only at p = 0 or 1. This is exactly why biased sources compress: fewer bits of real information per symbol.",
+          "tags": ["information-theory", "entropy"]
+        },
+        {
+          "id": "s2-bayes",
+          "cat": "math",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A test is 99% accurate both ways for a disease affecting 1 in 10,000. You test positive. Roughly what is the chance you have it?",
+          "options": [
+            "About 99%",
+            "About 50%",
+            "About 1%",
+            "About 0.01%"
+          ],
+          "answer": 2,
+          "why": "<b>About 1%.</b> Take 1,000,000 people: 100 have it and ~99 test positive. Of the 999,900 healthy, 1% — about 9,999 — also test positive. So ~99 true positives against ~9,999 false ones, giving 99/10,098 ≈ 1%. The false-positive pool is enormous because it draws on a vastly larger group. This base-rate effect is why screening a low-prevalence population with a good test still produces mostly false alarms.",
+          "tags": ["bayes", "base-rates"]
+        },
+        {
+          "id": "s2-birthday",
+          "cat": "math",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A 128-bit hash. Roughly how many random values before a collision is more likely than not?",
+          "options": [
+            "About 2¹²⁸",
+            "About 2¹²⁷",
+            "About 2⁶⁴",
+            "About 128²"
+          ],
+          "answer": 2,
+          "why": "<b>About 2⁶⁴ — the square root.</b> With n draws there are ~n²/2 pairs, so collisions become likely once n²/2 approaches the space size: n ≈ √(2^128) = 2^64. This birthday bound is why collision resistance costs twice the bits of preimage resistance, and why a 128-bit hash offers only 64-bit collision security — enough that SHA-256 is specified where collisions matter.",
+          "tags": ["probability", "cryptography"]
+        },
+        {
+          "id": "s2-compress",
+          "cat": "tech",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "A lossless compression algorithm exists that shrinks every possible input file by at least one bit.",
+          "answer": false,
+          "why": "<b>False, by counting alone.</b> There are 2^n files of n bits but only 2^n − 1 shorter strings in total. A lossless scheme must be injective, so it cannot map every n-bit file to something shorter — two inputs would collide and become un-decodable. Every compressor necessarily expands some inputs; useful ones shrink the structured files we actually have and expand random ones slightly.",
+          "tags": ["compression", "pigeonhole"]
+        },
+        {
+          "id": "s2-regress",
+          "cat": "math",
+          "type": "explainer",
+          "difficulty": 3,
+          "title": "Regression to the mean, and the policy mistakes it causes",
+          "steps": [
+            {
+              "h": "Any noisy measure has two parts",
+              "p": "An observed score mixes a stable component with luck. Select the extremes and you have selected partly for the luck, which by definition does not persist."
+            },
+            {
+              "h": "So extremes drift back",
+              "p": "The worst-performing hospitals, the hottest funds, the pilots who just flew badly — all tend to move toward average next period, with no intervention at all."
+            },
+            {
+              "h": "Which fakes causal evidence",
+              "p": "Target an intervention at the extreme group and the drift shows up as your effect. Kahneman's example: instructors concluded praise hurts and criticism helps, because they praised the best flights and criticized the worst."
+            }
+          ],
+          "aside": "The defence is structural, not statistical sophistication: a control group drawn from the same extreme, so the drift happens on both sides of the comparison.",
+          "tags": ["statistics", "causal-inference"]
+        },
+        {
+          "id": "s2-simpson",
+          "cat": "math",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "A treatment can show a higher success rate than its alternative in every patient subgroup, yet a lower rate overall.",
+          "answer": true,
+          "why": "<b>True — Simpson's paradox.</b> If the treatment was given disproportionately to severe cases, its aggregate rate is dragged down by case mix even while it wins within each severity band. The 1986 Berkeley kidney-stone data is the classic instance. The lesson is that aggregation is not neutral: which number is correct depends on the causal structure, and pooling can reverse the sign of an effect.",
+          "tags": ["statistics", "paradox"]
+        },
+        {
+          "id": "s2-sprint",
+          "cat": "math",
+          "type": "sprint",
+          "difficulty": 3
+        },
+        {
+          "id": "s2-sqrt",
+          "cat": "math",
+          "type": "trick",
+          "difficulty": 3,
+          "title": "Square any two-digit number ending in 5",
+          "body": "Take the leading digits as n. The answer is n × (n+1) with 25 stuck on the end. It follows from (10n+5)² = 100n² + 100n + 25 = 100·n(n+1) + 25.",
+          "example": "75² → 7×8 = 56 → 5625",
+          "example2": "Three digits too: 115² → 11×12 = 132 → 13225",
+          "tags": ["mental-math"]
+        },
+        {
+          "id": "s2-stderr",
+          "cat": "math",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "To halve the width of a confidence interval, your sample size must grow by a factor of…",
+          "options": ["2", "4", "e", "10"],
+          "answer": 1,
+          "why": "<b>Four.</b> The standard error carries √n in the denominator, so precision improves with the square root of sample size: quartering n's reciprocal square root means 4× the data. This is the brutal economics of measurement — going from ±4% to ±1% costs sixteen times the sample. It is also why tiny effects need enormous studies, and why underpowered experiments mostly publish noise.",
+          "tags": ["statistics", "sampling"]
+        },
+        {
+          "id": "s2-kelly",
+          "cat": "life",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A bet pays 2:1 on a 50% chance. You can repeat it with a fraction of your bankroll. What maximizes long-run growth?",
+          "options": [
+            "Bet everything each time — the edge is positive",
+            "Bet a fixed fraction, around a quarter of the bankroll",
+            "Bet the full expected-value-maximizing amount, which is everything",
+            "Decline — variance makes it unprofitable"
+          ],
+          "answer": 1,
+          "why": "<b>A fraction — Kelly gives f = edge/odds = 0.25 here.</b> Maximizing expected value each round says bet it all, but that path's probability of ruin approaches 1 over repeated play. Because wealth compounds multiplicatively, the right objective is expected log wealth, which caps the stake. The deep point: EV maximization is the wrong criterion for repeated, compounding decisions.",
+          "tags": ["decision-theory", "kelly"]
+        },
+        {
+          "id": "s2-survivor",
+          "cat": "world",
+          "type": "fact",
+          "difficulty": 3,
+          "title": "Abraham Wald won WWII's armor debate by reasoning about the planes that never came back.",
+          "detail": "Returning bombers showed damage concentrated on wings and fuselage, so the instinct was to armor those. Wald saw the data was conditioned on survival: hits to engines were under-represented because planes hit there crashed. Armor the engines. The sample you can observe is selected by the very process you are studying.",
+          "tags": ["survivorship-bias"]
+        },
+        {
+          "id": "s2-monty",
+          "cat": "math",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Monty Hall, but Monty forgets which door hides the car and happens to open a goat door. Switching now wins with probability…",
+          "options": ["2/3, as always", "1/2", "1/3", "It cannot be determined"],
+          "answer": 1,
+          "why": "<b>1/2 — the usual answer silently depends on Monty's knowledge.</b> Classic Monty always avoids the car, so his choice transfers information and switching wins 2/3. A forgetful Monty could have revealed the car; conditioning on the branch where he did not, the two remaining doors are symmetric and switching gains nothing. The protocol generating the evidence is part of the evidence.",
+          "tags": ["probability", "conditioning"]
+        },
+        {
+          "id": "s2-pvalue",
+          "cat": "math",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "A p-value of 0.03 means there is a 3% probability that the null hypothesis is true.",
+          "answer": false,
+          "why": "<b>False — the conditional runs the other way.</b> A p-value is P(data at least this extreme | null true), not P(null true | data). Getting to the latter requires a prior, via Bayes. With a low prior plausibility, p = 0.03 can leave the null still more likely than not — which is a large part of why the replication crisis happened at nominally significant thresholds.",
+          "tags": ["statistics", "inference"]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "How the machine really works",
+      "blurb": "Latency, concurrency, and the systems truths that bite in production.",
+      "minutes": 10,
+      "cards": [
+        {
+          "id": "s3-latency",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Order these by access latency, fastest first: main memory (RAM), L1 cache, NVMe SSD, a round trip to a server on the same continent.",
+          "options": [
+            "L1 → RAM → NVMe → network",
+            "L1 → NVMe → RAM → network",
+            "RAM → L1 → NVMe → network",
+            "L1 → RAM → network → NVMe"
+          ],
+          "answer": 0,
+          "why": "<b>L1 ≈ 1ns, RAM ≈ 100ns, NVMe ≈ 100µs, cross-continent ≈ 50ms.</b> Each step is roughly a thousandfold, which is the single most useful set of numbers in performance work. Scaled to human time: if L1 is one second, RAM is under two minutes, the SSD is a day and a half, and the network request is about sixteen months.",
+          "tags": ["performance", "latency"]
+        },
+        {
+          "id": "s3-tail",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A service's p99 latency is 10ms. A request that fans out to 100 such services in parallel will, more often than not…",
+          "options": [
+            "Finish in about 10ms — parallelism hides the slow ones",
+            "Exceed 10ms, because it waits for the slowest of 100 draws",
+            "Finish in about 1ms by averaging out",
+            "Be unaffected; p99 describes only 1% of traffic"
+          ],
+          "answer": 1,
+          "why": "<b>Tail latency amplification.</b> You wait for the slowest branch, so the chance of avoiding every p99 event is 0.99¹⁰⁰ ≈ 37%. Roughly 63% of requests hit at least one. This is why fan-out architectures chase the tail rather than the mean, using hedged requests, tied requests, and aggressive timeouts — Dean and Barroso's \"The Tail at Scale\".",
+          "source": "Dean & Barroso, The Tail at Scale, 2013",
+          "tags": ["distributed-systems", "latency"]
+        },
+        {
+          "id": "s3-cap",
+          "cat": "tech",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "The CAP theorem says a distributed database must give up either consistency or availability as a permanent design choice.",
+          "answer": false,
+          "why": "<b>False — the trade-off only binds during a partition.</b> CAP says that when the network partitions you must choose between consistency and availability; with the network healthy you can have both. Brewer himself later called the \"2 of 3\" framing misleading. The more practical extension is PACELC: even absent a partition, there is a latency-versus-consistency trade-off, which is what most real tuning is about.",
+          "tags": ["distributed-systems", "cap"]
+        },
+        {
+          "id": "s3-index",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "You have a B-tree index on (last_name, first_name). Which query can NOT use it efficiently?",
+          "options": [
+            "WHERE last_name = 'Singh'",
+            "WHERE last_name = 'Singh' AND first_name = 'Aneesh'",
+            "WHERE first_name = 'Aneesh'",
+            "WHERE last_name LIKE 'Sin%'"
+          ],
+          "answer": 2,
+          "why": "<b>A leftmost-prefix rule.</b> The index sorts by last_name first, so first_name is ordered only within a single last_name group — searching it alone means scanning everything. Think of a phone book: finding every \"Aneesh\" regardless of surname requires reading cover to cover. The same logic makes a trailing wildcard usable and a leading one (<code>LIKE '%ingh'</code>) not.",
+          "tags": ["databases", "indexing"]
+        },
+        {
+          "id": "s3-tcp",
+          "cat": "tech",
+          "type": "explainer",
+          "difficulty": 3,
+          "title": "Why a fast connection can still feel slow",
+          "steps": [
+            {
+              "h": "Bandwidth and latency are different goods",
+              "p": "Bandwidth is the pipe's width, latency the time for one bit to cross. Upgrading the pipe does nothing for a round trip that is bounded by distance and the speed of light in fibre."
+            },
+            {
+              "h": "TCP starts timid",
+              "p": "Slow start opens with about 10 packets in flight and doubles per round trip. A small file finishes during that ramp, so its effective speed is set by RTT, not by your link rate."
+            },
+            {
+              "h": "And handshakes cost round trips",
+              "p": "DNS, the TCP handshake, then TLS each add at least one RTT before any payload moves. At 100ms RTT that is a third of a second spent agreeing to talk."
+            }
+          ],
+          "aside": "This is the thinking behind QUIC and TLS 1.3: fold the handshakes together, allow resumption with zero round trips, and move congestion control to where head-of-line blocking does not stall every stream.",
+          "tags": ["networking", "tcp"]
+        },
+        {
+          "id": "s3-float",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "In IEEE 754 double precision, why is 0.1 + 0.2 ≠ 0.3?",
+          "options": [
+            "Rounding errors accumulate over repeated additions",
+            "0.1 and 0.2 have no exact finite representation in binary",
+            "Doubles hold only 15 decimal digits of precision",
+            "The compiler reorders the operations"
+          ],
+          "answer": 1,
+          "why": "<b>The inputs are already wrong before you add.</b> A finite binary fraction can only represent values whose denominator is a power of two; one tenth is 0.0001100110011… repeating forever, so it gets rounded at storage time. The sum of two slightly-off values lands a tick away from the stored 0.3. Decimal does the same thing to 1/3 — binary just has a different set of unlucky fractions, and money code uses integers or decimals for exactly this reason.",
+          "tags": ["floating-point", "numerics"]
+        },
+        {
+          "id": "s3-sprint",
+          "cat": "math",
+          "type": "sprint",
+          "difficulty": 3
+        },
+        {
+          "id": "s3-idem",
+          "cat": "tech",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "In a distributed system, a client that retries on timeout needs idempotency keys even if the server handles each request correctly.",
+          "answer": true,
+          "why": "<b>True.</b> A timeout is ambiguous: the request may have been lost, or it may have succeeded with the response lost on the way back. The client cannot distinguish them, so a blind retry risks a second charge or a duplicate order. An idempotency key lets the server recognize the repeat and return the original result. This is why exactly-once delivery is impossible, while at-least-once delivery plus idempotent handling gives you exactly-once <i>effect</i>.",
+          "tags": ["distributed-systems", "idempotency"]
+        },
+        {
+          "id": "s3-amdahl",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A job is 95% parallelizable. With infinite cores, the maximum speedup is…",
+          "options": ["95×", "20×", "100×", "Unbounded"],
+          "answer": 1,
+          "why": "<b>20× — Amdahl's law.</b> Speedup caps at 1/(1−p) = 1/0.05 = 20. The 5% serial portion never shrinks, so it eventually dominates the runtime no matter how many cores you add: at 20× the serial part <i>is</i> the whole remaining time. Note how unforgiving this is — going from 95% to 99% parallel moves the ceiling from 20× to 100×, so the serial fraction is usually worth more attention than the core count.",
+          "tags": ["concurrency", "amdahl"]
+        },
+        {
+          "id": "s3-hash",
+          "cat": "tech",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Why do distributed caches use consistent hashing instead of hash(key) mod N?",
+          "options": [
+            "It distributes keys more evenly across nodes",
+            "Adding or removing a node remaps only ~1/N of keys instead of nearly all of them",
+            "It is faster to compute",
+            "It avoids hash collisions entirely"
+          ],
+          "answer": 1,
+          "why": "<b>Minimal disruption on membership change.</b> With mod N, changing N alters the result for almost every key — one node joining invalidates the whole cache and stampedes the database. Consistent hashing maps nodes and keys onto a ring, so a change only affects the arc that moved. Even distribution actually needs extra work here: virtual nodes, several ring positions per physical node.",
+          "tags": ["distributed-systems", "hashing"]
+        },
+        {
+          "id": "s3-observ",
+          "cat": "tech",
+          "type": "tip",
+          "difficulty": 3,
+          "title": "Average latency hides every problem worth finding",
+          "body": "A mean folds a bimodal distribution into a number matching no real request. Cache hits at 2ms and misses at 200ms average to something that describes nobody. Percentiles keep the shape — and averaging percentiles across hosts is itself invalid; you need the merged distribution.",
+          "challenge": "Pick one dashboard you look at often and check whether its latency panel shows a mean. If so, add p50, p95, and p99.",
+          "tags": ["observability"]
+        },
+        {
+          "id": "s3-utf8",
+          "cat": "tech",
+          "type": "fact",
+          "difficulty": 3,
+          "title": "UTF-8's design makes ASCII a valid subset and lets a parser resynchronize after any corrupted byte.",
+          "detail": "Bytes under 128 are plain ASCII, so existing text stayed valid. Beyond that, lead bytes start 11… and continuation bytes always start 10…, so the two are never confused: drop a byte mid-stream and a decoder can find the next character boundary immediately. Thompson and Pike reportedly sketched it on a placemat in 1992.",
+          "tags": ["encoding", "unicode"]
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": "Incentives and decisions",
+      "blurb": "Economics, game theory, and how expert judgment goes wrong.",
+      "minutes": 10,
+      "cards": [
+        {
+          "id": "s4-sunk",
+          "cat": "life",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A project has consumed £2M of a £3M budget and now looks likely to fail. Economically, what should determine whether you continue?",
+          "options": [
+            "The £2M already spent — abandoning it wastes the investment",
+            "Only the remaining £1M cost weighed against the expected value from here",
+            "Whether total spend stays within the original budget",
+            "The share of the budget already committed"
+          ],
+          "answer": 1,
+          "why": "<b>Only forward-looking costs and benefits.</b> The £2M is gone in every branch, so it cannot discriminate between them — it is not a cost of continuing. The correct question is purely marginal: does spending the next £1M buy more than £1M of expected value? Intuition resists this because the loss feels realized only at cancellation, which is precisely the bias that keeps doomed projects alive.",
+          "tags": ["sunk-cost", "decision-making"]
+        },
+        {
+          "id": "s4-goodhart",
+          "cat": "life",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "Goodhart's law says that a metric which is a good proxy for what you care about stops being one once you target it.",
+          "answer": true,
+          "why": "<b>True, and the mechanism matters.</b> The proxy correlated with the goal across the behaviour that existed when you measured it. Targeting it pays people to find the parts of proxy-space that are cheap to move and detached from the goal — so the correlation you relied on is destroyed by the act of relying on it. Hence support teams optimizing ticket-close time by closing tickets, and the Soviet nail factory producing tiny or enormous nails depending on whether the quota was counted or weighed.",
+          "tags": ["goodhart", "incentives"]
+        },
+        {
+          "id": "s4-prisoner",
+          "cat": "life",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A prisoner's dilemma repeated a known, finite number of times has what equilibrium under backward induction?",
+          "options": [
+            "Cooperation throughout, sustained by reputation",
+            "Defection in every round",
+            "Cooperation until the final round, then defection",
+            "Alternating cooperation and defection"
+          ],
+          "answer": 1,
+          "why": "<b>Defect every round — the unravelling argument.</b> The last round has no future to protect, so both defect. Knowing that, the second-to-last round also has nothing to protect, and the logic cascades backward to round one. Cooperation needs either a genuinely indefinite horizon, where the shadow of the future makes it rational, or some uncertainty about the other player's type. A known endpoint is what kills it.",
+          "tags": ["game-theory"]
+        },
+        {
+          "id": "s4-lemons",
+          "cat": "world",
+          "type": "explainer",
+          "difficulty": 3,
+          "title": "How asymmetric information can destroy a market outright",
+          "steps": [
+            {
+              "h": "The seller knows more",
+              "p": "Akerlof's used cars: owners know their car's quality, buyers do not. Buyers can only offer a price reflecting average quality."
+            },
+            {
+              "h": "Good sellers leave",
+              "p": "That average price is below what an above-average car is worth, so those owners withdraw. The remaining pool's average quality falls."
+            },
+            {
+              "h": "Which repeats",
+              "p": "Buyers lower their offers to match the worse pool, driving out the next tier. The equilibrium can be a market with almost no trade — not a failure of pricing, a failure of information."
+            }
+          ],
+          "aside": "The institutions that exist to patch this are familiar once you see them: warranties, certified-pre-owned schemes, professional licensing, insurance underwriting. Akerlof, Spence, and Stiglitz shared the 2001 Nobel for this line of work.",
+          "tags": ["economics", "information-asymmetry"]
+        },
+        {
+          "id": "s4-elasticity",
+          "cat": "world",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "A 10% price rise cuts your unit sales by 5%. What happens to revenue?",
+          "options": [
+            "Falls — you lost customers",
+            "Rises about 4.5% — demand is inelastic here",
+            "Stays flat — the effects cancel",
+            "Cannot be determined without cost data"
+          ],
+          "answer": 1,
+          "why": "<b>Revenue rises ~4.5%.</b> Take 100 units at £10 = £1,000; now 95 units at £11 = £1,045. Elasticity is 0.5 — below one, so demand is inelastic and price increases raise revenue. The break-even is elasticity exactly 1. Note that profit rises by more than revenue, since you are also serving 5% fewer customers and bearing their variable costs.",
+          "tags": ["economics", "pricing"]
+        },
+        {
+          "id": "s4-sprint",
+          "cat": "math",
+          "type": "sprint",
+          "difficulty": 3
+        },
+        {
+          "id": "s4-comparative",
+          "cat": "world",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "If one country produces every good more efficiently than another in absolute terms, there is no gain from trade between them.",
+          "answer": false,
+          "why": "<b>False — Ricardo's central insight.</b> What drives gains is comparative, not absolute, advantage: the ratio of what you give up. Even an across-the-board loser has a good it sacrifices least to produce, and specializing there raises total output for both. The everyday version: a surgeon faster at typing than their assistant still delegates typing, because an hour of surgery costs far more to forgo.",
+          "tags": ["economics", "trade"]
+        },
+        {
+          "id": "s4-moral",
+          "cat": "world",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Insurance economics distinguishes moral hazard from adverse selection. Moral hazard is…",
+          "options": [
+            "High-risk people being more likely to buy insurance",
+            "Behaviour becoming riskier after you are insured",
+            "Insurers refusing to cover pre-existing conditions",
+            "Customers lying on their application"
+          ],
+          "answer": 1,
+          "why": "<b>Changed behaviour after the contract.</b> Adverse selection happens before — the risky self-select into the pool. Moral hazard happens after — insured against theft, you are a little less careful about locks. The timing dictates the remedy: screening, pricing, and mandates address selection, while deductibles, co-pays, and no-claims bonuses address hazard by keeping you exposed to part of the loss.",
+          "tags": ["economics", "insurance"]
+        },
+        {
+          "id": "s4-base",
+          "cat": "life",
+          "type": "quiz",
+          "difficulty": 3,
+          "q": "Forecasting research finds the single most reliable improvement to a project estimate is…",
+          "options": [
+            "Decomposing the work into finer-grained tasks",
+            "Starting from the distribution of outcomes for similar past projects",
+            "Adding a fixed contingency buffer to the estimate",
+            "Getting consensus from more experts"
+          ],
+          "answer": 1,
+          "why": "<b>Reference-class forecasting — take the outside view.</b> Kahneman and Tversky's finding is that planners build estimates from the inside, reasoning through their specific plan, which systematically ignores the failure modes that actually dominate. Asking \"how long did the last twenty projects like this take?\" captures them automatically. Decomposition tends to make it worse, since each sub-estimate inherits the same optimism and the omissions compound.",
+          "tags": ["forecasting", "planning-fallacy"]
+        },
+        {
+          "id": "s4-braess",
+          "cat": "world",
+          "type": "fact",
+          "difficulty": 3,
+          "title": "Adding a road to a congested network can make everyone's journey longer.",
+          "detail": "Braess's paradox: drivers each pick their own fastest route, and a new shortcut can shift the selfish equilibrium to one that is worse for all of them. It is not theoretical — Seoul demolished the Cheonggyecheon motorway in 2003 and traffic improved. Selfish routing need not reach the social optimum.",
+          "tags": ["game-theory", "networks"]
+        },
+        {
+          "id": "s4-principal",
+          "cat": "life",
+          "type": "tip",
+          "difficulty": 3,
+          "title": "Read a disagreement for incentives before reading it for logic",
+          "body": "Principal-agent problems look like differences of judgment from the inside. A colleague resisting a migration may be reasoning fine from where they sit — they carry the on-call risk and none of the upside. The argument is then a proxy for a payoff mismatch, and better arguments will not resolve it.",
+          "challenge": "Take a disagreement you are currently in and write down, in one line each, what each side gains and loses if your position wins.",
+          "tags": ["incentives", "organizations"]
+        },
+        {
+          "id": "s4-tetlock",
+          "cat": "life",
+          "type": "tf",
+          "difficulty": 3,
+          "statement": "In Tetlock's long-run forecasting studies, the experts with the deepest single-framework expertise were the most accurate.",
+          "answer": false,
+          "why": "<b>False — they did worse, and notably so.</b> Across two decades of scored predictions, Tetlock found specialists committed to one explanatory framework (\"hedgehogs\") underperformed generalists who combined several and updated readily (\"foxes\"), sometimes barely beating chance. Fame correlated negatively with accuracy, since confident single-cause narratives make better media. Good forecasting looks like aggregating models and revising often, not holding one view firmly.",
+          "source": "Tetlock, Expert Political Judgment, 2005",
+          "tags": ["forecasting", "epistemics"]
+        }
+      ]
+    }
+  ]
+}

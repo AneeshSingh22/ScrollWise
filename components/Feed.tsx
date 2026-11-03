@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CATS, XP, type Filter } from "@/lib/constants";
 import { baseId, buildSession } from "@/lib/deck";
 import { useProfile } from "@/lib/useProfile";
+import { PICKER, SESSIONS, buildFixedSession, sessionById } from "@/lib/sessions";
 import type { Card } from "@/types/card";
-import { CardView, type CardCallbacks } from "./CardView";
+import { CardView, type CardCallbacks, type SessionMode } from "./CardView";
 import { Header } from "./Header";
 import { SavedSheet } from "./SavedSheet";
 import type { SessionStats } from "./cards/SummaryBody";
@@ -20,7 +21,11 @@ export function Feed() {
     useProfile();
 
   const [filter, setFilter] = useState<Filter>("all");
-  const [cards, setCards] = useState<Card[]>(() => buildSession("all", [], true));
+  // Session mode: today's four fixed sessions. null = the normal topic feed.
+  // "menu" = the picker card; otherwise the running session's id.
+  const [sessionId, setSessionId] = useState<string | null>("menu");
+  const [sessionsDone, setSessionsDone] = useState<string[]>([]);
+  const [cards, setCards] = useState<Card[]>(() => [PICKER as Card]);
   const [stats, setStats] = useState<SessionStats>(EMPTY_STATS);
   const [progress, setProgress] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -131,11 +136,53 @@ export function Feed() {
 
   const onFilter = useCallback(
     (f: Filter) => {
+      // Picking a topic chip leaves session mode for the normal feed.
+      setSessionId(null);
       setFilter(f);
       rebuild(f, state.fewer, false);
     },
     [rebuild, state.fewer],
   );
+
+  // --- session mode --------------------------------------------------------
+  /** Reset the per-session counters and load a card list. */
+  const loadCards = useCallback((next: Card[]) => {
+    seenIds.current = new Set();
+    queuedReviews.current = new Set();
+    currentIndex.current = 0;
+    setStats(EMPTY_STATS);
+    setCards(next);
+    setProgress(0);
+    feedRef.current?.scrollTo({ top: 0 });
+  }, []);
+
+  const onPickSession = useCallback(
+    (id: string) => {
+      setSessionId(id);
+      loadCards(buildFixedSession(id));
+    },
+    [loadCards],
+  );
+
+  const onBackToSessions = useCallback(() => {
+    setSessionId("menu");
+    loadCards([PICKER as Card]);
+  }, [loadCards]);
+
+  /** Open the session menu from the header. */
+  const onOpenSessions = useCallback(() => {
+    setSessionId("menu");
+    loadCards([PICKER as Card]);
+  }, [loadCards]);
+
+  // Mark a session finished once its closing card is reached.
+  useEffect(() => {
+    if (!sessionId || sessionId === "menu") return;
+    const last = cards[cards.length - 1];
+    if (!last || last.type !== "summary") return;
+    if (progress < 100) return;
+    setSessionsDone((d) => (d.includes(sessionId) ? d : [...d, sessionId]));
+  }, [progress, sessionId, cards]);
 
   // --- review queue: a missed card comes back 4 cards later ----------------
   const queueReview = useCallback((card: Card) => {
@@ -182,6 +229,8 @@ export function Feed() {
         showToast(`You'll see fewer ${CATS[card.cat]} cards next round.`);
       },
       onAnother: () => rebuild(filter, state.fewer, false),
+      onPickSession,
+      onBackToSessions,
     }),
     [
       addXP,
@@ -193,8 +242,19 @@ export function Feed() {
       setLiked,
       toggleSave,
       addFewer,
+      onPickSession,
+      onBackToSessions,
     ],
   );
+
+  /** Session-mode context for the menu and finish cards. */
+  const sessionMode: SessionMode | undefined = useMemo(() => {
+    if (!sessionId) return undefined;
+    return {
+      title: sessionById(sessionId)?.title ?? "Today",
+      done: sessionsDone,
+    };
+  }, [sessionId, sessionsDone]);
 
   return (
     <>
@@ -208,6 +268,10 @@ export function Feed() {
           onFilter={onFilter}
           onOpenSaved={() => setSheetOpen(true)}
           xpPillRef={xpPillRef}
+          sessionsActive={sessionId !== null}
+          sessionsDone={sessionsDone.length}
+          sessionsTotal={SESSIONS.length}
+          onOpenSessions={onOpenSessions}
         />
         <main className="feed" aria-label="Learning feed" ref={feedRef}>
           {cards.map((card) => (
@@ -218,6 +282,7 @@ export function Feed() {
               saved={hydrated && state.saved.includes(baseId(card.id))}
               stats={stats}
               cb={cb}
+              session={sessionMode}
             />
           ))}
         </main>

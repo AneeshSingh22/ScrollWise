@@ -12,6 +12,11 @@ type Props = {
   onFilter: (f: Filter) => void;
   onOpenSaved: () => void;
   xpPillRef: React.Ref<HTMLSpanElement>;
+  /** Session mode: true while today's fixed sessions are showing. */
+  sessionsActive: boolean;
+  sessionsDone: number;
+  sessionsTotal: number;
+  onOpenSessions: () => void;
 };
 
 export function Header({
@@ -23,6 +28,10 @@ export function Header({
   onFilter,
   onOpenSaved,
   xpPillRef,
+  sessionsActive,
+  sessionsDone,
+  sessionsTotal,
+  onOpenSessions,
 }: Props) {
   return (
     <header className="top">
@@ -44,11 +53,20 @@ export function Header({
         </button>
       </div>
       <div className="chips" role="group" aria-label="Topics">
+        {/* Session mode lives alongside the topic chips: today's fixed
+            sessions on the left, the open-ended topic feed to the right. */}
+        <button
+          className="chip"
+          aria-pressed={sessionsActive}
+          onClick={onOpenSessions}
+        >
+          Today {sessionsDone}/{sessionsTotal}
+        </button>
         {FILTERS.map((k) => (
           <button
             key={k}
             className="chip"
-            aria-pressed={k === filter}
+            aria-pressed={!sessionsActive && k === filter}
             onClick={() => onFilter(k)}
           >
             {CATS[k]}

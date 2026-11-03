@@ -16,6 +16,8 @@ import {
 } from "./cards/SimpleBodies";
 import { SprintBody } from "./cards/SprintBody";
 import { SummaryBody, type SessionStats } from "./cards/SummaryBody";
+import { PickerBody } from "./cards/PickerBody";
+import { FinishBody } from "./cards/FinishBody";
 
 export type CardCallbacks = {
   onAnswer: (card: Card, correct: boolean) => void;
@@ -27,6 +29,18 @@ export type CardCallbacks = {
   onSave: (card: Card) => void;
   onFewer: (card: Card) => void;
   onAnother: () => void;
+  /** Session mode: pick a fixed session from the menu card. */
+  onPickSession: (id: string) => void;
+  /** Session mode: return to the menu card from the finish card. */
+  onBackToSessions: () => void;
+};
+
+/** Session-mode context for the menu and finish cards. */
+export type SessionMode = {
+  /** The running session's title, for the finish card. */
+  title: string;
+  /** Session ids finished today. */
+  done: string[];
 };
 
 type Props = {
@@ -35,6 +49,8 @@ type Props = {
   saved: boolean;
   stats: SessionStats;
   cb: CardCallbacks;
+  /** Present only in session mode; absent in the normal topic feed. */
+  session?: SessionMode;
 };
 
 type Burst = { id: number; x: number; y: number };
@@ -42,7 +58,7 @@ type Burst = { id: number; x: number; y: number };
 /** Double-tap window, matching the prototype. */
 const DOUBLE_TAP_MS = 320;
 
-export function CardView({ card, liked, saved, stats, cb }: Props) {
+export function CardView({ card, liked, saved, stats, cb, session }: Props) {
   const [bursts, setBursts] = useState<Burst[]>([]);
   const lastTap = useRef(0);
   const burstId = useRef(0);
@@ -81,7 +97,7 @@ export function CardView({ card, liked, saved, stats, cb }: Props) {
           {card.review && <span className="tag review">Review</span>}
         </div>
 
-        <Body card={card} stats={stats} cb={cb} />
+        <Body card={card} stats={stats} cb={cb} session={session} />
 
         {card.source && (
           <p className="source">
@@ -137,16 +153,33 @@ function Body({
   card,
   stats,
   cb,
+  session,
 }: {
   card: Card;
   stats: SessionStats;
   cb: CardCallbacks;
+  session?: SessionMode;
 }) {
   switch (card.type) {
     case "intro":
-      return <IntroBody card={card} />;
+      // In session mode the lead card is the session menu, not the pitch.
+      return session ? (
+        <PickerBody done={session.done} onPick={cb.onPickSession} />
+      ) : (
+        <IntroBody card={card} />
+      );
     case "summary":
-      return <SummaryBody stats={stats} onAnother={cb.onAnother} />;
+      // In session mode the closing card sends you back to work.
+      return session ? (
+        <FinishBody
+          stats={stats}
+          sessionTitle={session.title}
+          doneCount={session.done.length}
+          onBackToSessions={cb.onBackToSessions}
+        />
+      ) : (
+        <SummaryBody stats={stats} onAnother={cb.onAnother} />
+      );
     case "quiz":
       return <QuizBody card={card} onAnswer={(ok) => cb.onAnswer(card, ok)} />;
     case "tf":
