@@ -1,0 +1,69 @@
+{
+  "day": 1,
+  "slug": "transformers",
+  "topic": "Transformers",
+  "cat": "ai",
+  "blurb": "The architecture under every modern LLM: attention, queries and keys, and the block that repeats.",
+  "lessons": [
+    {
+      "title": "Why attention replaced recurrence",
+      "cards": [
+        { "type": "explainer", "title": "The problem transformers solved", "steps": [
+          { "h": "RNNs read one word at a time", "p": "A recurrent network processes token 1, then token 2, then token 3. Each step waits for the previous one, so training cannot be spread across thousands of GPU cores." },
+          { "h": "Everything squeezes through one state", "p": "The whole past has to fit into a single fixed-size hidden vector. By word 200, details from word 3 have been overwritten many times." },
+          { "h": "Attention lets every token look directly", "p": "A transformer lets each token pull information from every other token in one step, and all positions are computed at once. Parallel and direct." }
+        ], "aside": "The 2017 paper's title was the thesis: \"Attention Is All You Need\" — no recurrence, no convolution." },
+        { "type": "quiz", "q": "The biggest practical reason transformers overtook RNNs was that they…", "options": ["Use fewer parameters", "Can process all positions of a training sequence in parallel", "Need no training data", "Run on CPUs instead of GPUs"], "answer": 1, "why": "<b>Parallelism.</b> During training the whole sequence is known, so every position's prediction can be computed at once. That maps perfectly onto GPUs and let labs scale models far beyond what sequential RNNs allowed." },
+        { "type": "tf", "statement": "The original 2017 transformer was built for machine translation, not chatbots.", "answer": true, "why": "<b>True.</b> It was an encoder-decoder model benchmarked on English→German and English→French translation. Chat came years later when people scaled the decoder half alone." },
+        { "type": "fact", "title": "All eight authors of \"Attention Is All You Need\" are listed as equal contributors, in random order.", "detail": "The paper's footnote says so explicitly. Nearly all of them later left Google and founded or joined AI companies, including Cohere, Character.AI, Essential AI and Sakana AI." },
+        { "type": "quiz", "q": "GPT-style chat models use which part of the original transformer?", "options": ["Encoder only", "Decoder only", "Both encoder and decoder", "Neither — a new design"], "answer": 1, "why": "<b>Decoder only.</b> A stack of decoder blocks with causal masking predicts the next token. BERT is the classic encoder-only model; T5 kept both halves." },
+        { "type": "tf", "statement": "Attention on its own knows the order of the words it is reading.", "answer": false, "why": "<b>False.</b> Attention treats its input as a set: shuffle the tokens and each one gets the same mix. Order has to be injected with positional information, such as sinusoidal encodings or rotary embeddings." }
+      ]
+    },
+    {
+      "title": "Queries, keys and values",
+      "cards": [
+        { "type": "explainer", "title": "How one attention head works", "steps": [
+          { "h": "Three vectors per token", "p": "Each token is projected into a query (what am I looking for?), a key (what do I contain?) and a value (what will I hand over if chosen?)." },
+          { "h": "Score every pair", "p": "A token's query is dot-producted with every key, divided by √d, and passed through a softmax. The result is a set of weights that sums to 1." },
+          { "h": "Blend the values", "p": "The output is the weighted average of all value vectors. A token that \"attends\" to another simply takes a large share of its value." }
+        ], "aside": "In \"The cat sat because it was tired\", a head tracking pronouns can put most of \"it\"'s weight on \"cat\"." },
+        { "type": "quiz", "q": "Why are attention scores divided by √d (the key dimension) before the softmax?", "options": ["To make the computation faster", "Dot products grow with dimension, which would saturate the softmax and shrink gradients", "To keep weights positive", "To normalize sequence length"], "answer": 1, "why": "<b>To keep the softmax soft.</b> The variance of a dot product of random vectors grows with d. Large scores push the softmax toward one-hot outputs where gradients nearly vanish. Dividing by √d keeps the scale steady." },
+        { "type": "quiz", "q": "What is the point of having many attention heads instead of one big one?", "options": ["Redundancy in case one fails", "Each head can track a different kind of relationship in parallel", "It reduces the parameter count to zero", "Heads take turns, saving memory"], "answer": 1, "why": "<b>Different relationships at once.</b> One head might follow syntax, another coreference, another the previous token. Their outputs are concatenated and mixed by a projection." },
+        { "type": "tf", "statement": "In a GPT-style decoder, a token can attend to the tokens that come after it.", "answer": false, "why": "<b>False.</b> A causal mask sets future scores to −∞ before the softmax, so each position only sees itself and the past. Otherwise training would let the model cheat by reading the answer." },
+        { "type": "fact", "title": "Researchers found a two-head circuit, called an induction head, that lets models copy patterns from earlier in a prompt.", "detail": "One head finds the previous place the current token appeared; another copies whatever came next. Anthropic's 2022 work linked these heads to in-context learning, the ability to pick up a pattern from examples in the prompt." },
+        { "type": "quiz", "q": "For a single query, the attention weights across all keys add up to…", "options": ["The sequence length", "Exactly 1", "√d", "It varies freely"], "answer": 1, "why": "<b>Exactly 1</b>, because they come out of a softmax. That is why attention is a weighted average: attending more to one token necessarily means attending less to others." }
+      ]
+    },
+    {
+      "title": "Inside the transformer block",
+      "cards": [
+        { "type": "explainer", "title": "The block that repeats dozens of times", "steps": [
+          { "h": "Attention mixes across tokens", "p": "First, attention lets every position gather information from the others. This is the only place tokens talk to each other." },
+          { "h": "The MLP thinks per token", "p": "Then a two-layer feed-forward network processes each position on its own, typically expanding to about 4× the width and back." },
+          { "h": "Residuals and norms hold it together", "p": "Each sub-layer adds its output back onto its input (a residual stream) and is wrapped in normalization, which keeps 100-layer stacks trainable." }
+        ], "aside": "A useful mental model: the residual stream is a shared notepad; each layer reads it and writes small edits." },
+        { "type": "quiz", "q": "In a standard transformer block, which part holds most of the parameters?", "options": ["Attention projections", "The feed-forward MLP", "Layer normalization", "The positional encoding"], "answer": 1, "why": "<b>The MLP, about two thirds.</b> Attention's four d×d projections give 4d² parameters; an MLP expanding to 4d has 8d². Layer norms are tiny by comparison." },
+        { "type": "tf", "statement": "Most modern LLMs apply normalization before each sub-layer (\"pre-norm\") rather than after it as in the 2017 paper.", "answer": true, "why": "<b>True.</b> Pre-norm keeps a clean residual path from input to output, which makes deep models train stably without careful warmup. Many also swapped LayerNorm for the cheaper RMSNorm." },
+        { "type": "quiz", "q": "Which positional scheme do most current open LLMs (Llama, Qwen, Mistral) use?", "options": ["Sinusoidal vectors added to the input", "Learned absolute position embeddings", "Rotary position embeddings (RoPE)", "No positional information"], "answer": 2, "why": "<b>RoPE.</b> It rotates query and key vectors by an angle depending on position, so their dot product depends on relative distance. It also extends to longer contexts more gracefully than learned positions." },
+        { "type": "fact", "title": "The feed-forward layers appear to act as a model's key-value memory for facts.", "detail": "Research such as Geva et al. (2021) and the ROME editing work found that factual associations like \"Eiffel Tower → Paris\" are largely stored in middle-layer MLPs, and can even be edited there directly." },
+        { "type": "tf", "statement": "Within a given layer, every token position is processed with the same weights.", "answer": true, "why": "<b>True.</b> Weights are shared across positions, which is why the same model handles 10 or 100,000 tokens. Only attention's mixing differs between positions." }
+      ]
+    },
+    {
+      "title": "Transformers in the wild",
+      "cards": [
+        { "type": "quiz", "q": "BERT and GPT differ mainly in their training objective. BERT learns by…", "options": ["Predicting the next token", "Filling in masked words using context on both sides", "Translating between languages", "Ranking search results"], "answer": 1, "why": "<b>Masked language modeling.</b> BERT hides ~15% of tokens and predicts them from both directions, which suits understanding tasks. GPT only predicts forward, which suits generation." },
+        { "type": "explainer", "title": "How a chat model writes a reply", "steps": [
+          { "h": "Read the whole prompt at once", "p": "The prompt is processed in one parallel pass called prefill, producing a probability for the next token." },
+          { "h": "Pick one token", "p": "A token is chosen from that distribution — greedily or by sampling — and appended to the sequence." },
+          { "h": "Repeat, one token per pass", "p": "Each new token needs another forward pass. A 500-token answer is 500 sequential steps, which is why replies stream in." }
+        ], "aside": "The model never plans a full sentence explicitly; any plan exists only implicitly in its internal activations." },
+        { "type": "tf", "statement": "Vision Transformers chop an image into patches and treat each patch like a word token.", "answer": true, "why": "<b>True.</b> ViT (2020) split images into 16×16-pixel patches, flattened each into a vector, and fed the sequence to a standard transformer encoder. With enough data it matched or beat CNNs." },
+        { "type": "quiz", "q": "You double the context length. Roughly how does the attention computation grow?", "options": ["Stays the same", "Doubles", "Quadruples", "Grows 8×"], "answer": 2, "why": "<b>About 4×.</b> Every token scores every other token, so the work scales with n². The MLP parts only double, which is why attention dominates at very long contexts." },
+        { "type": "fact", "title": "FlashAttention made attention several times faster without changing its math at all.", "detail": "It computes the exact same result but in tiles that stay in the GPU's small, fast on-chip memory, never writing the full n×n score matrix to slower main memory. The bottleneck was data movement, not arithmetic." },
+        { "type": "tip", "title": "Test your understanding by explaining it", "body": "If you can explain queries, keys and values in three plain sentences, you understand attention. If you reach for jargon, you have found the gap.", "challenge": "Explain attention out loud in three sentences — to a colleague or to yourself — without saying \"vector\"." }
+      ]
+    }
+  ]
+}

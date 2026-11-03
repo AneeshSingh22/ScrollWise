@@ -1,0 +1,69 @@
+{
+  "day": 8,
+  "slug": "inference",
+  "topic": "Inference: serving models fast",
+  "cat": "tech",
+  "blurb": "Prefill and decode, batching, quantization, speculative decoding and sampling strategies.",
+  "lessons": [
+    {
+      "title": "Prefill and decode",
+      "cards": [
+        { "type": "explainer", "title": "Two very different phases", "steps": [
+          { "h": "Prefill", "p": "The whole prompt is processed in one parallel pass, filling the KV cache. It is compute-bound and sets time-to-first-token." },
+          { "h": "Decode", "p": "Each output token then needs its own forward pass, reading all the weights. It is memory-bound and sets tokens per second." },
+          { "h": "Serving systems treat them differently", "p": "Some even run prefill and decode on separate GPUs, because the two phases want different hardware trade-offs." }
+        ], "aside": "When a reply starts slowly, think prefill. When it streams slowly, think decode." },
+        { "type": "quiz", "q": "For a long prompt, time-to-first-token is dominated by…", "options": ["Decode", "Prefill (plus queueing)", "Tokenization", "Network DNS"], "answer": 1, "why": "<b>Prefill.</b> The model must process every prompt token before it can predict the first output token. Long documents mean long prefill." },
+        { "type": "tf", "statement": "APIs typically charge more per output token than per input token.", "answer": true, "why": "<b>True</b>, often 3–5× more. Input tokens are processed in parallel; output tokens are generated one at a time, tying up the GPU much longer per token." },
+        { "type": "quiz", "q": "\"Continuous batching\" improves GPU use by…", "options": ["Waiting until a full batch arrives", "Adding and removing requests from the running batch at every step", "Batching only identical prompts", "Running one request at a time"], "answer": 1, "why": "<b>Swapping requests in and out.</b> Without it, a batch waits for its longest reply to finish. With it, finished requests leave and new ones join immediately." },
+        { "type": "fact", "title": "vLLM borrowed an idea from operating systems — virtual memory paging — to manage the KV cache.", "detail": "Its PagedAttention (2023) stores the cache in small fixed-size blocks instead of one big contiguous chunk per request. The authors reported earlier systems wasted 60–80% of KV cache memory to fragmentation." },
+        { "type": "tf", "statement": "Prompt caching lets a provider skip recomputing a prompt prefix it has seen recently.", "answer": true, "why": "<b>True.</b> If many requests share a long system prompt or document, its KV cache can be reused. Providers pass on the savings as discounted cached-input pricing." }
+      ]
+    },
+    {
+      "title": "Quantization",
+      "cards": [
+        { "type": "explainer", "title": "Shrinking the numbers", "steps": [
+          { "h": "Fewer bits per weight", "p": "Weights trained in 16-bit can be stored in 8 or 4 bits, with a scale factor for each small group of weights." },
+          { "h": "Less memory to move", "p": "Decode speed is limited by reading weights, so a 4-bit model generates tokens far faster than a 16-bit one on the same hardware." },
+          { "h": "Careful rounding keeps quality", "p": "Methods like GPTQ and AWQ choose roundings that minimize error on real data, so 4-bit models lose surprisingly little." }
+        ], "aside": "Quantization is why a capable model can run on a laptop." },
+        { "type": "quiz", "q": "A 70B model quantized to 4 bits needs roughly how much memory for its weights?", "options": ["9 GB", "35 GB", "70 GB", "140 GB"], "answer": 1, "why": "<b>About 35 GB.</b> 70 billion × 0.5 bytes. At 16-bit it would be 140 GB. Real files run slightly larger because of scale factors." },
+        { "type": "tf", "statement": "Quantizing a large model to 4 bits typically destroys its quality.", "answer": false, "why": "<b>False.</b> Good 4-bit methods usually cost only a small drop on benchmarks. Quality falls off more sharply around 3 bits and below." },
+        { "type": "quiz", "q": "Why did naive 8-bit quantization of large models initially fail?", "options": ["8 bits is too small for any number", "A few activation features had huge outlier values that rounding destroyed", "GPUs lacked 8-bit support", "Tokenizers broke"], "answer": 1, "why": "<b>Outliers.</b> Dettmers et al. (LLM.int8, 2022) found that above roughly 6B parameters, a few feature dimensions carry very large values. Handling them separately in higher precision fixed it." },
+        { "type": "fact", "title": "Ollama runs models using llama.cpp, a project that started as a weekend hack to run LLaMA on a MacBook.", "detail": "Georgi Gerganov released llama.cpp in March 2023. Its GGUF quantized format became a standard way to run models locally on CPUs and Apple silicon." },
+        { "type": "quiz", "q": "Weight-only quantization speeds up single-user generation mainly by…", "options": ["Doing less math", "Reducing the bytes read from memory per token", "Shortening the prompt", "Skipping layers"], "answer": 1, "why": "<b>Fewer bytes moved.</b> Decode is memory-bound, so halving bytes per weight roughly doubles tokens per second — even though weights are expanded back to 16-bit for the math." }
+      ]
+    },
+    {
+      "title": "Speculative decoding",
+      "cards": [
+        { "type": "explainer", "title": "Guess cheaply, verify in bulk", "steps": [
+          { "h": "A small model drafts", "p": "A fast draft model guesses the next few tokens — say five." },
+          { "h": "The big model checks them all at once", "p": "The large model scores all five positions in one forward pass, which costs about the same as generating one token." },
+          { "h": "Keep the matching prefix", "p": "Draft tokens are accepted until the first one the big model disagrees with; it supplies the correction and the cycle repeats." }
+        ], "aside": "With the right acceptance rule, output follows exactly the big model's distribution — the speedup is free." },
+        { "type": "quiz", "q": "Why is checking five draft tokens about as cheap as generating one?", "options": ["The draft is always right", "Decode is memory-bound, so the weights read once can score several positions in parallel", "The big model skips layers", "Five is a magic number"], "answer": 1, "why": "<b>Spare compute.</b> Single-token decode leaves most arithmetic units idle while waiting on memory. Scoring extra positions uses that idle compute with the same weight read." },
+        { "type": "tf", "statement": "Speculative decoding changes what the large model would have output.", "answer": false, "why": "<b>False.</b> With rejection sampling, accepted tokens follow exactly the big model's distribution. It is a pure speed trick." },
+        { "type": "quiz", "q": "What mainly determines how much speculative decoding helps?", "options": ["Prompt length", "How often the big model accepts the draft's guesses", "The tokenizer", "GPU temperature"], "answer": 1, "why": "<b>Acceptance rate.</b> Predictable text — code boilerplate, common phrasing — gets accepted often and speeds up a lot. Surprising text gets rejected and gains little." },
+        { "type": "fact", "title": "Some models are trained to predict several future tokens at once.", "detail": "Approaches like Medusa add extra prediction heads, and DeepSeek-V3 used a multi-token prediction objective. The extra predictions can serve as built-in drafts for speculative decoding." },
+        { "type": "tf", "statement": "Greedy decoding — always picking the single most likely token — always produces the most likely full response.", "answer": false, "why": "<b>False.</b> The best next token can lead to a worse overall sequence. Greedy is locally optimal; beam search explores more but tends to produce bland chat text." }
+      ]
+    },
+    {
+      "title": "Choosing the next token",
+      "cards": [
+        { "type": "explainer", "title": "Sampling knobs", "steps": [
+          { "h": "Temperature", "p": "Divides the scores before softmax. Below 1 sharpens toward the top choice; above 1 flattens toward randomness." },
+          { "h": "Top-k", "p": "Sample only from the k most likely tokens, cutting off the long tail of unlikely ones." },
+          { "h": "Top-p (nucleus)", "p": "Sample from the smallest set of tokens whose probabilities add up to p. The set grows when the model is unsure and shrinks when it is confident." }
+        ], "aside": "Top-p adapts to the situation, which is why it is more common than a fixed top-k." },
+        { "type": "quiz", "q": "With top-p = 0.9, the model samples from…", "options": ["The top 90 tokens", "The smallest set of tokens whose combined probability reaches 90%", "Tokens with at least 90% probability", "90% of the vocabulary"], "answer": 1, "why": "<b>The nucleus.</b> If one token has 95% probability, only it is eligible. If the distribution is flat, dozens might be." },
+        { "type": "quiz", "q": "Beam search is common in translation but rare in chatbots because it…", "options": ["Is too random", "Tends to produce bland, repetitive text in open-ended generation", "Cannot run on GPUs", "Is patented"], "answer": 1, "why": "<b>Degeneration.</b> Maximizing likelihood favors safe, generic and repetitive phrasing. Human writing is less probable than what beam search picks." },
+        { "type": "tf", "statement": "Setting temperature to 0 guarantees identical output on every run of an API.", "answer": false, "why": "<b>False.</b> Batching with other requests and floating-point ordering on GPUs can change results slightly. Exact determinism needs special engineering." },
+        { "type": "fact", "title": "Structured output modes can guarantee a model returns valid JSON.", "detail": "Constrained decoding masks out every token that would break the required schema at each step, so the model literally cannot produce invalid output." },
+        { "type": "tip", "title": "Match temperature to the task", "body": "Extracting facts, writing code or classifying wants low temperature for consistency. Brainstorming and creative writing benefit from higher temperature for variety.", "challenge": "Ask the same brainstorming question at a low and a high temperature (or \"be conventional\" vs \"be surprising\") and compare." }
+      ]
+    }
+  ]
+}

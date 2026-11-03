@@ -1,0 +1,69 @@
+{
+  "day": 2,
+  "slug": "gpus",
+  "topic": "GPUs",
+  "cat": "tech",
+  "blurb": "Why AI runs on graphics chips: parallel cores, memory bandwidth, tensor cores and number formats.",
+  "lessons": [
+    {
+      "title": "Why GPUs, not CPUs",
+      "cards": [
+        { "type": "explainer", "title": "Two different bets on speed", "steps": [
+          { "h": "CPUs bet on latency", "p": "A CPU has a handful of powerful cores with big caches and branch prediction, built to finish one complicated task as fast as possible." },
+          { "h": "GPUs bet on throughput", "p": "A GPU has thousands of simpler cores that all run the same instruction on different data. Each is slower, but together they do vastly more work per second." },
+          { "h": "Neural nets are the ideal workload", "p": "Training and running a model is mostly multiplying huge matrices — millions of independent multiply-adds. That is exactly what a GPU is shaped for." }
+        ], "aside": "GPUs evolved to shade millions of pixels independently. Matrix math turned out to be the same kind of problem." },
+        { "type": "quiz", "q": "Which operation accounts for most of the compute in training an LLM?", "options": ["Sorting", "Matrix multiplication", "Branching logic", "Disk reads"], "answer": 1, "why": "<b>Matrix multiplication.</b> Attention projections and MLP layers are big matrix multiplies (GEMMs). That is why chip vendors quote performance in FLOPs for exactly that operation." },
+        { "type": "tf", "statement": "GPUs were originally designed for AI workloads.", "answer": false, "why": "<b>False.</b> They were built for graphics. NVIDIA's CUDA (2007) opened them to general computing, and the 2012 AlexNet result showed how well they suited deep learning." },
+        { "type": "fact", "title": "AlexNet, the 2012 network that kicked off the deep learning boom, was trained on two gaming GPUs.", "detail": "Alex Krizhevsky used two NVIDIA GTX 580 cards with 3 GB of memory each, splitting the network across them because it did not fit on one. It trained for about a week." },
+        { "type": "quiz", "q": "On NVIDIA GPUs, threads are scheduled in groups that execute the same instruction together. How many threads are in one of these warps?", "options": ["4", "32", "256", "1,024"], "answer": 1, "why": "<b>32 threads.</b> A warp issues one instruction for all 32 at once. Programs that keep all 32 doing the same thing get full speed." },
+        { "type": "tf", "statement": "If threads in the same warp take different branches of an if-statement, the warp slows down.", "answer": true, "why": "<b>True — branch divergence.</b> The warp runs both paths one after the other, masking off the threads that did not take each branch. This is why GPU code avoids data-dependent branching." }
+      ]
+    },
+    {
+      "title": "Memory is the real bottleneck",
+      "cards": [
+        { "type": "explainer", "title": "The memory wall", "steps": [
+          { "h": "A hierarchy of speeds", "p": "Registers and on-chip SRAM are tiny and extremely fast. Off-chip HBM holds tens of gigabytes but is far slower to reach." },
+          { "h": "Compute outgrew bandwidth", "p": "Each GPU generation has added arithmetic throughput faster than memory bandwidth. Cores increasingly sit idle waiting for data." },
+          { "h": "So kernels are designed around data movement", "p": "Fast AI code reuses each byte as many times as possible once it is on-chip. FlashAttention and fused kernels exist mainly for this." }
+        ], "aside": "A rule of thumb in performance work: moving data costs more than computing on it." },
+        { "type": "quiz", "q": "HBM, the memory beside every AI accelerator, stands for…", "options": ["Hybrid Bus Module", "High Bandwidth Memory", "Hardware Buffer Matrix", "Heat-Balanced Memory"], "answer": 1, "why": "<b>High Bandwidth Memory.</b> DRAM dies are stacked vertically and placed right beside the GPU on a shared silicon base, giving a very wide, short connection." },
+        { "type": "quiz", "q": "Why is generating text for a single user mostly limited by memory bandwidth, not compute?", "options": ["Tokens are large files", "Every weight must be read from memory for each new token but is used for only a couple of operations", "The GPU throttles itself", "Text must be decompressed"], "answer": 1, "why": "<b>Low arithmetic intensity.</b> Producing one token reads every weight once and does ~2 FLOPs with it. The cores finish instantly and wait for the next bytes. Speed ≈ bandwidth ÷ model size." },
+        { "type": "tf", "statement": "Batching many users' requests together makes text generation more efficient per user.", "answer": true, "why": "<b>True.</b> Each weight read from memory can then be used for every request in the batch, raising work per byte. This is the core economics of serving LLMs." },
+        { "type": "fact", "title": "An NVIDIA H100 can read its 80 GB of memory roughly 40 times per second.", "detail": "The SXM version has about 3.35 TB/s of HBM3 bandwidth. A model filling that memory can therefore be swept about 40 times a second, which caps single-stream generation at roughly that many tokens per second." },
+        { "type": "quiz", "q": "On a roofline chart, a kernel sitting to the left of the \"ridge point\" is…", "options": ["Compute-bound", "Memory-bound", "Optimal", "Broken"], "answer": 1, "why": "<b>Memory-bound.</b> The roofline plots achievable FLOPs against arithmetic intensity. Left of the ridge, performance rises with intensity because bandwidth is the limit. Right of it, compute is the ceiling." }
+      ]
+    },
+    {
+      "title": "Tensor cores and number formats",
+      "cards": [
+        { "type": "explainer", "title": "Doing more math with fewer bits", "steps": [
+          { "h": "Special matrix units", "p": "Tensor cores multiply small matrix tiles in a single operation, delivering far more FLOPs than ordinary GPU cores." },
+          { "h": "Smaller numbers, more throughput", "p": "Each step down in precision — FP32 to BF16 to FP8 to FP4 — roughly doubles peak throughput and halves memory per value." },
+          { "h": "The trick is keeping accuracy", "p": "Scaling factors, careful rounding and higher-precision accumulators let low-bit formats train and serve models with little quality loss." }
+        ], "aside": "Much of the headline performance growth between GPU generations comes from newer, smaller number formats." },
+        { "type": "quiz", "q": "BF16 became the default training format over FP16 mainly because it…", "options": ["Has more precision", "Keeps FP32's exponent range, so values rarely overflow or underflow", "Uses fewer bits than FP16", "Runs on CPUs"], "answer": 1, "why": "<b>Range over precision.</b> BF16 has the same 8-bit exponent as FP32, just fewer mantissa bits. Gradients that would overflow or vanish in FP16 stay representable, so no loss scaling is needed." },
+        { "type": "tf", "statement": "NVIDIA introduced tensor cores with the Volta generation (V100) in 2017.", "answer": true, "why": "<b>True.</b> The V100 was the first GPU with tensor cores, initially for FP16 matrix math. Later generations added TF32, BF16, INT8, FP8 and FP4 support." },
+        { "type": "quiz", "q": "In mixed-precision training, why keep a master copy of the weights in FP32?", "options": ["For backup", "Small updates would round to zero if added directly to low-precision weights", "FP32 is faster", "To satisfy the optimizer's license"], "answer": 1, "why": "<b>Tiny updates disappear.</b> Learning rate × gradient is often far smaller than the weight itself. In BF16, adding it would round away. Accumulating in FP32 preserves those small steps." },
+        { "type": "fact", "title": "DeepSeek-V3 was trained largely in FP8, one of the first frontier-scale runs to do so.", "detail": "Its 2024 report describes FP8 matrix multiplies with fine-grained scaling and higher-precision accumulation. Combined with other efficiencies, it reported about 2.8 million H800 GPU-hours for the final run." },
+        { "type": "tf", "statement": "Lower-precision formats only help inference; training always needs 32-bit floats.", "answer": false, "why": "<b>False.</b> Training has used 16-bit formats for years and FP8 for the largest recent runs. Only certain parts — accumulators, optimizer state, some sensitive layers — stay in higher precision." }
+      ]
+    },
+    {
+      "title": "From one GPU to thousands",
+      "cards": [
+        { "type": "explainer", "title": "Wiring GPUs into one machine", "steps": [
+          { "h": "Inside a server", "p": "Eight GPUs share a fast NVLink fabric — about 900 GB/s per GPU on H100 — so they can exchange data almost like shared memory." },
+          { "h": "Between servers", "p": "Nodes connect over InfiniBand or high-speed Ethernet, an order of magnitude slower than NVLink." },
+          { "h": "Collective operations", "p": "Training constantly runs operations like all-reduce, where every GPU contributes gradients and receives the sum. Network design decides how fast that happens." }
+        ], "aside": "In large clusters, the network can cost as much attention — and money — as the GPUs themselves." },
+        { "type": "quiz", "q": "In data-parallel training, what does the all-reduce step accomplish?", "options": ["Shuffles the dataset", "Averages gradients across all GPUs so every copy of the model stays identical", "Compresses the model", "Deletes old checkpoints"], "answer": 1, "why": "<b>Synchronizing gradients.</b> Each GPU computes gradients on its own slice of the batch. All-reduce sums them everywhere so all replicas apply the same update." },
+        { "type": "quiz", "q": "Analysts often say NVIDIA's strongest moat is not its chips but…", "options": ["Its retail stores", "CUDA and the software ecosystem built on it", "Patents on matrix multiplication", "Its cloud service"], "answer": 1, "why": "<b>CUDA.</b> Nearly two decades of libraries (cuDNN, cuBLAS, NCCL), tooling and developer familiarity make switching costly even when rival hardware is competitive." },
+        { "type": "tf", "statement": "Google trains its Gemini models mainly on NVIDIA GPUs.", "answer": false, "why": "<b>False.</b> Google uses its own TPUs, custom accelerators built around large matrix-multiply units and connected in pods. It is one of the few labs largely independent of NVIDIA." },
+        { "type": "fact", "title": "A single H100 SXM GPU can draw up to 700 watts — about as much as a microwave.", "detail": "An 8-GPU server draws over 10 kW. This is why AI data centers are planned around power and cooling, and why newer racks use direct liquid cooling." },
+        { "type": "tip", "title": "Estimate GPU memory in your head", "body": "Weights need parameters × bytes per parameter. A 70B model in BF16 (2 bytes) needs ~140 GB before any KV cache — more than one 80 GB GPU. At 4-bit it needs ~35 GB.", "challenge": "Work out how much memory an 8B model needs at 16-bit and at 4-bit. (Answers: ~16 GB and ~4 GB.)" }
+      ]
+    }
+  ]
+}

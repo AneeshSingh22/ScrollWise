@@ -1,0 +1,69 @@
+{
+  "day": 24,
+  "slug": "classic-ml",
+  "topic": "Classic ML and recommendations",
+  "cat": "tech",
+  "blurb": "The machine learning that quietly runs the world: trees, clustering and the algorithms behind your feeds.",
+  "lessons": [
+    {
+      "title": "Machine learning before deep learning",
+      "cards": [
+        { "type": "explainer", "title": "Learning from tables", "steps": [
+          { "h": "Features in, prediction out", "p": "Classic supervised learning starts with columns of features — age, price, clicks — and learns to predict a target." },
+          { "h": "Simple models go far", "p": "Linear and logistic regression are fast, interpretable and still widely used." },
+          { "h": "Trees dominate tabular data", "p": "Ensembles of decision trees, like random forests and gradient boosting, are often the strongest choice for spreadsheet-style data." }
+        ], "aside": "Fraud detection, credit scoring and demand forecasting still run largely on these methods." },
+        { "type": "quiz", "q": "For typical tabular data, what often outperforms deep neural networks?", "options": ["Transformers", "Gradient-boosted decision trees like XGBoost or LightGBM", "Convolutional networks", "Rule-based systems"], "answer": 1, "why": "<b>Gradient boosting.</b> Benchmarks have repeatedly found tree ensembles match or beat deep nets on tabular data, while training faster and needing less tuning." },
+        { "type": "tf", "statement": "Logistic regression is used for classification, despite its name.", "answer": true, "why": "<b>True.</b> It outputs a probability through the logistic (sigmoid) function, which is then thresholded into classes." },
+        { "type": "quiz", "q": "A random forest makes predictions by…", "options": ["Using one very deep tree", "Averaging many trees trained on random subsets of rows and features", "Planting real trees", "Sorting data randomly"], "answer": 1, "why": "<b>Averaging diverse trees.</b> Each tree overfits differently; averaging cancels much of the noise. This is called bagging." },
+        { "type": "fact", "title": "XGBoost was used in 17 of the 29 winning Kaggle competition solutions published in 2015.", "detail": "Tianqi Chen's gradient boosting library became the default tool for structured data competitions, according to the XGBoost paper." },
+        { "type": "tf", "statement": "Decision trees require features to be scaled to the same range.", "answer": false, "why": "<b>False.</b> Trees split on thresholds of one feature at a time, so scale does not matter. Linear models and neural networks are the ones sensitive to it." }
+      ]
+    },
+    {
+      "title": "Finding structure without labels",
+      "cards": [
+        { "type": "explainer", "title": "Unsupervised learning", "steps": [
+          { "h": "Clustering", "p": "Group similar examples together, such as customers with similar buying habits." },
+          { "h": "Dimensionality reduction", "p": "Compress many features into a few that keep the most important variation, for visualization or speed." },
+          { "h": "Anomaly detection", "p": "Learn what normal looks like and flag what doesn't fit, like fraudulent transactions." }
+        ], "aside": "No labels needed — the structure comes from the data itself." },
+        { "type": "quiz", "q": "What must you choose before running k-means clustering?", "options": ["The labels", "The number of clusters, k", "The learning rate", "The number of layers"], "answer": 1, "why": "<b>k.</b> The algorithm assigns points to the nearest of k centers and moves the centers, repeating until stable. Choosing k is part of the art." },
+        { "type": "quiz", "q": "Principal component analysis (PCA) finds…", "options": ["Clusters", "The directions along which the data varies most", "Outliers only", "Labels"], "answer": 1, "why": "<b>Directions of maximum variance.</b> Projecting onto the top few components keeps most information in far fewer dimensions." },
+        { "type": "tf", "statement": "In a t-SNE plot, the distances between separate clusters are reliable.", "answer": false, "why": "<b>False.</b> t-SNE preserves local neighborhoods but distorts global distances and cluster sizes. Two far-apart clusters may not be more different than two close ones." },
+        { "type": "fact", "title": "The k-means algorithm was developed at Bell Labs in 1957, but not published until 1982.", "detail": "Stuart Lloyd described it in an internal report about signal processing. It is still one of the most widely used algorithms in data science." },
+        { "type": "quiz", "q": "Which is a natural use for anomaly detection?", "options": ["Translating text", "Flagging unusual credit card transactions as possible fraud", "Generating images", "Sorting emails alphabetically"], "answer": 1, "why": "<b>Fraud.</b> Fraud is rare and varied, so labeled examples are scarce. Modeling normal behavior and flagging deviations works well." }
+      ]
+    },
+    {
+      "title": "How recommendations work",
+      "cards": [
+        { "type": "explainer", "title": "\"People like you also liked…\"", "steps": [
+          { "h": "Collaborative filtering", "p": "Find users with similar histories and recommend what they liked." },
+          { "h": "Matrix factorization", "p": "Learn a vector for every user and every item; their dot product predicts how much the user will like the item." },
+          { "h": "Retrieve, then rank", "p": "Large systems first narrow millions of items to hundreds of candidates, then a heavier model ranks those." }
+        ], "aside": "YouTube's widely read 2016 paper described this two-stage design." },
+        { "type": "quiz", "q": "The \"cold start\" problem in recommendations refers to…", "options": ["Servers starting slowly", "New users or items with no history to learn from", "Winter usage drops", "Old items"], "answer": 1, "why": "<b>No data yet.</b> Collaborative filtering needs history. Systems fall back on content features, popularity or quick onboarding questions." },
+        { "type": "quiz", "q": "The Netflix Prize offered $1 million for improving Netflix's rating predictions by…", "options": ["1%", "10%", "50%", "100%"], "answer": 1, "why": "<b>10%</b> in prediction error. The team BellKor's Pragmatic Chaos won in 2009, blending hundreds of models." },
+        { "type": "tf", "statement": "Netflix never deployed the full winning Netflix Prize solution.", "answer": true, "why": "<b>True.</b> Netflix said the extra accuracy wasn't worth the engineering effort, and its business had shifted from DVDs to streaming." },
+        { "type": "fact", "title": "Matrix factorization became famous during the Netflix Prize.", "detail": "Simon Funk publicly described a simple version in a 2006 blog post, and it quickly became a core technique of the competition and of recommender systems generally." },
+        { "type": "quiz", "q": "In matrix factorization, a predicted rating is computed from…", "options": ["The item's price", "The dot product of a learned user vector and a learned item vector", "Random numbers", "The number of reviews"], "answer": 1, "why": "<b>A dot product.</b> Dimensions often capture hidden tastes, such as how much a user likes action and how much action a film has." }
+      ]
+    },
+    {
+      "title": "Feeds and engagement",
+      "cards": [
+        { "type": "explainer", "title": "What your feed optimizes", "steps": [
+          { "h": "Predict engagement", "p": "Modern feeds predict how likely you are to watch, like, share or comment, and rank by a weighted mix." },
+          { "h": "Feedback loops", "p": "What you are shown shapes what you engage with, which shapes what you are shown next." },
+          { "h": "Short-term vs long-term", "p": "Optimizing immediate engagement can diverge from what users value over months." }
+        ], "aside": "This app's \"Fewer\" button is exactly the kind of explicit feedback engagement-driven feeds tend to underweight." },
+        { "type": "quiz", "q": "Why can optimizing purely for watch time backfire?", "options": ["Videos get shorter", "It rewards compulsive content over content people value — a Goodhart's law problem", "Servers overheat", "Ads disappear"], "answer": 1, "why": "<b>Proxy vs goal.</b> Watch time correlates with value until you optimize it hard; then it finds what is hardest to stop watching, not what is worth watching." },
+        { "type": "tf", "statement": "A recommender trained on clicks learns what users value in the long run.", "answer": false, "why": "<b>False.</b> Clicks capture immediate impulses. Long-term satisfaction needs other signals, such as surveys, return visits or explicit feedback." },
+        { "type": "quiz", "q": "Why do recommenders deliberately show some items they are unsure about?", "options": ["Mistakes", "Exploration — to learn about the user's tastes and avoid a narrow echo chamber", "To save money", "Legal requirements"], "answer": 1, "why": "<b>Exploration.</b> Without it, the system only ever confirms what it already believes about you." },
+        { "type": "fact", "title": "TikTok said in 2020 that whether you watch a long video to the end is a strong signal for its recommendations.", "detail": "Its public explanation listed interactions, video information and device settings as factors, with completion among the strongest indicators of interest." },
+        { "type": "tip", "title": "Train your feeds on purpose", "body": "Recommenders learn from every signal you give. Tapping \"not interested\" on a few items reshapes a feed faster than scrolling past them.", "challenge": "On one app you use, mark three items \"not interested\" that you'd rather see less of." }
+      ]
+    }
+  ]
+}

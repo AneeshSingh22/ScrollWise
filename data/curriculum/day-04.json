@@ -1,0 +1,69 @@
+{
+  "day": 4,
+  "slug": "neural-networks",
+  "topic": "How neural networks learn",
+  "cat": "ai",
+  "blurb": "Neurons, loss, gradient descent and backpropagation — the engine underneath every model.",
+  "lessons": [
+    {
+      "title": "A neuron is a weighted vote",
+      "cards": [
+        { "type": "explainer", "title": "From one neuron to a network", "steps": [
+          { "h": "Weigh the inputs", "p": "A neuron multiplies each input by a weight, adds them up with a bias, and passes the total through a simple nonlinear function." },
+          { "h": "Stack them in layers", "p": "Each layer's outputs become the next layer's inputs. Early layers detect simple patterns; later ones combine them into abstract features." },
+          { "h": "The nonlinearity is essential", "p": "Without it, any stack of layers collapses into one linear map — no more expressive than a single layer." }
+        ], "aside": "\"Learning\" just means finding weight values that make the network's outputs useful." },
+        { "type": "tf", "statement": "Stacking ten linear layers with no activation functions gives a more powerful model than one linear layer.", "answer": false, "why": "<b>False.</b> Composing linear maps gives another linear map: W₃(W₂(W₁x)) = Wx. Depth only adds power when nonlinearities sit between the layers." },
+        { "type": "quiz", "q": "ReLU (max(0, x)) largely replaced the sigmoid in deep networks mainly because…", "options": ["It is more biologically accurate", "Its gradient doesn't shrink toward zero for positive inputs", "It outputs probabilities", "It needs no weights"], "answer": 1, "why": "<b>Healthy gradients.</b> A sigmoid flattens at both ends, so gradients through many layers shrink. ReLU's slope is exactly 1 for positive inputs, letting signal flow through deep stacks. It is also cheap to compute." },
+        { "type": "quiz", "q": "The universal approximation theorem says a network with one wide hidden layer can approximate any continuous function. What does it NOT promise?", "options": ["That such weights exist", "That gradient descent will find them, or that the layer is a practical size", "That the output is continuous", "That it works for any input"], "answer": 1, "why": "<b>Existence, not learnability.</b> The theorem says suitable weights exist, possibly with an enormous number of neurons. It says nothing about finding them efficiently — which is why depth matters in practice." },
+        { "type": "fact", "title": "A 1969 book proving simple perceptrons couldn't learn XOR helped trigger the first AI winter.", "detail": "Minsky and Papert's \"Perceptrons\" showed single-layer networks cannot represent functions like exclusive-or. Multi-layer networks can, but nobody had a good way to train them until backpropagation spread in the 1980s." },
+        { "type": "tf", "statement": "A single-layer perceptron can learn to compute XOR.", "answer": false, "why": "<b>False.</b> XOR's true cases (0,1) and (1,0) cannot be separated from (0,0) and (1,1) by one straight line. A single hidden layer fixes it." }
+      ]
+    },
+    {
+      "title": "Loss and gradient descent",
+      "cards": [
+        { "type": "explainer", "title": "Walking downhill in a million dimensions", "steps": [
+          { "h": "Measure wrongness", "p": "A loss function scores how bad the predictions are. For language models it is cross-entropy: how surprised the model was by the real next token." },
+          { "h": "Find the downhill direction", "p": "The gradient says how the loss changes as each weight changes. Stepping against it lowers the loss." },
+          { "h": "Take small steps on small batches", "p": "Stochastic gradient descent estimates the gradient from a mini-batch of examples and takes a step scaled by the learning rate. Repeat millions of times." }
+        ], "aside": "The loss landscape of a large model has billions of dimensions, yet this simple procedure works remarkably well." },
+        { "type": "quiz", "q": "What typically happens if the learning rate is set far too high?", "options": ["Training is slow but stable", "The loss oscillates or explodes instead of decreasing", "The model memorizes the data", "Nothing changes"], "answer": 1, "why": "<b>Divergence.</b> Steps overshoot the valley floor and land higher up the other side, growing each time. Too low a rate is the opposite problem: stable but painfully slow." },
+        { "type": "quiz", "q": "A model gives the correct next token a probability of 0.5. Its cross-entropy loss for that token, in nats, is about…", "options": ["0.5", "0.69", "1.0", "2.0"], "answer": 1, "why": "<b>ln 2 ≈ 0.69.</b> Cross-entropy is −ln(p) for the true token. p = 1 gives 0 loss; p = 0.01 gives 4.6. Being confidently wrong is punished hard." },
+        { "type": "tf", "statement": "Stochastic gradient descent computes the gradient over the entire dataset before each update.", "answer": false, "why": "<b>False.</b> That is full-batch gradient descent. SGD uses a small random batch, which is cheaper per step and adds noise that can actually help escape poor regions." },
+        { "type": "fact", "title": "The Adam optimizer stores two extra numbers for every parameter.", "detail": "It tracks a running average of each weight's gradient and of its squared gradient. With FP32 copies, optimizer state alone can need several times more memory than the BF16 model weights." },
+        { "type": "quiz", "q": "Perplexity is e raised to the loss. A model with a perplexity of 10 is roughly as uncertain as…", "options": ["Being 10% wrong", "Choosing uniformly among 10 equally likely tokens", "Using 10 layers", "Seeing 10 tokens of context"], "answer": 1, "why": "<b>A fair 10-sided die.</b> Perplexity is the effective number of choices the model is hesitating between. Lower is better; a perfect model has perplexity 1." }
+      ]
+    },
+    {
+      "title": "Backpropagation",
+      "cards": [
+        { "type": "explainer", "title": "Blame, passed backwards", "steps": [
+          { "h": "Forward pass", "p": "Inputs flow through the network to a prediction and a loss. Intermediate activations are saved along the way." },
+          { "h": "Backward pass", "p": "Starting at the loss, the chain rule computes how much each layer's output contributed, then each layer's weights, moving from the last layer to the first." },
+          { "h": "Every gradient in one sweep", "p": "One backward pass yields the gradient for all parameters at about twice the cost of the forward pass." }
+        ], "aside": "Frameworks like PyTorch do this automatically (autograd): you write the forward pass, and gradients come for free." },
+        { "type": "quiz", "q": "Training compute is roughly 6 × parameters × tokens. About how many FLOPs to train a 7B model on 1 trillion tokens?", "options": ["4.2 × 10¹⁹", "7 × 10²¹", "4.2 × 10²²", "4.2 × 10²⁵"], "answer": 2, "why": "<b>6 × 7×10⁹ × 10¹² = 4.2 × 10²².</b> The 6 is ~2 FLOPs per parameter per token forward, plus ~4 backward. This one formula lets you size almost any training run." },
+        { "type": "tf", "statement": "Backpropagation needs the activations from the forward pass to be kept in memory.", "answer": true, "why": "<b>True.</b> Each layer's gradient depends on its inputs. For large models that memory is a bottleneck, so \"activation checkpointing\" saves only some activations and recomputes the rest during the backward pass." },
+        { "type": "quiz", "q": "What is the largest slope a sigmoid function ever has?", "options": ["1", "0.5", "0.25", "0.1"], "answer": 2, "why": "<b>0.25, at x = 0.</b> Backprop multiplies one such factor per layer, so 10 sigmoid layers shrink gradients by at least 0.25¹⁰ ≈ 10⁻⁶. That is the vanishing-gradient problem in one number." },
+        { "type": "fact", "title": "Backpropagation was popularized by a 1986 Nature paper — but invented earlier, more than once.", "detail": "Rumelhart, Hinton and Williams made it famous. Seppo Linnainmaa described reverse-mode automatic differentiation in 1970, and Paul Werbos proposed applying it to neural networks in 1974." },
+        { "type": "tf", "statement": "In PyTorch, you must write the gradient formula for each layer you create.", "answer": false, "why": "<b>False.</b> Autograd records the operations you perform and applies the chain rule automatically when you call .backward(). Custom gradients are possible but rarely needed." }
+      ]
+    },
+    {
+      "title": "Learning vs memorizing",
+      "cards": [
+        { "type": "explainer", "title": "Generalization", "steps": [
+          { "h": "Hold data back", "p": "Data is split into training, validation and test sets. Only the training set updates weights; the others measure how well the model handles unseen examples." },
+          { "h": "Overfitting", "p": "A model that keeps improving on training data while getting worse on validation data is memorizing quirks instead of learning patterns." },
+          { "h": "Regularization", "p": "More data, dropout, weight decay and early stopping all push the model toward simpler explanations that transfer." }
+        ], "aside": "Large language models rarely overfit in the classic sense; most see each token only once or a few times." },
+        { "type": "quiz", "q": "Dropout regularizes a network by…", "options": ["Deleting the worst training examples", "Randomly zeroing a fraction of activations during training", "Lowering the learning rate", "Removing layers permanently"], "answer": 1, "why": "<b>Random silencing.</b> Each step, a random subset of units is switched off, so no unit can rely on specific partners. At inference all units are used, like averaging many thinned networks." },
+        { "type": "tf", "statement": "It is fine to tune hyperparameters by checking results on the test set.", "answer": false, "why": "<b>False.</b> Every choice made by looking at the test set leaks it into training, making the final score optimistic. Tune on validation; touch the test set once at the end." },
+        { "type": "quiz", "q": "Why do transformers use LayerNorm rather than BatchNorm?", "options": ["LayerNorm is older", "It normalizes each token on its own, independent of batch size and sequence length", "BatchNorm has no parameters", "LayerNorm makes models smaller"], "answer": 1, "why": "<b>Batch independence.</b> BatchNorm relies on statistics across a batch, which is awkward for variable-length sequences and breaks at batch size 1. LayerNorm normalizes across features within each token." },
+        { "type": "fact", "title": "Some networks suddenly generalize long after they've perfectly memorized their training data — \"grokking\".", "detail": "Power et al. (2022) trained small transformers on modular arithmetic. Validation accuracy stayed near chance for thousands of steps after training accuracy hit 100%, then jumped to near-perfect." },
+        { "type": "quiz", "q": "A model with high variance (in the bias–variance sense) is one that…", "options": ["Is too simple to fit the data", "Fits noise in its particular training set and changes a lot with different samples", "Trains slowly", "Has too few parameters"], "answer": 1, "why": "<b>Overfitting.</b> High variance means predictions swing with the specific training sample. High bias is the opposite: a model too rigid to capture the real pattern." }
+      ]
+    }
+  ]
+}

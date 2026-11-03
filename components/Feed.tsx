@@ -2,30 +2,60 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CATS, XP, type Filter } from "@/lib/constants";
+import { buildLesson, dayByNumber, dayProgress, todayDayNumber } from "@/lib/curriculum";
 import { baseId, buildSession } from "@/lib/deck";
 import { useProfile } from "@/lib/useProfile";
-import { PICKER, SESSIONS, buildFixedSession, sessionById } from "@/lib/sessions";
-import type { Card } from "@/types/card";
-import { CardView, type CardCallbacks, type SessionMode } from "./CardView";
+import type { Card, IntroCard } from "@/types/card";
+import { CardView, type CardCallbacks, type LearnContext } from "./CardView";
 import { Header } from "./Header";
 import { SavedSheet } from "./SavedSheet";
 import type { SessionStats } from "./cards/SummaryBody";
 
 type Float = { id: number; amount: number; left: number; top: number };
 
+/**
+ * What the screen is showing:
+ * - course: the course screen (one card listing a day's lessons and all days)
+ * - lesson: a running lesson's cards, closed by the end-of-lesson card
+ * - feed:   the open-ended scroll feed for a topic chip
+ */
+type Mode =
+  | { kind: "course"; day: number | null }
+  | { kind: "lesson"; id: string }
+  | { kind: "feed" };
+
 const EMPTY_STATS: SessionStats = { seen: 0, answered: 0, correct: 0, xp: 0 };
+
+/** The course screen is rendered in the intro card's slot. */
+const COURSE_CARD: IntroCard = { id: "course", cat: "intro", type: "intro" };
+
+/** Cards that are UI chrome, not content: never counted as seen. */
+function isChromeId(id: string): boolean {
+  return id === "intro" || id === "course" || id.startsWith("summary");
+}
 
 export function Feed() {
   // Profile: localStorage when signed out, mirrored to Supabase when signed in.
-  const { state, user, hydrated, addXP: persistXP, toggleSave, setLiked, addFewer, signOut } =
-    useProfile();
+  const {
+    state,
+    user,
+    hydrated,
+    addXP: persistXP,
+    toggleSave,
+    setLiked,
+    addFewer,
+    completeLesson,
+    markSeen,
+    signOut,
+  } = useProfile();
 
   const [filter, setFilter] = useState<Filter>("all");
-  // Session mode: today's four fixed sessions. null = the normal topic feed.
-  // "menu" = the picker card; otherwise the running session's id.
-  const [sessionId, setSessionId] = useState<string | null>("menu");
-  const [sessionsDone, setSessionsDone] = useState<string[]>([]);
-  const [cards, setCards] = useState<Card[]>(() => [PICKER as Card]);
+  const [mode, setMode] = useState<Mode>({ kind: "course", day: null });
+  // Today's course day depends on the local date, so it is only known on the
+  // client — computing it during the static server render would bake in the
+  // build date and mismatch on hydration.
+  const [today, setToday] = useState<number | null>(null);
+  const [cards, setCards] = useState<Card[]>(() => [COURSE_CARD]);
   const [stats, setStats] = useState<SessionStats>(EMPTY_STATS);
   const [progress, setProgress] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -41,6 +71,20 @@ export function Feed() {
   const seenIds = useRef<Set<string>>(new Set());
   const queuedReviews = useRef<Set<string>>(new Set());
   const currentIndex = useRef(0);
+
+  // Latest mode and markSeen for the IntersectionObserver callback.
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  const markSeenRef = useRef(markSeen);
+  markSeenRef.current = markSeen;
+
+  // --- today's course day (local time; re-checked when the app returns) ----
+  useEffect(() => {
+    const update = () => setToday(todayDayNumber());
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
 
   // --- card height: snap points must be exactly the viewport's feed area ---
   useEffect(() => {
@@ -73,9 +117,11 @@ export function Feed() {
           setProgress(children.length ? ((i + 1) / children.length) * 100 : 0);
 
           const id = (e.target as HTMLElement).dataset.id;
-          if (id && id !== "intro" && id !== "summary" && !seenIds.current.has(id)) {
+          if (id && !isChromeId(id) && !seenIds.current.has(id)) {
             seenIds.current.add(id);
             setStats((s) => ({ ...s, seen: seenIds.current.size }));
+            // Feed cards are remembered so later rounds prefer fresh ones.
+            if (modeRef.current.kind === "feed") markSeenRef.current([baseId(id)]);
           }
         }
       },
@@ -120,32 +166,8 @@ export function Feed() {
     [persistXP],
   );
 
-  // --- session building ----------------------------------------------------
-  const rebuild = useCallback(
-    (nextFilter: Filter, fewer: string[], withIntro: boolean) => {
-      seenIds.current = new Set();
-      queuedReviews.current = new Set();
-      currentIndex.current = 0;
-      setStats(EMPTY_STATS);
-      setCards(buildSession(nextFilter, fewer, withIntro));
-      setProgress(0);
-      feedRef.current?.scrollTo({ top: 0 });
-    },
-    [],
-  );
-
-  const onFilter = useCallback(
-    (f: Filter) => {
-      // Picking a topic chip leaves session mode for the normal feed.
-      setSessionId(null);
-      setFilter(f);
-      rebuild(f, state.fewer, false);
-    },
-    [rebuild, state.fewer],
-  );
-
-  // --- session mode --------------------------------------------------------
-  /** Reset the per-session counters and load a card list. */
+  // --- loading a card list -------------------------------------------------
+  /** Resets per-session counters and shows a new list from the top. */
   const loadCards = useCallback((next: Card[]) => {
     seenIds.current = new Set();
     queuedReviews.current = new Set();
@@ -156,33 +178,42 @@ export function Feed() {
     feedRef.current?.scrollTo({ top: 0 });
   }, []);
 
-  const onPickSession = useCallback(
+  /** A fresh scroll-feed round for a topic chip. */
+  const startFeed = useCallback(
+    (f: Filter, withIntro: boolean) => {
+      setMode({ kind: "feed" });
+      setFilter(f);
+      loadCards(buildSession(f, state.fewer, withIntro, state.feedSeen));
+    },
+    [loadCards, state.fewer, state.feedSeen],
+  );
+
+  const onFilter = useCallback((f: Filter) => startFeed(f, false), [startFeed]);
+
+  const onOpenCourse = useCallback(() => {
+    setMode({ kind: "course", day: null });
+    loadCards([COURSE_CARD]);
+  }, [loadCards]);
+
+  const onSelectDay = useCallback((day: number) => {
+    // The course card stays mounted; only the day it shows changes.
+    setMode({ kind: "course", day });
+  }, []);
+
+  const onStartLesson = useCallback(
     (id: string) => {
-      setSessionId(id);
-      loadCards(buildFixedSession(id));
+      setMode({ kind: "lesson", id });
+      loadCards(buildLesson(id));
     },
     [loadCards],
   );
 
-  const onBackToSessions = useCallback(() => {
-    setSessionId("menu");
-    loadCards([PICKER as Card]);
-  }, [loadCards]);
-
-  /** Open the session menu from the header. */
-  const onOpenSessions = useCallback(() => {
-    setSessionId("menu");
-    loadCards([PICKER as Card]);
-  }, [loadCards]);
-
-  // Mark a session finished once its closing card is reached.
+  // A lesson counts as finished once its closing card is reached.
   useEffect(() => {
-    if (!sessionId || sessionId === "menu") return;
+    if (mode.kind !== "lesson" || progress < 100) return;
     const last = cards[cards.length - 1];
-    if (!last || last.type !== "summary") return;
-    if (progress < 100) return;
-    setSessionsDone((d) => (d.includes(sessionId) ? d : [...d, sessionId]));
-  }, [progress, sessionId, cards]);
+    if (last?.type === "summary") completeLesson(mode.id);
+  }, [mode, progress, cards, completeLesson]);
 
   // --- review queue: a missed card comes back 4 cards later ----------------
   const queueReview = useCallback((card: Card) => {
@@ -228,33 +259,38 @@ export function Feed() {
         addFewer(card.cat);
         showToast(`You'll see fewer ${CATS[card.cat]} cards next round.`);
       },
-      onAnother: () => rebuild(filter, state.fewer, false),
-      onPickSession,
-      onBackToSessions,
+      onAnother: () => startFeed(filter, false),
+      onSelectDay,
+      onStartLesson,
+      onOpenCourse,
     }),
     [
       addXP,
       queueReview,
-      rebuild,
       showToast,
-      filter,
-      state.fewer,
       setLiked,
       toggleSave,
       addFewer,
-      onPickSession,
-      onBackToSessions,
+      startFeed,
+      filter,
+      onSelectDay,
+      onStartLesson,
+      onOpenCourse,
     ],
   );
 
-  /** Session-mode context for the menu and finish cards. */
-  const sessionMode: SessionMode | undefined = useMemo(() => {
-    if (!sessionId) return undefined;
+  /** Course context for the course screen and end-of-lesson card. */
+  const learn: LearnContext | undefined = useMemo(() => {
+    if (mode.kind === "feed") return undefined;
     return {
-      title: sessionById(sessionId)?.title ?? "Today",
-      done: sessionsDone,
+      today,
+      selectedDay: mode.kind === "course" ? mode.day : null,
+      lessonId: mode.kind === "lesson" ? mode.id : null,
+      done: hydrated ? state.lessonsDone : [],
     };
-  }, [sessionId, sessionsDone]);
+  }, [mode, today, hydrated, state.lessonsDone]);
+
+  const todayDay = today ? dayByNumber(today) : undefined;
 
   return (
     <>
@@ -268,10 +304,13 @@ export function Feed() {
           onFilter={onFilter}
           onOpenSaved={() => setSheetOpen(true)}
           xpPillRef={xpPillRef}
-          sessionsActive={sessionId !== null}
-          sessionsDone={sessionsDone.length}
-          sessionsTotal={SESSIONS.length}
-          onOpenSessions={onOpenSessions}
+          learnActive={mode.kind !== "feed"}
+          learnLabel={
+            todayDay && hydrated
+              ? `Learn ${dayProgress(todayDay, state.lessonsDone)}/${todayDay.lessons.length}`
+              : "Learn"
+          }
+          onOpenLearn={onOpenCourse}
         />
         <main className="feed" aria-label="Learning feed" ref={feedRef}>
           {cards.map((card) => (
@@ -282,7 +321,7 @@ export function Feed() {
               saved={hydrated && state.saved.includes(baseId(card.id))}
               stats={stats}
               cb={cb}
-              session={sessionMode}
+              learn={learn}
             />
           ))}
         </main>

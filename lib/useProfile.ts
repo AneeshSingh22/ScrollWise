@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "./supabase/client";
-import { EMPTY, applyStreak, read, write, type Persisted } from "./store";
+import { EMPTY, FEED_SEEN_CAP, applyStreak, read, write, type Persisted } from "./store";
 import { pushProfile, pushSaved, syncOnSignIn } from "./profile";
 
 /**
@@ -135,6 +135,27 @@ export function useProfile() {
     [update],
   );
 
+  const completeLesson = useCallback(
+    (lessonId: string) =>
+      update((p) =>
+        p.lessonsDone.includes(lessonId)
+          ? p
+          : { ...p, lessonsDone: [...p.lessonsDone, lessonId] },
+      ),
+    [update],
+  );
+
+  /** Records feed cards as seen so the next round prefers fresh ones. */
+  const markSeen = useCallback(
+    (ids: string[]) =>
+      update((p) => {
+        const fresh = ids.filter((id) => !p.feedSeen.includes(id));
+        if (!fresh.length) return p;
+        return { ...p, feedSeen: [...p.feedSeen, ...fresh].slice(-FEED_SEEN_CAP) };
+      }),
+    [update],
+  );
+
   const signOut = useCallback(async () => {
     await supabase().auth.signOut();
   }, []);
@@ -147,6 +168,8 @@ export function useProfile() {
     toggleSave,
     setLiked,
     addFewer,
+    completeLesson,
+    markSeen,
     signOut,
   };
 }

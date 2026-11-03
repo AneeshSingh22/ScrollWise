@@ -1,0 +1,69 @@
+{
+  "day": 27,
+  "slug": "ai-for-science",
+  "topic": "AI for science",
+  "cat": "world",
+  "blurb": "AlphaFold, AI weather forecasts, machine-discovered math and the first AI-designed drugs.",
+  "lessons": [
+    {
+      "title": "AlphaFold",
+      "cards": [
+        { "type": "explainer", "title": "The protein folding problem", "steps": [
+          { "h": "Sequence to shape", "p": "A protein is a chain of amino acids that folds into a precise 3D shape, and that shape determines what it does." },
+          { "h": "Slow to measure", "p": "Determining a structure experimentally could take months or years per protein." },
+          { "h": "Predicted in minutes", "p": "DeepMind's AlphaFold 2 (2020) predicted structures with accuracy often comparable to experiments, from sequence alone." }
+        ], "aside": "Organizers of the CASP competition said the 50-year-old problem was, in large part, solved." },
+        { "type": "quiz", "q": "Why does a protein's 3D shape matter so much?", "options": ["It sets the protein's color", "It determines its function and how drugs can bind to it", "It controls its weight", "It decides its name"], "answer": 1, "why": "<b>Shape is function.</b> Enzymes, antibodies and receptors work through their geometry. Drug designers target specific pockets on that surface." },
+        { "type": "tf", "statement": "The AlphaFold database contains predicted structures for over 200 million proteins.", "answer": true, "why": "<b>True.</b> In 2022, DeepMind and EMBL's European Bioinformatics Institute released predictions for nearly every catalogued protein known to science, free to all." },
+        { "type": "quiz", "q": "CASP, where AlphaFold made its name, is…", "options": ["A chemistry journal", "A biennial blind competition to predict protein structures before they are published", "A protein database", "A university"], "answer": 1, "why": "<b>A blind test.</b> Since 1994, teams predict structures that experimentalists have solved but not released, so no one can peek at the answers." },
+        { "type": "fact", "title": "AlphaFold 3 (2024) predicts how proteins interact with DNA, RNA and drug-like molecules — not just their own shape.", "detail": "Interactions are what matter for drug discovery. AlphaFold 3 uses a diffusion-based approach to generate the joint structure of these molecular complexes." },
+        { "type": "tf", "statement": "AlphaFold explains step by step how a protein folds over time.", "answer": false, "why": "<b>False.</b> It predicts the final folded structure, not the folding pathway or how the protein moves. Dynamics remain a major open challenge." }
+      ]
+    },
+    {
+      "title": "Weather and materials",
+      "cards": [
+        { "type": "explainer", "title": "Learning the physics from data", "steps": [
+          { "h": "Traditional forecasts", "p": "Weather services solve physics equations on supercomputers, taking hours for each global forecast." },
+          { "h": "Learned forecasts", "p": "Models like Google DeepMind's GraphCast learn from decades of historical weather data and forecast in about a minute." },
+          { "h": "New materials", "p": "DeepMind's GNoME (2023) predicted millions of new crystal structures, some since made in labs." }
+        ], "aside": "AI weather models now run alongside traditional ones at major forecasting centers." },
+        { "type": "quiz", "q": "GraphCast produces a 10-day global weather forecast in…", "options": ["About a week", "About a day", "Under a minute on a single TPU", "Ten days"], "answer": 2, "why": "<b>Under a minute.</b> Traditional models need hours on large supercomputers. GraphCast matched or beat a leading system on most measured variables." },
+        { "type": "tf", "statement": "AI weather models are trained on decades of historical atmospheric data.", "answer": true, "why": "<b>True.</b> Most use ERA5, a reconstruction of global weather since 1940 from the European Centre for Medium-Range Weather Forecasts (ECMWF)." },
+        { "type": "quiz", "q": "DeepMind's GenCast, a probabilistic weather model, outperformed ECMWF's leading ensemble forecast on about what share of tested targets?", "options": ["10%", "50%", "97%", "100%"], "answer": 2, "why": "<b>About 97%</b>, according to its 2024 Nature paper. Probabilistic forecasts give the range of likely outcomes, which matters for extreme events." },
+        { "type": "fact", "title": "Some scientists challenged how many of GNoME's predicted materials were truly new and useful.", "detail": "DeepMind reported 2.2 million new crystals, about 380,000 predicted stable. A 2024 critique argued many were trivial variations of known materials — a reminder that predictions still need expert scrutiny." },
+        { "type": "quiz", "q": "Traditional numerical weather prediction works by…", "options": ["Copying yesterday's weather", "Simulating atmospheric physics equations forward in time", "Asking meteorologists", "Using satellite photos only"], "answer": 1, "why": "<b>Physics simulation.</b> Equations for fluid flow, heat and moisture are stepped forward on a grid. AI models learn shortcuts from the outcomes of that physics." }
+      ]
+    },
+    {
+      "title": "AI and mathematics",
+      "cards": [
+        { "type": "explainer", "title": "Machines that discover", "steps": [
+          { "h": "Generate and check", "p": "Systems like FunSearch (2023) and AlphaEvolve (2025) pair a language model proposing programs with automatic evaluators that score them." },
+          { "h": "Evolve the best", "p": "The best programs are mutated and recombined over many rounds, discovering solutions nobody wrote down before." },
+          { "h": "Formal proofs", "p": "Proof assistants like Lean check every step of a proof mechanically, so AI-generated proofs can be trusted." }
+        ], "aside": "The evaluator is what keeps the model's creativity honest." },
+        { "type": "quiz", "q": "AlphaEvolve found a way to multiply 4×4 complex-valued matrices using how many scalar multiplications?", "options": ["64", "49", "48", "16"], "answer": 2, "why": "<b>48</b>, beating the 49 achievable with Strassen's 1969 method in that setting. A small number, but a 56-year-old record." },
+        { "type": "tf", "statement": "Lean is a programming language and proof assistant that checks mathematical proofs mechanically.", "answer": true, "why": "<b>True.</b> If Lean accepts a proof, every step follows from the axioms. Mathematicians have formalized large areas of math in its Mathlib library." },
+        { "type": "quiz", "q": "FunSearch discovered new mathematical constructions by combining a language model with…", "options": ["Human mathematicians at every step", "An automated evaluator that scored candidate programs", "Random search alone", "A calculator"], "answer": 1, "why": "<b>An evaluator.</b> The model proposed programs; the evaluator kept the best. That loop found new results on the cap set problem in 2023." },
+        { "type": "fact", "title": "DeepMind's AlphaGeometry solved 25 of 30 olympiad geometry problems — close to an average gold medalist.", "detail": "Published in 2024, it combined a language model suggesting constructions with a symbolic engine that rigorously derived results." },
+        { "type": "quiz", "q": "Why is formal verification valuable for AI-generated math?", "options": ["It is faster to read", "Every step is checked automatically, so a hallucinated step cannot slip through", "It removes the need for computers", "It makes proofs shorter"], "answer": 1, "why": "<b>Trust.</b> A model can produce a convincing but wrong argument. A proof checker either accepts each step or rejects it." }
+      ]
+    },
+    {
+      "title": "Medicine and drug discovery",
+      "cards": [
+        { "type": "explainer", "title": "From molecules to medicines", "steps": [
+          { "h": "Searching chemical space", "p": "Models screen vast numbers of possible molecules for promising properties far faster than lab tests." },
+          { "h": "Designing new proteins", "p": "Tools from David Baker's lab and others design proteins that do not exist in nature, for vaccines and therapies." },
+          { "h": "Clinical trials remain", "p": "Most cost and time is still in testing on people, which AI speeds up only modestly so far." }
+        ], "aside": "AI shortens the path to a candidate drug; proving it safe and effective is still slow." },
+        { "type": "quiz", "q": "The antibiotic halicin, reported in 2020, was discovered by…", "options": ["Accident in a lab", "A deep learning model screening molecules at MIT", "Traditional herbal medicine", "A chemistry textbook"], "answer": 1, "why": "<b>Deep learning.</b> MIT researchers trained a model on molecules' antibacterial activity, then screened thousands of compounds. Halicin is named after HAL 9000." },
+        { "type": "tf", "statement": "No drug discovered with AI has yet reached human clinical trials.", "answer": false, "why": "<b>False.</b> Several have. Insilico Medicine's drug for a lung disease, discovered and designed with AI, reported positive mid-stage trial results in 2025." },
+        { "type": "quiz", "q": "Why hasn't AI dramatically shortened drug development overall yet?", "options": ["Doctors refuse to use it", "Most time and cost is in clinical trials, and biological data is scarce and noisy", "AI cannot read chemistry", "Drugs are banned"], "answer": 1, "why": "<b>The bottleneck is people and biology.</b> Trials take years, and models are limited by imperfect data about how drugs behave in the body." },
+        { "type": "fact", "title": "David Baker shared the 2024 Nobel Prize in Chemistry for designing entirely new proteins on computers.", "detail": "His lab's tools create proteins with shapes not found in nature. One of his group's designs became part of an approved COVID-19 vaccine in South Korea." },
+        { "type": "tip", "title": "Look up a protein", "body": "The AlphaFold database is free and visual. Seeing the 3D shape of a protein you have heard of makes the idea of \"structure is function\" concrete.", "challenge": "Search the AlphaFold Protein Structure Database for \"hemoglobin\" or \"insulin\" and rotate the 3D model." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "day": 10,
+  "slug": "rag",
+  "topic": "Retrieval-augmented generation",
+  "cat": "ai",
+  "blurb": "Giving models fresh, citable knowledge: chunking, retrieval, reranking and where RAG goes wrong.",
+  "lessons": [
+    {
+      "title": "Why retrieve?",
+      "cards": [
+        { "type": "explainer", "title": "Open-book answers", "steps": [
+          { "h": "Models have a cutoff", "p": "A model only knows what was in its training data, frozen at a cutoff date, and it may misremember details." },
+          { "h": "Look it up first", "p": "RAG searches a document collection for passages relevant to the question and pastes them into the prompt." },
+          { "h": "Answer from the sources", "p": "The model answers using that text and can cite it, so users can check the claim." }
+        ], "aside": "It is the difference between a closed-book and an open-book exam." },
+        { "type": "quiz", "q": "For answering questions about your company's documents, RAG's main advantage over fine-tuning is that…", "options": ["It makes the model smarter", "Documents can be updated instantly and answers can cite sources, with no retraining", "It is always cheaper per query", "It needs no search step"], "answer": 1, "why": "<b>Freshness and traceability.</b> Change a document and the next answer reflects it. Fine-tuning bakes facts into weights, where they are hard to update or trace." },
+        { "type": "tf", "statement": "RAG updates the model's weights with the retrieved documents.", "answer": false, "why": "<b>False.</b> Retrieved text is only added to the prompt. The model is unchanged; it reads the passages like any other input." },
+        { "type": "fact", "title": "The term \"retrieval-augmented generation\" comes from a 2020 Facebook AI paper.", "detail": "Patrick Lewis and colleagues coined it. Lewis later said in an interview that they would have picked a nicer name had they known how widespread it would become." },
+        { "type": "tf", "statement": "RAG eliminates hallucinations.", "answer": false, "why": "<b>False — it reduces them.</b> The model can still misread a passage, merge sources incorrectly, or ignore the context. And if retrieval returns the wrong passages, the answer is built on the wrong facts." },
+        { "type": "quiz", "q": "A model's \"knowledge cutoff\" is…", "options": ["Its maximum answer length", "The date after which events are absent from its training data", "When the company stops supporting it", "The context window size"], "answer": 1, "why": "<b>The edge of its training data.</b> Anything after it is unknown unless supplied in the prompt, for example by search or RAG." }
+      ]
+    },
+    {
+      "title": "Chunking and indexing",
+      "cards": [
+        { "type": "explainer", "title": "Preparing documents for search", "steps": [
+          { "h": "Split into chunks", "p": "Documents are cut into passages, often a few hundred tokens each, sometimes with overlap between neighbors." },
+          { "h": "Embed and store", "p": "Each chunk is turned into a vector and stored, along with metadata such as source, date and section." },
+          { "h": "Index for keywords too", "p": "Many systems also build a keyword index, so exact terms like product codes can be found." }
+        ], "aside": "Chunking choices quietly decide how good the whole system can be." },
+        { "type": "quiz", "q": "What is the main problem with chunks that are too small?", "options": ["They cost more to store", "They lose surrounding context, so a passage may not make sense alone", "They cannot be embedded", "They slow the model"], "answer": 1, "why": "<b>Lost context.</b> A sentence like \"It rose 12% that year\" is useless without knowing what \"it\" is. Too-large chunks have the opposite problem: diluted meaning and wasted prompt space." },
+        { "type": "quiz", "q": "Why do many pipelines overlap neighboring chunks?", "options": ["To double storage", "So ideas that span a boundary aren't cut in half", "To confuse search engines", "Embedding models require it"], "answer": 1, "why": "<b>Boundary protection.</b> A small overlap means a sentence split across two chunks still appears whole in at least one of them." },
+        { "type": "fact", "title": "Adding a sentence of document context to each chunk before embedding greatly improved retrieval in Anthropic's tests.", "detail": "Its 2024 \"contextual retrieval\" method had a model write a short note situating each chunk in its document. Combined with keyword search, it reported about 49% fewer failed retrievals, rising to 67% with reranking." },
+        { "type": "tf", "statement": "A vector database is required to build RAG.", "answer": false, "why": "<b>False.</b> Any retrieval works: keyword search, SQL queries, a web search API, even grep over files. Vectors are common, not mandatory." },
+        { "type": "quiz", "q": "The classic BM25 keyword ranking scores a document higher when it…", "options": ["Is longer", "Contains the query's terms, especially rare ones, several times", "Was updated recently", "Has more links"], "answer": 1, "why": "<b>Term frequency weighted by rarity.</b> Matching a rare word counts more than matching \"the\". BM25 also normalizes for document length and caps the gain from repeats." }
+      ]
+    },
+    {
+      "title": "Reranking and evaluation",
+      "cards": [
+        { "type": "explainer", "title": "Retrieve wide, then rerank", "steps": [
+          { "h": "Fast first pass", "p": "Embedding search quickly pulls the top 50 or 100 candidates from millions of chunks." },
+          { "h": "Careful second pass", "p": "A reranker reads the query and each candidate together and scores how well it actually answers the question." },
+          { "h": "Keep the best few", "p": "Only the top handful go into the prompt, saving context and reducing distraction." }
+        ], "aside": "Cheap and broad, then expensive and precise — a pattern used across all of search." },
+        { "type": "quiz", "q": "Why are cross-encoder rerankers more accurate than embedding search?", "options": ["They use bigger vectors", "They read the query and document together, so attention can compare them word by word", "They ignore the query", "They are trained on more data"], "answer": 1, "why": "<b>Joint reading.</b> Embedding search encodes query and document separately and compares two summaries. A cross-encoder sees both at once and can judge relevance precisely." },
+        { "type": "tf", "statement": "Rerankers are usually too slow to run over an entire document collection.", "answer": true, "why": "<b>True.</b> They need a full model pass per query-document pair. That is fine for 50 candidates, impossible for 10 million — hence the two-stage design." },
+        { "type": "quiz", "q": "Recall@10 measures…", "options": ["How fast results return", "How often a relevant passage appears in the top 10 results", "How many results are wrong", "How long passages are"], "answer": 1, "why": "<b>Did we find it?</b> If the right passage is not in what you retrieve, the generator cannot use it. Recall@k is the first number to check in a failing RAG system." },
+        { "type": "tf", "statement": "If a RAG system gives a wrong answer, the problem is usually the language model.", "answer": false, "why": "<b>Often false.</b> Many failures are retrieval failures: the right passage never reached the prompt. Diagnose retrieval and generation separately." },
+        { "type": "tip", "title": "Check the citation, not just the answer", "body": "A confident answer with a citation can still cite the wrong passage. Opening the source takes seconds and catches the most common RAG failure.", "challenge": "Next time an AI tool cites a source, open it and confirm the cited text actually says what the answer claims." }
+      ]
+    },
+    {
+      "title": "Beyond basic RAG",
+      "cards": [
+        { "type": "explainer", "title": "Smarter retrieval", "steps": [
+          { "h": "Agentic search", "p": "Instead of one fixed lookup, the model decides what to search, reads results, and searches again with better queries." },
+          { "h": "Query rewriting", "p": "Vague or conversational questions are rewritten into search-friendly queries before retrieval." },
+          { "h": "Graph-based retrieval", "p": "Microsoft's GraphRAG (2024) extracts entities and relationships into a graph to answer questions about a whole collection." }
+        ], "aside": "The trend: retrieval is becoming something the model does, not something done to it." },
+        { "type": "quiz", "q": "GraphRAG was designed for questions like…", "options": ["\"What is the phone number on page 4?\"", "\"What are the main themes across all of these documents?\"", "\"Translate this sentence\"", "\"What is 2+2?\""], "answer": 1, "why": "<b>Global questions.</b> Plain RAG retrieves a few passages and cannot summarize an entire corpus. Graph communities with pre-written summaries let the system answer big-picture questions." },
+        { "type": "tf", "statement": "Now that models have million-token context windows, RAG is obsolete.", "answer": false, "why": "<b>False.</b> Most collections are far bigger than any window, and stuffing huge contexts is slow and costly. Retrieval also keeps answers fresh and citable." },
+        { "type": "quiz", "q": "The HyDE technique improves retrieval by embedding…", "options": ["The question twice", "A hypothetical answer the model writes, rather than the question itself", "Random text", "Only keywords"], "answer": 1, "why": "<b>A fake answer.</b> Answers resemble other answers more than questions do, so a model-written draft lands closer to real answer passages in embedding space." },
+        { "type": "fact", "title": "A single planted document can hijack a RAG system.", "detail": "Researchers (Greshake et al., 2023) showed that text with hidden instructions, once retrieved into the prompt, can steer an assistant's behavior — called indirect prompt injection." },
+        { "type": "tf", "statement": "A question and its correct answer always produce very similar embeddings.", "answer": false, "why": "<b>False.</b> They are phrased differently and contain different information. That asymmetry is why retrieval models are trained on question-passage pairs and why tricks like HyDE help." }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@ import {
 } from "./cards/SimpleBodies";
 import { SprintBody } from "./cards/SprintBody";
 import { SummaryBody, type SessionStats } from "./cards/SummaryBody";
-import { PickerBody } from "./cards/PickerBody";
+import { LearnBody } from "./cards/LearnBody";
 import { FinishBody } from "./cards/FinishBody";
 
 export type CardCallbacks = {
@@ -29,17 +29,21 @@ export type CardCallbacks = {
   onSave: (card: Card) => void;
   onFewer: (card: Card) => void;
   onAnother: () => void;
-  /** Session mode: pick a fixed session from the menu card. */
-  onPickSession: (id: string) => void;
-  /** Session mode: return to the menu card from the finish card. */
-  onBackToSessions: () => void;
+  /** Course: open a day on the course screen. */
+  onSelectDay: (day: number) => void;
+  /** Course: start (or replay) a lesson. */
+  onStartLesson: (lessonId: string) => void;
+  /** Course: back to the course screen. */
+  onOpenCourse: () => void;
 };
 
-/** Session-mode context for the menu and finish cards. */
-export type SessionMode = {
-  /** The running session's title, for the finish card. */
-  title: string;
-  /** Session ids finished today. */
+/** Course context for the course screen and the end-of-lesson card. */
+export type LearnContext = {
+  today: number | null;
+  /** Day shown on the course screen; null means today. */
+  selectedDay: number | null;
+  /** The running lesson, when one is open. */
+  lessonId: string | null;
   done: string[];
 };
 
@@ -49,8 +53,8 @@ type Props = {
   saved: boolean;
   stats: SessionStats;
   cb: CardCallbacks;
-  /** Present only in session mode; absent in the normal topic feed. */
-  session?: SessionMode;
+  /** Present only in course mode; absent in the normal topic feed. */
+  learn?: LearnContext;
 };
 
 type Burst = { id: number; x: number; y: number };
@@ -58,7 +62,7 @@ type Burst = { id: number; x: number; y: number };
 /** Double-tap window, matching the prototype. */
 const DOUBLE_TAP_MS = 320;
 
-export function CardView({ card, liked, saved, stats, cb, session }: Props) {
+export function CardView({ card, liked, saved, stats, cb, learn }: Props) {
   const [bursts, setBursts] = useState<Burst[]>([]);
   const lastTap = useRef(0);
   const burstId = useRef(0);
@@ -97,7 +101,7 @@ export function CardView({ card, liked, saved, stats, cb, session }: Props) {
           {card.review && <span className="tag review">Review</span>}
         </div>
 
-        <Body card={card} stats={stats} cb={cb} session={session} />
+        <Body card={card} stats={stats} cb={cb} learn={learn} />
 
         {card.source && (
           <p className="source">
@@ -153,29 +157,36 @@ function Body({
   card,
   stats,
   cb,
-  session,
+  learn,
 }: {
   card: Card;
   stats: SessionStats;
   cb: CardCallbacks;
-  session?: SessionMode;
+  learn?: LearnContext;
 }) {
   switch (card.type) {
     case "intro":
-      // In session mode the lead card is the session menu, not the pitch.
-      return session ? (
-        <PickerBody done={session.done} onPick={cb.onPickSession} />
+      // In course mode the lead card is the course screen, not the pitch.
+      return learn ? (
+        <LearnBody
+          today={learn.today}
+          selected={learn.selectedDay}
+          done={learn.done}
+          onSelectDay={cb.onSelectDay}
+          onStartLesson={cb.onStartLesson}
+        />
       ) : (
         <IntroBody card={card} />
       );
     case "summary":
-      // In session mode the closing card sends you back to work.
-      return session ? (
+      // A lesson's closing card sends you back to work.
+      return learn?.lessonId ? (
         <FinishBody
           stats={stats}
-          sessionTitle={session.title}
-          doneCount={session.done.length}
-          onBackToSessions={cb.onBackToSessions}
+          lessonId={learn.lessonId}
+          done={learn.done}
+          onNext={cb.onStartLesson}
+          onCourse={cb.onOpenCourse}
         />
       ) : (
         <SummaryBody stats={stats} onAnother={cb.onAnother} />

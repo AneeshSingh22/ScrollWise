@@ -1,0 +1,69 @@
+{
+  "day": 29,
+  "slug": "ai-law",
+  "topic": "AI law, policy and copyright",
+  "cat": "world",
+  "blurb": "The EU AI Act, how the US, China and UK differ, the copyright fights, and rules that affect you.",
+  "lessons": [
+    {
+      "title": "The EU AI Act",
+      "cards": [
+        { "type": "explainer", "title": "Regulating by risk", "steps": [
+          { "h": "Unacceptable risk", "p": "Some uses are banned outright, such as social scoring and manipulative systems that exploit vulnerabilities." },
+          { "h": "High risk", "p": "AI used in hiring, credit, education, critical infrastructure and policing faces strict requirements for data, testing and human oversight." },
+          { "h": "Transparency and general-purpose models", "p": "Chatbots must disclose they are AI, and providers of general-purpose models have documentation and copyright obligations." }
+        ], "aside": "The Act entered into force in August 2024, with obligations phasing in over several years." },
+        { "type": "quiz", "q": "Which practice does the EU AI Act ban outright?", "options": ["Chatbots", "Social scoring of people", "Spam filters", "Machine translation"], "answer": 1, "why": "<b>Social scoring.</b> Rating people's trustworthiness from their behavior in ways that lead to unjustified or disproportionate treatment is in the prohibited category." },
+        { "type": "tf", "statement": "The EU AI Act applies only to companies based in the EU.", "answer": false, "why": "<b>False.</b> Like GDPR, it applies to anyone placing AI systems on the EU market or whose AI outputs are used in the EU, wherever they are based." },
+        { "type": "quiz", "q": "The maximum fine for using a banned AI practice under the EU AI Act is…", "options": ["€10,000", "€1 million", "Up to €35 million or 7% of global annual turnover", "There are no fines"], "answer": 2, "why": "<b>€35 million or 7% of worldwide turnover</b>, whichever is higher — even steeper than GDPR's top tier." },
+        { "type": "fact", "title": "The EU's bans on prohibited AI practices took effect on February 2, 2025.", "detail": "Obligations for general-purpose AI model providers followed on August 2, 2025, with most high-risk rules scheduled for later years." },
+        { "type": "tf", "statement": "Under the EU AI Act, chatbots must make clear to people that they are interacting with an AI.", "answer": true, "why": "<b>True.</b> This transparency duty covers systems interacting with people, along with labeling certain AI-generated content such as deepfakes." }
+      ]
+    },
+    {
+      "title": "US, China and the UK",
+      "cards": [
+        { "type": "explainer", "title": "Different philosophies", "steps": [
+          { "h": "United States", "p": "No comprehensive federal AI law. Policy shifts with presidential executive orders, while states like Colorado and California pass their own rules." },
+          { "h": "China", "p": "Specific rules for algorithms, deepfakes and generative AI, including registration and requirements on content." },
+          { "h": "United Kingdom", "p": "A lighter, sector-led approach, plus a government institute that tests frontier models." }
+        ], "aside": "Companies operating globally must satisfy all of these at once." },
+        { "type": "quiz", "q": "What happened to President Biden's 2023 executive order on AI?", "options": ["It became law", "It was revoked in January 2025", "It was expanded", "It never took effect"], "answer": 1, "why": "<b>Revoked</b> by President Trump on his first day back in office, replaced by orders emphasizing US AI leadership and reduced regulation." },
+        { "type": "tf", "statement": "China requires providers of public generative AI services to follow rules on content and to file with regulators.", "answer": true, "why": "<b>True.</b> Its 2023 interim measures on generative AI require registration, security assessments and content consistent with official values." },
+        { "type": "quiz", "q": "In February 2025, the UK's AI Safety Institute was renamed the…", "options": ["AI Innovation Office", "AI Security Institute", "Department of Algorithms", "Turing Agency"], "answer": 1, "why": "<b>AI Security Institute</b>, signaling a focus on national security risks such as cyber and chemical or biological misuse." },
+        { "type": "fact", "title": "California's governor vetoed a major frontier AI safety bill in 2024, then signed a narrower one in 2025.", "detail": "SB 1047, which would have imposed liability-linked safety duties, was vetoed. SB 53, signed in September 2025, instead requires large frontier developers to publish safety frameworks and report serious incidents." },
+        { "type": "tf", "statement": "A single global treaty binds every country to the same AI rules.", "answer": false, "why": "<b>False.</b> There are international agreements, such as the Council of Europe's 2024 AI convention, but they cover only signatories. Rules differ greatly by country." }
+      ]
+    },
+    {
+      "title": "AI and copyright",
+      "cards": [
+        { "type": "explainer", "title": "The training data fight", "steps": [
+          { "h": "The question", "p": "Is training an AI on copyrighted books, articles and images without permission legal? In the US, it hinges largely on \"fair use\"." },
+          { "h": "The lawsuits", "p": "Authors, newspapers, artists, record labels and stock photo companies have sued AI developers." },
+          { "h": "Early rulings", "p": "Courts have begun to split the issue: how data was obtained, and whether outputs compete with the originals, both matter." }
+        ], "aside": "Outcomes will shape how future models are built and who gets paid." },
+        { "type": "quiz", "q": "In 2025, a US judge in the Bartz v. Anthropic case ruled that…", "options": ["All AI training is illegal", "Training on lawfully acquired books was fair use, but keeping pirated copies was not", "Copyright doesn't apply to AI", "Authors must pay AI companies"], "answer": 1, "why": "<b>A split ruling.</b> Training itself was found transformative, but downloading pirated books was not excused. Anthropic later agreed to a settlement of about $1.5 billion." },
+        { "type": "tf", "statement": "In the US, a work generated entirely by AI with no human authorship cannot be copyrighted.", "answer": true, "why": "<b>True.</b> The Copyright Office requires human authorship, and a federal appeals court upheld that in 2025. Human selection and arrangement of AI output can still be protected." },
+        { "type": "quiz", "q": "Which US fair-use factor asks whether AI outputs substitute for the original works?", "options": ["The nature of the work", "The effect on the market for the original", "The amount used", "The author's nationality"], "answer": 1, "why": "<b>Market effect.</b> If AI outputs compete with and replace the originals, this factor weighs against fair use — a central argument in news publishers' lawsuits." },
+        { "type": "fact", "title": "The New York Times sued OpenAI and Microsoft in December 2023 over the use of its articles in training.", "detail": "It alleged millions of articles were used without permission and showed examples of models reproducing passages nearly word for word. The companies argued training is fair use." },
+        { "type": "tf", "statement": "A 2025 US ruling found that a company's use of Westlaw legal summaries to train an AI tool was not fair use.", "answer": true, "why": "<b>True.</b> In Thomson Reuters v. Ross Intelligence, the court found the copying was not transformative, partly because Ross built a competing product. The AI involved was not generative." }
+      ]
+    },
+    {
+      "title": "Rules that affect you",
+      "cards": [
+        { "type": "explainer", "title": "Privacy, fairness and deepfakes", "steps": [
+          { "h": "Privacy", "p": "Data protection laws like GDPR apply to personal data used in AI systems, including in training." },
+          { "h": "Fairness", "p": "Some places require audits of AI used in hiring and lending, after high-profile cases of biased systems." },
+          { "h": "Deepfakes", "p": "New laws target non-consensual intimate deepfakes and require platforms to remove them." }
+        ], "aside": "These are the AI rules most likely to touch your own life." },
+        { "type": "quiz", "q": "Why did Italy's data protection authority temporarily block ChatGPT in 2023?", "options": ["Copyright", "Concerns about personal data processing and age verification", "Election rules", "Electricity use"], "answer": 1, "why": "<b>Privacy.</b> The regulator cited the lack of a legal basis for training on personal data and no age checks. Access returned after OpenAI made changes." },
+        { "type": "tf", "statement": "Amazon scrapped an experimental AI recruiting tool after it learned to penalize résumés that mentioned the word \"women's\".", "answer": true, "why": "<b>True</b>, Reuters reported in 2018. Trained on a decade of mostly male hires, it learned to downgrade signals associated with women." },
+        { "type": "quiz", "q": "New York City's Local Law 144 requires employers using automated hiring tools to…", "options": ["Ban them", "Commission an annual bias audit and notify candidates", "Pay a tax", "Use only human interviewers"], "answer": 1, "why": "<b>Bias audits and notice.</b> In force since 2023, it was one of the first laws specifically targeting AI in hiring." },
+        { "type": "fact", "title": "The US TAKE IT DOWN Act, signed in 2025, criminalizes publishing non-consensual intimate images — including AI deepfakes.", "detail": "It also requires platforms to remove such content within 48 hours of a valid request from the person depicted." },
+        { "type": "tip", "title": "Know your workplace's AI rules", "body": "Most organizations now have policies on what can be pasted into AI tools. Leaking customer data or confidential code into the wrong tool is a common, avoidable mistake.", "challenge": "Find your workplace or school's AI policy and check what data you're allowed to share with which tools." }
+      ]
+    }
+  ]
+}

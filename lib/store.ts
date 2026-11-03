@@ -14,7 +14,14 @@ export type Persisted = {
   saved: string[];
   liked: string[];
   fewer: string[];
+  /** Course lesson ids finished (lib/curriculum.ts). */
+  lessonsDone: string[];
+  /** Recently seen feed card ids, newest last, capped — so rounds stay fresh. */
+  feedSeen: string[];
 };
+
+/** How many seen feed ids to remember. */
+export const FEED_SEEN_CAP = 600;
 
 export const EMPTY: Persisted = {
   xp: 0,
@@ -23,6 +30,8 @@ export const EMPTY: Persisted = {
   saved: [],
   liked: [],
   fewer: [],
+  lessonsDone: [],
+  feedSeen: [],
 };
 
 /** Local-time date key. Streaks must roll over at the user's midnight, not UTC. */
@@ -43,6 +52,8 @@ export function read(): Persisted {
       saved: Array.isArray(parsed.saved) ? parsed.saved : [],
       liked: Array.isArray(parsed.liked) ? parsed.liked : [],
       fewer: Array.isArray(parsed.fewer) ? parsed.fewer : [],
+      lessonsDone: Array.isArray(parsed.lessonsDone) ? parsed.lessonsDone : [],
+      feedSeen: Array.isArray(parsed.feedSeen) ? parsed.feedSeen : [],
     };
   } catch {
     return EMPTY;

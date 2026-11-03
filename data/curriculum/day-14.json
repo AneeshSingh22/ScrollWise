@@ -1,0 +1,69 @@
+{
+  "day": 14,
+  "slug": "diffusion",
+  "topic": "Image and video generation",
+  "cat": "ai",
+  "blurb": "GANs, diffusion, latent spaces, guidance, video models — and how to tell what's real.",
+  "lessons": [
+    {
+      "title": "Generating by removing noise",
+      "cards": [
+        { "type": "explainer", "title": "How diffusion works", "steps": [
+          { "h": "Destroy images with noise", "p": "Take real images and add a little random noise, step after step, until only static remains." },
+          { "h": "Learn to undo one step", "p": "Train a network to look at a noisy image and predict the noise that was added." },
+          { "h": "Generate from pure static", "p": "Start with random noise and repeatedly subtract the predicted noise. An image gradually appears." }
+        ], "aside": "Sculpting by subtraction: the model learns what to remove until only a plausible image is left." },
+        { "type": "quiz", "q": "During training, a diffusion model's network typically learns to predict…", "options": ["The image's caption", "The noise that was added to a noisy image", "The next pixel", "Whether an image is real"], "answer": 1, "why": "<b>The noise.</b> Knowing the noise means knowing how to remove it. Variants predict the clean image or a mix, but they are mathematically related." },
+        { "type": "tf", "statement": "Diffusion models traditionally produce an image in a single network pass.", "answer": false, "why": "<b>False.</b> Classic diffusion takes dozens to hundreds of denoising steps. Distillation methods have since cut that to just a few for fast generation." },
+        { "type": "quiz", "q": "Before diffusion, GANs led image generation. A GAN trains…", "options": ["One network alone", "A generator against a discriminator that tries to spot its fakes", "Two classifiers", "A search engine"], "answer": 1, "why": "<b>An adversarial game.</b> The generator improves by fooling the discriminator, which improves by catching it." },
+        { "type": "fact", "title": "Ian Goodfellow reportedly came up with GANs in 2014 after a debate with friends at a Montreal bar.", "detail": "He went home and coded it that night, and it worked on the first try, according to his own account." },
+        { "type": "tf", "statement": "GANs are known for unstable training and \"mode collapse\", where the generator produces only a few kinds of output.", "answer": true, "why": "<b>True.</b> Balancing two competing networks is delicate. Diffusion's simple, stable training objective is a major reason it took over." }
+      ]
+    },
+    {
+      "title": "Latent diffusion and prompts",
+      "cards": [
+        { "type": "explainer", "title": "Stable Diffusion's design", "steps": [
+          { "h": "Compress first", "p": "An autoencoder squeezes a 512×512 image into a 64×64 latent grid, about 48 times fewer numbers." },
+          { "h": "Diffuse in the latent space", "p": "Denoising happens on that small grid, making generation far cheaper." },
+          { "h": "Steer with text", "p": "A text encoder turns the prompt into vectors that the denoiser attends to through cross-attention at each step." }
+        ], "aside": "This efficiency let Stable Diffusion run on consumer GPUs when released in 2022." },
+        { "type": "quiz", "q": "Why does latent diffusion work in a compressed space instead of directly on pixels?", "options": ["Pixels are copyrighted", "It is far cheaper, while the decoder restores fine detail", "Latents are colorful", "It needs no training"], "answer": 1, "why": "<b>Cost.</b> Most pixel-level detail is perceptually redundant. Diffusing in a compact latent space cuts compute dramatically." },
+        { "type": "quiz", "q": "Raising the classifier-free guidance scale usually makes images…", "options": ["Random", "Follow the prompt more closely but with less variety", "Lower resolution", "Black and white"], "answer": 1, "why": "<b>Prompt adherence vs diversity.</b> Guidance pushes predictions away from the unconditioned ones. Too high and images look oversaturated." },
+        { "type": "tf", "statement": "Stable Diffusion's weights were released publicly for anyone to download.", "answer": true, "why": "<b>True.</b> In August 2022 Stability AI released the weights, sparking a huge ecosystem of fine-tunes, tools and controversy." },
+        { "type": "fact", "title": "Stable Diffusion was trained using LAION-5B, a dataset of 5.85 billion image-text pairs scraped from the web.", "detail": "Its scale enabled broad visual knowledge, but it also included copyrighted and problematic images, fueling lawsuits and later dataset cleanups." },
+        { "type": "quiz", "q": "Negative prompts work by…", "options": ["Deleting pixels", "Steering away from the negative prompt's prediction during guidance", "Blocking certain words", "Training a new model"], "answer": 1, "why": "<b>Repurposed guidance.</b> Guidance normally steers away from the unconditioned prediction. Using the negative prompt's prediction instead steers away from that content." }
+      ]
+    },
+    {
+      "title": "Video and new methods",
+      "cards": [
+        { "type": "explainer", "title": "From images to video", "steps": [
+          { "h": "Transformers replace U-Nets", "p": "Diffusion Transformers (DiT) swapped the convolutional U-Net for a transformer, which scales more predictably." },
+          { "h": "Spacetime patches", "p": "Video is cut into patches across space and time and treated as one long sequence." },
+          { "h": "Consistency is the hard part", "p": "Objects must keep their shape, identity and physics from frame to frame." }
+        ], "aside": "OpenAI's Sora, announced in February 2024, used a diffusion transformer over spacetime patches." },
+        { "type": "quiz", "q": "Diffusion Transformers (DiT) replaced which component of earlier diffusion models?", "options": ["The text encoder", "The U-Net denoiser", "The noise schedule", "The autoencoder"], "answer": 1, "why": "<b>The U-Net.</b> A transformer denoiser lets image and video models follow the same scaling recipe as language models." },
+        { "type": "tf", "statement": "Keeping objects consistent across frames is a main reason video generation is harder than images.", "answer": true, "why": "<b>True.</b> A person's face, clothes and the scene's physics must stay coherent for hundreds of frames. Errors show up as morphing and flicker." },
+        { "type": "quiz", "q": "Flow matching, used in newer models like Stable Diffusion 3 and Flux, learns…", "options": ["To classify images", "Straighter paths from noise to data, allowing fewer generation steps", "Optical flow in video only", "Text translation"], "answer": 1, "why": "<b>Straight-line paths.</b> Simpler trajectories from noise to image are easier to follow in few steps." },
+        { "type": "fact", "title": "OpenAI's Sora preview in February 2024 showed videos up to a minute long from text prompts.", "detail": "Earlier text-to-video models produced a few seconds of often unstable footage. Sora's length and coherence reset expectations across the field." },
+        { "type": "tf", "statement": "Images can also be generated token by token, the way language models generate text.", "answer": true, "why": "<b>True.</b> The original DALL·E (2021) generated images as sequences of discrete image tokens. Autoregressive and diffusion approaches continue to compete and combine." }
+      ]
+    },
+    {
+      "title": "What's real?",
+      "cards": [
+        { "type": "explainer", "title": "Proving where media came from", "steps": [
+          { "h": "Watermarks", "p": "Invisible signals embedded in generated content, like Google's SynthID, can be detected later by the right tool." },
+          { "h": "Signed provenance", "p": "The C2PA standard attaches cryptographically signed records of how a file was made and edited." },
+          { "h": "Detectors", "p": "Classifiers try to spot AI content from artifacts, but they are unreliable and easily fooled." }
+        ], "aside": "The most promising approach proves what is authentic, rather than trying to catch every fake." },
+        { "type": "quiz", "q": "C2PA \"content credentials\" are…", "options": ["Copyright licenses", "Signed metadata recording how a piece of media was created and edited", "Watermarks visible to the eye", "AI detectors"], "answer": 1, "why": "<b>Provenance records.</b> Cameras, editing apps and generators can sign a file's history, so viewers can check its origin." },
+        { "type": "tf", "statement": "Today's AI-image detectors are reliable enough to prove an image is fake.", "answer": false, "why": "<b>False.</b> They produce false positives and negatives, and simple edits like resizing or recompression can defeat them. Treat their output as a hint, not proof." },
+        { "type": "quiz", "q": "Why is provenance metadata alone a weak defense?", "options": ["It's too expensive", "Screenshots and re-uploads often strip it", "It reveals passwords", "Nobody can read it"], "answer": 1, "why": "<b>Easy to lose.</b> Metadata travels with the file, not the pixels. That is why it is paired with watermarks embedded in the content itself." },
+        { "type": "fact", "title": "Google's SynthID hides an imperceptible watermark in the pixels of AI-generated images — and in text too.", "detail": "For text, it subtly biases word choices in a statistically detectable way. Google open-sourced the text version in 2024." },
+        { "type": "tip", "title": "Verify before you share", "body": "A reverse image search finds where a picture first appeared and whether fact-checkers have covered it. It takes less time than resharing.", "challenge": "Next time a striking image surprises you, run a reverse image search before reacting to it." }
+      ]
+    }
+  ]
+}

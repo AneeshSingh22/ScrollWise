@@ -1,46 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import { SESSIONS } from "@/lib/sessions";
+import {
+  DAYS,
+  dayByNumber,
+  dayProgress,
+  lessonById,
+  nextLesson,
+} from "@/lib/curriculum";
 import type { SessionStats } from "./SummaryBody";
 
 /**
- * End-of-session card for the fixed day sessions. Same primitives as the
- * prototype's summary card (.stats/.stat/.actions), different copy: this one
- * closes the break and points back at work, which is the whole point of
- * using it during the workday.
+ * End-of-lesson card. Same primitives as the prototype's summary card
+ * (.stats/.stat/.actions/.challenge). It closes the break and points back at
+ * work, and offers the next lesson for when you have time for more.
  */
 
 function praise(accuracy: number | null, answered: number): string {
-  if (answered === 0) return "Break taken. That still beats the feed.";
-  if (accuracy === null) return "Session complete.";
-  if (accuracy >= 90) return "That was a hard set and you walked it.";
-  if (accuracy >= 70) return "Strong round on genuinely difficult material.";
-  if (accuracy >= 50) return "Solid work — these were meant to be hard.";
-  return "Brutal set. The misses are the useful part.";
+  if (answered === 0) return "Lesson done. That still beats the feed.";
+  if (accuracy === null) return "Lesson complete.";
+  if (accuracy >= 90) return "Sharp. You walked that one.";
+  if (accuracy >= 70) return "Strong round — that stuff isn't easy.";
+  if (accuracy >= 50) return "Solid. The misses are where the learning is.";
+  return "Tough one. Your misses come back as review cards.";
 }
 
 export function FinishBody({
   stats,
-  sessionTitle,
-  doneCount,
-  onBackToSessions,
+  lessonId,
+  done,
+  onNext,
+  onCourse,
 }: {
   stats: SessionStats;
-  sessionTitle: string;
-  doneCount: number;
-  onBackToSessions: () => void;
+  lessonId: string;
+  done: string[];
+  onNext: (lessonId: string) => void;
+  onCourse: () => void;
 }) {
   const [closed, setClosed] = useState(false);
+
+  const lesson = lessonById(lessonId);
+  const day = lesson ? dayByNumber(lesson.day) : undefined;
+  const next = nextLesson(lessonId);
+  // Count this lesson as done even if the profile write hasn't landed yet.
+  const doneNow = done.includes(lessonId) ? done : [...done, lessonId];
+  const dayDone = day ? dayProgress(day, doneNow) : 0;
+  const dayComplete = !!day && dayDone === day.lessons.length;
+  const courseComplete = DAYS.every((d) => dayProgress(d, doneNow) === d.lessons.length);
 
   const accuracy = stats.answered
     ? Math.round((stats.correct / stats.answered) * 100)
     : null;
-  const remaining = SESSIONS.length - doneCount;
 
   return (
     <div className="body">
-      <p className="eyebrow">Break complete · {sessionTitle}</p>
+      <p className="eyebrow">
+        {day ? `Day ${day.day} · ${day.topic}` : "Lesson"} · {dayDone}/{day?.lessons.length ?? 4}
+      </p>
       <h2 className="big">{praise(accuracy, stats.answered)}</h2>
 
       <div className="stats">
@@ -58,41 +75,45 @@ export function FinishBody({
         </div>
       </div>
 
-      {closed ? (
-        <>
-          <p className="lead">
-            Phone down. Pick the one thing you were working on before this and
-            start with its smallest next step.
-          </p>
-          <p className="aside">
-            {remaining > 0
-              ? `${remaining} session${remaining > 1 ? "s" : ""} left for later today.`
-              : "All four sessions done today."}
-          </p>
-        </>
+      {courseComplete ? (
+        <p className="lead">
+          That was the last lesson of all {DAYS.length} days. You just finished the whole course.
+        </p>
+      ) : dayComplete ? (
+        <p className="lead">
+          That&apos;s all of Day {day!.day}. You now know more about {day!.topic.toLowerCase()} than
+          most people who use it every day.
+        </p>
       ) : (
-        <>
-          <p className="lead">
-            You spent the break on something that compounds instead of something
-            that evaporates. Now close the app while it still feels like a good
-            trade — that is the habit worth keeping.
-          </p>
-          <div className="challenge">
-            <p className="eyebrow">Back to it</p>
-            <p>
-              {remaining > 0
-                ? `${remaining} more session${remaining > 1 ? "s" : ""} waiting whenever you earn the next break.`
-                : "That is all four. Nothing left to scroll — go finish the work."}
-            </p>
-            <button className="btn" onClick={() => setClosed(true)}>
-              Back to work
-            </button>
-          </div>
-          <button className="btn ghost" onClick={onBackToSessions}>
-            Session list
-          </button>
-        </>
+        <p className="lead">
+          You spent the break on something that compounds instead of something that evaporates.
+        </p>
       )}
+
+      {closed ? (
+        <p className="lead">
+          Phone down. Pick up the thing you were working on and start with its smallest next step.
+        </p>
+      ) : (
+        <div className="challenge">
+          <p className="eyebrow">Good educational break</p>
+          <p>Close the app while it still feels like a good trade — that&apos;s the habit worth keeping.</p>
+          <button className="btn" onClick={() => setClosed(true)}>
+            Back to work
+          </button>
+        </div>
+      )}
+
+      <div className="actions">
+        {next && (
+          <button className="btn ghost" onClick={() => onNext(next.id)}>
+            {next.day === lesson?.day ? `Next: ${next.title}` : `Start Day ${next.day}: ${dayByNumber(next.day)?.topic}`}
+          </button>
+        )}
+        <button className="btn ghost" onClick={onCourse}>
+          Course
+        </button>
+      </div>
     </div>
   );
 }

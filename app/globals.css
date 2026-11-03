@@ -202,6 +202,20 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .pick.done{opacity:.6;border-color:color-mix(in srgb,var(--good) 55%,transparent)}
 .pick.done .pick-n{background:var(--good);color:#06301c}
 
+/* ADDED: the 30-day course list under the selected day. Compact rows in the
+   same language as .pick (radius, hairline border, mono numerals). */
+.course{display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:16px;border-top:1px solid var(--line)}
+.days{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.day-row{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid transparent;background:rgba(255,255,255,.04);font-size:15px;font-weight:600}
+.day-row[aria-current="true"]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.day-row:active{transform:scale(.99)}
+.day-n{flex:none;width:26px;text-align:center;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink-dim)}
+.day-row.complete .day-n{color:var(--good)}
+.day-topic{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.day-topic em{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 6px;border-radius:5px;background:var(--acc);color:var(--acc-ink)}
+.day-topic em.missed{background:transparent;color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 60%,transparent)}
+.day-prog{flex:none;margin-left:auto;font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink-dim)}
+
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
 .stat b{display:block;font-family:var(--font-mono);font-size:24px;font-variant-numeric:tabular-nums}

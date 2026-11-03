@@ -1,0 +1,69 @@
+{
+  "day": 28,
+  "slug": "robotics",
+  "topic": "Robotics and embodied AI",
+  "cat": "tech",
+  "blurb": "Why robots lag chatbots, robot foundation models, self-driving cars and the humanoid push.",
+  "lessons": [
+    {
+      "title": "Why robots are hard",
+      "cards": [
+        { "type": "explainer", "title": "The physical world bites back", "steps": [
+          { "h": "Moravec's paradox", "p": "What is hard for people, like chess, can be easy for computers. What is easy for a toddler, like picking up a sock, is extremely hard for robots." },
+          { "h": "No internet of actions", "p": "Language models learned from trillions of words online. There is no comparable trove of recorded robot movements." },
+          { "h": "Mistakes are physical", "p": "A wrong word costs nothing; a wrong move breaks things or hurts people, so learning by trial and error is slow and risky." }
+        ], "aside": "Robotics is often described as being where language AI was around 2018 or 2019." },
+        { "type": "quiz", "q": "Moravec's paradox observes that…", "options": ["Robots are cheaper than people", "High-level reasoning is relatively easy for machines, while basic perception and movement are hard", "Robots learn faster than humans", "Computers can't play chess"], "answer": 1, "why": "<b>Easy for us is hard for them.</b> Evolution spent hundreds of millions of years refining perception and movement, so they feel effortless to us but hide enormous complexity." },
+        { "type": "tf", "statement": "Robotics has an internet-scale dataset of robot actions, comparable to the text that trains language models.", "answer": false, "why": "<b>False.</b> Robot data must be collected on physical hardware, slowly. That shortage is one of the field's central bottlenecks." },
+        { "type": "quiz", "q": "A common way to gather robot training data is…", "options": ["Scraping websites", "Teleoperation: humans remotely control robots to demonstrate tasks", "Asking chatbots", "Reading manuals"], "answer": 1, "why": "<b>Teleoperation.</b> Operators perform tasks through the robot itself, recording exactly the sensor readings and motor commands a learned policy needs." },
+        { "type": "fact", "title": "In 2023, 21 institutions pooled their robot data into one dataset spanning 22 different robot types.", "detail": "The Open X-Embodiment project, led by Google DeepMind, gathered over a million robot episodes, and found models trained on the mix often beat those trained on a single robot's data." },
+        { "type": "tf", "statement": "A robot trained in one lab kitchen often struggles when moved to a different kitchen.", "answer": true, "why": "<b>True.</b> New lighting, layouts and objects throw off policies trained in narrow settings. Generalizing to new homes is a major goal." }
+      ]
+    },
+    {
+      "title": "Robot foundation models",
+      "cards": [
+        { "type": "explainer", "title": "Vision-language-action models", "steps": [
+          { "h": "Start from a VLM", "p": "Take a model pretrained on web images and text, which already knows what a mug or a banana is." },
+          { "h": "Output actions", "p": "Fine-tune it on robot data to output motor commands, so its inputs are camera images plus an instruction." },
+          { "h": "Transfer knowledge", "p": "Web knowledge helps the robot handle objects and instructions never seen in its own training data." }
+        ], "aside": "Google DeepMind's RT-2 (2023) and Physical Intelligence's π0 (2024) are prominent examples." },
+        { "type": "quiz", "q": "A vision-language-action model outputs…", "options": ["Captions", "Robot actions, such as arm movements and gripper commands", "Web searches", "Images"], "answer": 1, "why": "<b>Actions.</b> Some encode actions as tokens like words; others generate continuous motor trajectories." },
+        { "type": "tf", "statement": "RT-2 could follow instructions involving concepts absent from its robot training data, thanks to web pretraining.", "answer": true, "why": "<b>True.</b> For example, it could place an object next to a picture of a specific celebrity, recognizing them from web knowledge rather than robot demonstrations." },
+        { "type": "quiz", "q": "\"Action chunking\" means a robot policy…", "options": ["Breaks its arm into chunks", "Predicts a short sequence of future actions at once, giving smoother motion", "Splits tasks between robots", "Only moves in straight lines"], "answer": 1, "why": "<b>Planning a few moves ahead.</b> Predicting chunks reduces jittery step-by-step corrections and compounding errors." },
+        { "type": "fact", "title": "Physical Intelligence's π0 model folded laundry taken straight from a hamper.", "detail": "Laundry is notoriously hard for robots: cloth has endless possible shapes. The 2024 demo was seen as a milestone for general-purpose manipulation." },
+        { "type": "quiz", "q": "Why are soft things like clothes especially hard for robots?", "options": ["They are heavy", "They can take endless shapes and are hard to model or simulate", "They are slippery only when wet", "They are expensive"], "answer": 1, "why": "<b>Infinite configurations.</b> A rigid cup has six degrees of freedom. A shirt effectively has thousands, and its behavior is hard to predict." }
+      ]
+    },
+    {
+      "title": "Self-driving cars",
+      "cards": [
+        { "type": "explainer", "title": "How a robotaxi drives", "steps": [
+          { "h": "Perceive", "p": "Cameras, lidar and radar build a 3D picture of the surroundings, detecting cars, people and signs." },
+          { "h": "Predict", "p": "The system forecasts what everyone nearby is likely to do over the next few seconds." },
+          { "h": "Plan", "p": "It chooses a safe, comfortable path and speed, updating many times a second." }
+        ], "aside": "Waymo operates fully driverless paid rides in several US cities." },
+        { "type": "quiz", "q": "Lidar measures distance by…", "options": ["Listening for echoes of sound", "Timing how long laser pulses take to bounce back", "Comparing two camera images", "Using GPS"], "answer": 1, "why": "<b>Laser time-of-flight.</b> Millions of pulses per second produce a precise 3D point cloud, even in darkness." },
+        { "type": "quiz", "q": "An SAE Level 4 autonomous vehicle…", "options": ["Needs constant driver supervision", "Can drive with no human driver within a defined area and conditions", "Can drive anywhere in any condition", "Only parks itself"], "answer": 1, "why": "<b>Driverless within limits.</b> Level 4 robotaxis operate without a driver inside a mapped service area. Level 5 — anywhere, anytime — does not yet exist." },
+        { "type": "fact", "title": "In the 2004 DARPA Grand Challenge, no self-driving car finished — the best managed about 7 miles of a 150-mile desert course.", "detail": "A year later, five vehicles finished, led by Stanford's Stanley. Many of the engineers involved went on to found the self-driving industry." },
+        { "type": "tf", "statement": "Tesla's standard Autopilot is a Level 4 system that requires no driver attention.", "answer": false, "why": "<b>False.</b> Autopilot and Tesla's supervised self-driving features are driver-assistance systems requiring an attentive driver ready to take over." },
+        { "type": "tf", "statement": "Waymo operates fully driverless, paid robotaxi rides in multiple US cities.", "answer": true, "why": "<b>True.</b> Including Phoenix, San Francisco and Los Angeles, with no safety driver on board." }
+      ]
+    },
+    {
+      "title": "Humanoid robots",
+      "cards": [
+        { "type": "explainer", "title": "Why build robots shaped like us?", "steps": [
+          { "h": "A world built for humans", "p": "Stairs, doors, tools and workstations are designed for human bodies. A human-shaped robot could use them without changes." },
+          { "h": "Learning from people", "p": "Human video and teleoperation map more naturally onto a similar body." },
+          { "h": "Hard problems remain", "p": "Dexterous hands, battery life, safety around people and cost are all still major challenges." }
+        ], "aside": "Companies including Figure, Tesla, Agility, Unitree, Boston Dynamics and 1X are all building humanoids." },
+        { "type": "quiz", "q": "The main argument for making general-purpose robots humanoid is…", "options": ["They look friendly", "Our environments and tools are designed for human bodies", "Two legs are faster than wheels", "They are cheaper to build"], "answer": 1, "why": "<b>Compatibility.</b> A humanoid could, in principle, step into any human job without redesigning the workplace. Skeptics argue wheels and simpler arms are more practical for most tasks." },
+        { "type": "tf", "statement": "Boston Dynamics retired its hydraulic Atlas robot and unveiled an all-electric version in 2024.", "answer": true, "why": "<b>True.</b> The electric Atlas, announced in April 2024, is aimed at commercial work, starting with Hyundai's factories." },
+        { "type": "quiz", "q": "What is often called the hardest part of a humanoid to get right?", "options": ["The head", "Dexterous hands with fine control and touch sensing", "The paint", "The legs' color"], "answer": 1, "why": "<b>Hands.</b> A human hand has over 20 degrees of freedom and rich touch sensing. Matching that reliably and cheaply remains unsolved." },
+        { "type": "fact", "title": "Chinese maker Unitree priced its G1 humanoid from about $16,000 in 2024.", "detail": "That was a fraction of earlier humanoids' cost, reflecting China's strong position in robot hardware and components." },
+        { "type": "tip", "title": "Watch robot demos like a skeptic", "body": "Many impressive robot videos are teleoperated, sped up or the best of many attempts. Good demos say so in the caption.", "challenge": "Next time you see a robot video, look for \"autonomous\", \"teleoperated\" or a speed label like \"2×\" before being impressed." }
+      ]
+    }
+  ]
+}

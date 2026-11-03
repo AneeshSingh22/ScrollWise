@@ -1,0 +1,69 @@
+{
+  "day": 30,
+  "slug": "future-of-work",
+  "topic": "AI and the future of work",
+  "cat": "life",
+  "blurb": "What the evidence says about AI and productivity, the skills that compound, and the big economic debate.",
+  "lessons": [
+    {
+      "title": "Tasks, not jobs",
+      "cards": [
+        { "type": "explainer", "title": "How AI changes work", "steps": [
+          { "h": "Jobs are bundles of tasks", "p": "Economists analyze AI's impact task by task. Few jobs consist entirely of tasks AI can do." },
+          { "h": "Automate or augment", "p": "AI can take over a task entirely, or help a person do it faster and better." },
+          { "h": "Exposure is not loss", "p": "A job heavily exposed to AI may change shape, grow, or shrink — exposure alone doesn't say which." }
+        ], "aside": "Spreadsheets automated calculation, yet the number of accountants and analysts grew." },
+        { "type": "quiz", "q": "A 2023 study by OpenAI and University of Pennsylvania researchers estimated that about what share of US workers have at least 10% of their tasks exposed to LLMs?", "options": ["About 10%", "About 30%", "About 80%", "100%"], "answer": 2, "why": "<b>About 80%.</b> And around 19% had at least half of their tasks exposed. Higher-wage, knowledge-work jobs were generally more exposed than manual ones." },
+        { "type": "tf", "statement": "A job being highly exposed to AI means it will disappear.", "answer": false, "why": "<b>False.</b> Exposure measures which tasks AI could affect. Whether that destroys, transforms or expands a job depends on demand, regulation and how firms use it." },
+        { "type": "quiz", "q": "\"Augmentation\" means AI…", "options": ["Replaces the worker entirely", "Helps a person do the task, who stays in charge", "Increases salaries automatically", "Adds hardware to people"], "answer": 1, "why": "<b>Human plus AI.</b> Usage studies suggest a large share of real AI use is collaborative — drafting, explaining, debugging — rather than full delegation." },
+        { "type": "fact", "title": "Anthropic's Economic Index found software development was the most common use of Claude.", "detail": "Analyzing millions of anonymized conversations in early 2025, it found computer and mathematical tasks made up the largest share, followed by writing and editing." },
+        { "type": "quiz", "q": "Why do economists study AI at the level of tasks rather than whole jobs?", "options": ["Tasks are easier to name", "Because AI affects specific tasks, and most jobs mix exposed and unexposed tasks", "Jobs data is secret", "Tradition"], "answer": 1, "why": "<b>Precision.</b> A radiologist reads scans, but also consults, decides and communicates. AI changes some of those far more than others." }
+      ]
+    },
+    {
+      "title": "What the evidence says",
+      "cards": [
+        { "type": "explainer", "title": "Real studies, mixed results", "steps": [
+          { "h": "Customer support", "p": "A study of 5,000 agents found an AI assistant raised productivity 14% on average — and 34% for the least experienced." },
+          { "h": "Consultants", "p": "In a BCG experiment, consultants using GPT-4 did much better on tasks inside AI's abilities, but worse on a task just outside them." },
+          { "h": "Experienced developers", "p": "A 2025 METR trial found experienced open-source developers were slower with AI tools on their own projects — though they believed they were faster." }
+        ], "aside": "The lesson: AI's benefit depends heavily on the task and the person." },
+        { "type": "quiz", "q": "In the customer support study, who gained the most from AI assistance?", "options": ["The most experienced agents", "The least experienced agents", "Managers", "No one"], "answer": 1, "why": "<b>Novices, up 34%.</b> The AI spread top performers' best practices to newer agents. The most skilled saw little benefit." },
+        { "type": "tf", "statement": "In METR's 2025 study, experienced open-source developers completed tasks faster when using AI tools.", "answer": false, "why": "<b>False.</b> They took about 19% longer, despite predicting a 24% speedup and still believing afterwards that AI had made them faster. Perceived productivity can mislead." },
+        { "type": "quiz", "q": "The \"jagged frontier\" describes how AI…", "options": ["Has uneven pricing", "Excels at some tasks and fails at others that seem equally hard, so using it outside its abilities backfires", "Has rough edges in its interface", "Works only in some countries"], "answer": 1, "why": "<b>Uneven abilities.</b> In the BCG study, consultants on a task outside the frontier were about 19 percentage points less likely to get the right answer when using AI." },
+        { "type": "fact", "title": "Consultants using GPT-4 on suitable tasks finished 12% more tasks, 25% faster, with 40% higher quality.", "detail": "The 2023 Harvard–BCG study of 758 consultants found the biggest gains among below-average performers, echoing the customer support results." },
+        { "type": "tip", "title": "Measure your own productivity", "body": "People are poor judges of whether AI saves them time. Timing a real task with and without it beats any impression.", "challenge": "Today, time one task done with AI and one similar task without, then compare honestly." }
+      ]
+    },
+    {
+      "title": "Skills that compound",
+      "cards": [
+        { "type": "explainer", "title": "What becomes more valuable", "steps": [
+          { "h": "Judgment and taste", "p": "When producing a draft is cheap, knowing which draft is good becomes the scarce skill." },
+          { "h": "Verification", "p": "Catching plausible-but-wrong output requires real expertise in the subject." },
+          { "h": "Problem framing", "p": "Deciding what to ask for — and explaining context clearly — determines what AI can deliver." }
+        ], "aside": "Expertise doesn't become worthless; it becomes the thing that makes AI useful." },
+        { "type": "quiz", "q": "Why does verification become a more important skill as AI spreads?", "options": ["AI is always wrong", "AI output often looks convincing even when wrong, and spotting errors takes expertise", "Verification is easy", "Laws require it"], "answer": 1, "why": "<b>Plausibility isn't correctness.</b> The better AI writes, the harder errors are to notice — unless you know the subject well." },
+        { "type": "fact", "title": "Doctors who routinely used AI to spot growths during colonoscopies got worse at spotting them without it.", "detail": "A 2025 study in The Lancet Gastroenterology & Hepatology found endoscopists' detection rate without AI fell from about 28% to 22% after months of AI-assisted procedures — evidence of deskilling." },
+        { "type": "tf", "statement": "Relying heavily on AI for a task can weaken your own ability to do it.", "answer": true, "why": "<b>True.</b> Skills you stop practicing fade. Studies of medicine and surveys of knowledge workers suggest heavy reliance can reduce independent ability and critical thinking." },
+        { "type": "quiz", "q": "What is the most effective way to learn a new skill with AI's help?", "options": ["Have AI do the work for you", "Attempt it yourself first, then use AI to explain, check and quiz you", "Avoid AI entirely", "Copy AI answers to memorize them"], "answer": 1, "why": "<b>Struggle first, then get feedback.</b> Effortful retrieval builds memory. AI is most useful as a tutor checking your work, not a ghostwriter." },
+        { "type": "tf", "statement": "Trying to answer a question before seeing the answer improves learning, even if your attempt is wrong.", "answer": true, "why": "<b>True — the pretesting effect.</b> Attempting first primes your memory to hold the correct answer. It is exactly why these lessons quiz you before explaining." }
+      ]
+    },
+    {
+      "title": "The big picture",
+      "cards": [
+        { "type": "explainer", "title": "The economic debate", "steps": [
+          { "h": "Modest estimates", "p": "MIT economist Daron Acemoglu estimated in 2024 that AI might add only about 0.7% to total productivity over a decade." },
+          { "h": "Bold estimates", "p": "Goldman Sachs projected in 2023 that generative AI could raise global GDP by 7% over ten years." },
+          { "h": "History's pattern", "p": "Past technologies destroyed some jobs but created new kinds of work that were hard to imagine beforehand." }
+        ], "aside": "The honest answer is that nobody knows yet — which is why tracking real evidence matters." },
+        { "type": "quiz", "q": "Research by David Autor and colleagues found about what share of US workers in 2018 had job titles that didn't exist in 1940?", "options": ["About 5%", "About 25%", "About 60%", "About 95%"], "answer": 2, "why": "<b>About 60%.</b> New technologies keep creating new occupations, though which jobs appear, and who gets them, is hard to predict." },
+        { "type": "tf", "statement": "Economists broadly agree on how much AI will increase economic growth.", "answer": false, "why": "<b>False.</b> Estimates range from under 1% extra productivity over a decade to transformative growth. The disagreement reflects real uncertainty about adoption and capability." },
+        { "type": "quiz", "q": "Goldman Sachs' 2023 report estimated generative AI could raise global GDP by about…", "options": ["0.1%", "7% over a decade", "70% in a year", "Nothing"], "answer": 1, "why": "<b>About 7% over ten years.</b> It also estimated work equivalent to 300 million full-time jobs was exposed to automation." },
+        { "type": "fact", "title": "Acemoglu's modest forecast assumed AI would profitably affect only about 5% of all tasks within a decade.", "detail": "His argument: many exposed tasks will not be worth automating soon, and gains on hard tasks are smaller. Critics say he underestimates how fast capabilities improve." },
+        { "type": "tip", "title": "You finished the course — teach one thing", "body": "Explaining something to another person is the fastest way to find out whether you really understand it, and it locks it into memory.", "challenge": "Pick the most surprising thing you learned this month and explain it to someone today." }
+      ]
+    }
+  ]
+}

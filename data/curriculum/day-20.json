@@ -1,0 +1,69 @@
+{
+  "day": 20,
+  "slug": "distributed-training",
+  "topic": "Training across thousands of GPUs",
+  "cat": "tech",
+  "blurb": "Data, tensor, pipeline and expert parallelism — and keeping a huge training run alive.",
+  "lessons": [
+    {
+      "title": "Data parallelism",
+      "cards": [
+        { "type": "explainer", "title": "Same model, different data", "steps": [
+          { "h": "Copy the model", "p": "Every GPU holds a full copy of the model." },
+          { "h": "Split the batch", "p": "Each GPU processes a different slice of the training batch and computes its own gradients." },
+          { "h": "Average and update", "p": "An all-reduce averages gradients across GPUs, and every copy applies the identical update." }
+        ], "aside": "It is the simplest form of parallelism, and almost every run uses it in some form." },
+        { "type": "quiz", "q": "What is the main limitation of pure data parallelism?", "options": ["It changes the model's results", "The entire model, gradients and optimizer state must fit on every GPU", "It only works on CPUs", "It requires small batches"], "answer": 1, "why": "<b>Memory.</b> Every GPU holds everything. Once a model's training state exceeds one GPU's memory, you need to split the model itself." },
+        { "type": "quiz", "q": "Training with Adam in mixed precision needs about 16 bytes per parameter before activations. Roughly how much memory does a 7B model need?", "options": ["14 GB", "28 GB", "112 GB", "1 TB"], "answer": 2, "why": "<b>About 112 GB.</b> 2 bytes for BF16 weights, 2 for gradients, and 12 for the FP32 master weights and Adam's two moment estimates. That is more than one 80 GB GPU." },
+        { "type": "tf", "statement": "Data parallelism produces the same result as training on one giant GPU with the full batch.", "answer": true, "why": "<b>True, mathematically.</b> Averaging gradients from slices equals the full-batch gradient. Only floating-point rounding order differs." },
+        { "type": "fact", "title": "Microsoft's ZeRO technique removed the redundant copies that data parallelism wastes memory on.", "detail": "Introduced in 2019 in DeepSpeed, ZeRO shards optimizer states, gradients and even parameters across GPUs, fetching pieces only when needed. PyTorch's FSDP follows the same idea." },
+        { "type": "quiz", "q": "Fully sharded data parallelism (FSDP or ZeRO-3) saves memory by…", "options": ["Compressing the dataset", "Splitting parameters, gradients and optimizer state across GPUs instead of replicating them", "Skipping the backward pass", "Using fewer layers"], "answer": 1, "why": "<b>Sharding.</b> Each GPU stores a fraction and gathers the rest just in time, trading extra communication for much less memory per GPU." }
+      ]
+    },
+    {
+      "title": "Splitting the model",
+      "cards": [
+        { "type": "explainer", "title": "Tensor and pipeline parallelism", "steps": [
+          { "h": "Tensor parallelism", "p": "Individual matrix multiplications are split across GPUs — each computes part of every layer. This needs very fast, frequent communication." },
+          { "h": "Pipeline parallelism", "p": "Layers are divided into stages on different GPUs, like an assembly line. Data passes stage to stage." },
+          { "h": "Microbatches fill the line", "p": "Splitting each batch into small microbatches keeps more stages busy at once." }
+        ], "aside": "Large runs combine data, tensor and pipeline parallelism — often called 3D parallelism." },
+        { "type": "quiz", "q": "Why is tensor parallelism usually kept within a single server?", "options": ["Licensing", "It needs extremely frequent, high-bandwidth communication that only links like NVLink provide", "Servers have more memory", "It only works on 8 GPUs exactly"], "answer": 1, "why": "<b>Bandwidth.</b> Tensor-parallel GPUs exchange data inside every layer. Over slower links between servers, they would spend most of their time waiting." },
+        { "type": "quiz", "q": "A \"pipeline bubble\" is…", "options": ["A cooling leak", "Idle time when pipeline stages wait for work at the start and end of a batch", "A memory error", "A type of attention"], "answer": 1, "why": "<b>Idle stages.</b> The first stage starts before later ones have work, and the last finishes after the first is done. More microbatches shrink the bubble." },
+        { "type": "tf", "statement": "Pipeline parallelism needs less communication bandwidth than tensor parallelism.", "answer": true, "why": "<b>True.</b> Pipeline stages only pass activations between neighbors once per microbatch, so they can span slower links between servers." },
+        { "type": "fact", "title": "Meta trained Llama 3 405B using four kinds of parallelism at once.", "detail": "On about 16,000 H100s it combined tensor, pipeline, context and data parallelism — splitting layers, matrices, long sequences and batches simultaneously." },
+        { "type": "tf", "statement": "NVIDIA's Megatron-LM work helped popularize tensor parallelism for transformers.", "answer": true, "why": "<b>True.</b> The 2019 Megatron-LM paper showed how to split attention and MLP layers across GPUs with only a few communication steps per layer." }
+      ]
+    },
+    {
+      "title": "Experts and long sequences",
+      "cards": [
+        { "type": "explainer", "title": "More ways to split", "steps": [
+          { "h": "Expert parallelism", "p": "In mixture-of-experts models, different experts live on different GPUs, and tokens are sent to whichever GPU holds their chosen expert." },
+          { "h": "All-to-all traffic", "p": "Routing tokens means every GPU sends data to every other one, twice per MoE layer." },
+          { "h": "Context parallelism", "p": "Very long sequences are split across GPUs, which pass keys and values around in turn so each sees the whole context." }
+        ], "aside": "Each new axis of parallelism trades memory or compute for communication." },
+        { "type": "quiz", "q": "Expert parallelism relies heavily on which communication pattern?", "options": ["Broadcast", "All-to-all", "Point-to-point between two GPUs only", "None"], "answer": 1, "why": "<b>All-to-all.</b> Each GPU dispatches tokens to the GPUs hosting the selected experts, then collects results back — a demanding pattern for the network." },
+        { "type": "tf", "statement": "Ring attention lets attention over a very long sequence be split across many GPUs.", "answer": true, "why": "<b>True.</b> Each GPU holds one block of the sequence and passes key-value blocks around a ring, overlapping communication with computation." },
+        { "type": "quiz", "q": "Why do MoE models add a load-balancing loss during training?", "options": ["To save memory", "To stop the router sending most tokens to a few experts while others sit idle", "To speed up inference", "To reduce the vocabulary"], "answer": 1, "why": "<b>Even usage.</b> Without it, routers often collapse onto a few favorite experts, overloading their GPUs and wasting the rest." },
+        { "type": "fact", "title": "DeepSeek wrote custom low-level GPU code to work around export-restricted chips.", "detail": "Its H800 GPUs had reduced chip-to-chip bandwidth. The V3 report describes custom communication kernels and a \"DualPipe\" schedule that overlaps nearly all communication with computation." },
+        { "type": "quiz", "q": "Why do training systems try to overlap communication with computation?", "options": ["To use more electricity", "So GPUs keep computing while data transfers happen, instead of waiting", "To reduce accuracy", "Regulations require it"], "answer": 1, "why": "<b>Hiding latency.</b> If the next transfer runs while the current computation does, communication time effectively disappears." }
+      ]
+    },
+    {
+      "title": "Keeping a run alive",
+      "cards": [
+        { "type": "explainer", "title": "Failure is normal", "steps": [
+          { "h": "Something always breaks", "p": "With tens of thousands of GPUs, cables, memory and power supplies, failures happen every few hours." },
+          { "h": "Checkpoint often", "p": "The full training state is saved regularly, so a crash costs minutes or hours rather than weeks." },
+          { "h": "Watch for silent errors", "p": "Some hardware faults produce wrong numbers without crashing, which can quietly corrupt a run." }
+        ], "aside": "At this scale, reliability engineering decides how much of the cluster's time is real progress." },
+        { "type": "quiz", "q": "\"Silent data corruption\" is dangerous because…", "options": ["It deletes files", "Faulty hardware returns wrong results without raising any error", "It is very loud", "It only happens on CPUs"], "answer": 1, "why": "<b>No alarm.</b> A chip that miscalculates occasionally may only show up as an odd loss spike, or not at all. Teams detect it with redundant checks and by monitoring statistics." },
+        { "type": "tf", "statement": "On a cluster of tens of thousands of GPUs, an interruption every few hours is normal.", "answer": true, "why": "<b>True.</b> Meta's Llama 3 run on about 16,000 GPUs averaged an interruption roughly every three hours. Bigger clusters fail more often." },
+        { "type": "quiz", "q": "Why do large runs save checkpoints asynchronously?", "options": ["To save electricity", "Writing hundreds of gigabytes would otherwise pause training", "Checkpoints are optional", "To encrypt them"], "answer": 1, "why": "<b>Avoiding stalls.</b> Copying state to memory quickly and writing it to storage in the background keeps GPUs training." },
+        { "type": "fact", "title": "Google trained Gemini Ultra across multiple data centers at once.", "detail": "Its 2023 technical report describes TPU pods in several facilities working on one run, linked by Google's network — an early example of multi-site training." },
+        { "type": "tip", "title": "Estimate training time", "body": "Time ≈ total FLOPs ÷ (GPUs × peak FLOP/s × utilization). An H100 offers about 10¹⁵ BF16 FLOP/s, and 40% utilization is a good real-world figure.", "challenge": "How long would 4.2 × 10²² FLOPs take on 1,000 H100s at 40% utilization? (About 29 hours.)" }
+      ]
+    }
+  ]
+}

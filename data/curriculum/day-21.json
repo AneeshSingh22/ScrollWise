@@ -1,0 +1,69 @@
+{
+  "day": 21,
+  "slug": "efficient-architectures",
+  "topic": "Efficient architectures",
+  "cat": "ai",
+  "blurb": "Mixture of experts, cheaper attention, state space models and the rise of small models.",
+  "lessons": [
+    {
+      "title": "Mixture of experts",
+      "cards": [
+        { "type": "explainer", "title": "Only wake the experts you need", "steps": [
+          { "h": "Many MLPs per layer", "p": "An MoE layer replaces one feed-forward network with many \"experts\" — say 8, 64 or 256." },
+          { "h": "A router chooses", "p": "For each token, a small router picks the top few experts, and only those run." },
+          { "h": "Huge capacity, modest compute", "p": "Total parameters can be enormous while the compute per token matches a much smaller dense model." }
+        ], "aside": "Many leading models are now believed or confirmed to be MoE." },
+        { "type": "quiz", "q": "Mixtral 8×7B has about 47B parameters, not 56B, because…", "options": ["One expert is removed", "Attention and embedding layers are shared — only the MLPs are duplicated into experts", "It is quantized", "It uses 7 experts"], "answer": 1, "why": "<b>Shared non-expert layers.</b> Only the feed-forward blocks are multiplied. With two experts active per token, about 13B parameters do work per token." },
+        { "type": "tf", "statement": "In MoE language models, each expert typically specializes in a human-recognizable subject like biology or law.", "answer": false, "why": "<b>False.</b> Analyses, including of Mixtral, found little clean topic specialization. Routing often follows syntax, token types or position instead." },
+        { "type": "quiz", "q": "DeepSeek-V3 has 671B total parameters but activates about 37B per token. Roughly what fraction is active?", "options": ["About 1%", "About 5.5%", "About 25%", "About 50%"], "answer": 1, "why": "<b>About 5.5%.</b> 37 ÷ 671. Very sparse activation is how it achieved strong performance at relatively low training cost." },
+        { "type": "fact", "title": "Google's Switch Transformer (2021) routed each token to just one expert and scaled to 1.6 trillion parameters.", "detail": "Earlier work used two or more experts per token. Switch showed one was enough, simplifying routing and cutting communication." },
+        { "type": "tf", "statement": "An MoE model needs less GPU memory than a dense model with the same number of active parameters.", "answer": false, "why": "<b>False.</b> All experts must be loaded, since any token might need any of them. MoE saves compute, not memory." }
+      ]
+    },
+    {
+      "title": "Cheaper attention",
+      "cards": [
+        { "type": "explainer", "title": "Shrinking the KV cache", "steps": [
+          { "h": "Share keys and values", "p": "Grouped-query attention lets several query heads share one key-value head, shrinking the cache by that ratio." },
+          { "h": "Look only nearby", "p": "Sliding-window attention limits each token to a recent window, capping per-layer cost." },
+          { "h": "Compress", "p": "DeepSeek's multi-head latent attention stores keys and values in a small compressed vector, rebuilding them as needed." }
+        ], "aside": "The KV cache, not the weights, often limits how many users a GPU can serve." },
+        { "type": "quiz", "q": "Grouped-query attention mainly reduces…", "options": ["Training data", "KV cache size, by having groups of query heads share key and value heads", "Vocabulary size", "The number of layers"], "answer": 1, "why": "<b>KV cache.</b> Llama 2 70B uses 64 query heads but only 8 key-value heads, an 8× smaller cache with little quality loss." },
+        { "type": "tf", "statement": "With sliding-window attention, information can still travel further than the window by passing through several layers.", "answer": true, "why": "<b>True.</b> Each layer extends reach by one window, like a relay. Twenty layers with a 4,000-token window can in principle carry information much further." },
+        { "type": "fact", "title": "DeepSeek-V2's latent attention cut its KV cache by about 93% compared with its previous model.", "detail": "By caching a compressed latent vector instead of full keys and values, it could serve far longer contexts and larger batches on the same hardware." },
+        { "type": "quiz", "q": "\"Linear attention\" research aims to…", "options": ["Make attention weights linear", "Reduce attention's cost from growing with n² to growing with n", "Remove softmax entirely and always", "Sort tokens"], "answer": 1, "why": "<b>Linear scaling.</b> Reformulating attention can avoid comparing every pair of tokens, though usually with some loss in exact recall." },
+        { "type": "quiz", "q": "Which problem does grouped-query attention NOT solve?", "options": ["Large KV cache", "Memory bandwidth during decode", "The quadratic cost of computing attention scores over long prompts", "Serving larger batches"], "answer": 2, "why": "<b>Quadratic scoring remains.</b> Every query still scores every key. GQA shrinks what is stored and read, not the number of comparisons." }
+      ]
+    },
+    {
+      "title": "State space models",
+      "cards": [
+        { "type": "explainer", "title": "RNNs, reinvented", "steps": [
+          { "h": "A fixed-size memory", "p": "State space models carry a fixed-size state forward through the sequence, like an RNN." },
+          { "h": "Trainable in parallel", "p": "Clever math lets them train in parallel across the sequence, avoiding the RNN slowdown." },
+          { "h": "Selective memory", "p": "Mamba (2023) made the state update depend on the input, letting it choose what to remember or forget." }
+        ], "aside": "No growing KV cache: generation cost per token stays constant regardless of context length." },
+        { "type": "quiz", "q": "The key inference advantage of Mamba-style models is…", "options": ["Higher accuracy everywhere", "Constant memory and time per generated token, no matter how long the context", "No training needed", "Smaller vocabularies"], "answer": 1, "why": "<b>Constant cost per token.</b> Transformers' KV caches grow with context. An SSM's state stays fixed, which suits very long inputs." },
+        { "type": "tf", "statement": "Pure state space models match transformers at copying long exact strings from earlier in the context.", "answer": false, "why": "<b>False.</b> A fixed-size state cannot hold everything exactly. Transformers can look back at any token directly, so they win at precise recall." },
+        { "type": "quiz", "q": "Why do hybrid models mix attention layers with Mamba layers?", "options": ["Licensing", "Attention provides precise recall; SSM layers provide efficiency", "To double parameters", "Mamba cannot be trained alone"], "answer": 1, "why": "<b>Best of both.</b> A few attention layers handle exact lookups while most layers stay cheap. Examples include AI21's Jamba and NVIDIA's Nemotron-H." },
+        { "type": "fact", "title": "Mamba was created by Albert Gu and Tri Dao — who also invented FlashAttention.", "detail": "Tri Dao thus helped make transformers faster and also build one of their most prominent challengers." },
+        { "type": "tf", "statement": "RWKV is a recurrent architecture that can be trained in parallel like a transformer.", "answer": true, "why": "<b>True.</b> An open-source project, RWKV runs like an RNN at inference but uses a formulation that trains in parallel." }
+      ]
+    },
+    {
+      "title": "Small models",
+      "cards": [
+        { "type": "explainer", "title": "Doing more with less", "steps": [
+          { "h": "Distillation", "p": "A small student model learns to imitate a large teacher's outputs." },
+          { "h": "Pruning and quantization", "p": "Unneeded weights are removed and the rest stored in fewer bits." },
+          { "h": "Better data", "p": "Carefully curated and synthetic data packs more learning into each parameter." }
+        ], "aside": "Small models run on phones and laptops: private, offline and nearly free per query." },
+        { "type": "quiz", "q": "Apple's on-device foundation model, announced in 2024, has about how many parameters?", "options": ["30 million", "3 billion", "70 billion", "1 trillion"], "answer": 1, "why": "<b>About 3 billion</b>, small enough to run on an iPhone. Harder requests go to larger models on Apple's private cloud servers." },
+        { "type": "tf", "statement": "Pruning can remove a significant share of a network's weights with only a small loss in quality.", "answer": true, "why": "<b>True.</b> Many weights contribute little. The challenge is turning that sparsity into real speedups on hardware built for dense math." },
+        { "type": "quiz", "q": "In knowledge distillation, a student learns from the teacher's full probability distribution because…", "options": ["It is smaller", "It shows how the teacher ranks wrong answers too, which carries extra information", "It is required by law", "Labels are unavailable"], "answer": 1, "why": "<b>\"Dark knowledge\".</b> Knowing that a picture is a bit dog-like but not at all car-like teaches more than a single hard label." },
+        { "type": "fact", "title": "The 2015 paper that named \"knowledge distillation\" was co-written by Geoffrey Hinton and Jeff Dean.", "detail": "With Oriol Vinyals, they showed a small model trained on a big model's softened output probabilities could capture much of its ability." },
+        { "type": "tip", "title": "Run a small model on your own laptop", "body": "Ollama (from ollama.com, and the tool this app's card pipeline will use) runs small models of a few billion parameters comfortably on most laptops, offline and free.", "challenge": "Install Ollama, then in PowerShell run: ollama run llama3.2:3b — ask it something from today's lessons and judge the answer." }
+      ]
+    }
+  ]
+}

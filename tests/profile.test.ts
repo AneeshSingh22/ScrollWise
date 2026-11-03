@@ -39,6 +39,15 @@ describe("merge", () => {
     expect(got.saved).toEqual(["x"]);
   });
 
+  it("keeps course progress and feed history from both sides", () => {
+    const got = merge(
+      p({ lessonsDone: ["d01-l1"], feedSeen: ["a"] }),
+      p({ lessonsDone: ["d01-l2"], feedSeen: ["b"] }),
+    );
+    expect([...got.lessonsDone].sort()).toEqual(["d01-l1", "d01-l2"]);
+    expect([...got.feedSeen].sort()).toEqual(["a", "b"]);
+  });
+
   it("unions liked and fewer too", () => {
     const got = merge(
       p({ liked: ["l1"], fewer: ["ai"] }),

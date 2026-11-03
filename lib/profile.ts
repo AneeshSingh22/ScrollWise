@@ -44,6 +44,10 @@ export async function loadRemote(
     // Not yet columns of their own; Phase 6 moves these into topic_weights.
     liked: [],
     fewer: [],
+    // Course progress and feed history are device-local for now (no columns
+    // yet); merge() keeps whatever this device has.
+    lessonsDone: [],
+    feedSeen: [],
   };
 }
 
@@ -64,6 +68,8 @@ export function merge(local: Persisted, remote: Persisted): Persisted {
     saved: union(remote.saved, local.saved),
     liked: union(remote.liked, local.liked),
     fewer: union(remote.fewer, local.fewer),
+    lessonsDone: union(remote.lessonsDone, local.lessonsDone),
+    feedSeen: union(remote.feedSeen, local.feedSeen),
   };
 }
 

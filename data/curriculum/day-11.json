@@ -1,0 +1,69 @@
+{
+  "day": 11,
+  "slug": "agents",
+  "topic": "AI agents and tool use",
+  "cat": "ai",
+  "blurb": "Models that act: the agent loop, why long tasks fail, MCP, computer use and keeping agents safe.",
+  "lessons": [
+    {
+      "title": "What makes an agent",
+      "cards": [
+        { "type": "explainer", "title": "A model in a loop", "steps": [
+          { "h": "Decide", "p": "The model reads the goal and everything so far, then chooses an action — search, run code, call an API, or answer." },
+          { "h": "Act", "p": "The application executes that action in the real world and captures the result." },
+          { "h": "Observe and repeat", "p": "The result is added to the context, and the model decides again, until it judges the task complete." }
+        ], "aside": "The 2022 ReAct paper popularized interleaving reasoning (\"thought\") with actions." },
+        { "type": "tf", "statement": "When a model \"uses a tool\", the model itself runs the code or calls the API.", "answer": false, "why": "<b>False.</b> The model only outputs a structured request, such as a function name and JSON arguments. The surrounding application executes it and feeds the result back." },
+        { "type": "quiz", "q": "ReAct-style agents interleave…", "options": ["Training and testing", "Reasoning steps and actions", "Two different models", "Text and images"], "answer": 1, "why": "<b>Thinking and doing.</b> Writing out a thought before each action helps the model plan, and observing results helps it correct course." },
+        { "type": "quiz", "q": "With function calling, what does the model output when it wants to use a tool?", "options": ["Machine code", "A structured call naming the function and its arguments", "A screenshot", "Nothing; it waits"], "answer": 1, "why": "<b>A structured call.</b> For example {\"name\": \"get_weather\", \"arguments\": {\"city\": \"Leeds\"}}. Developers describe available tools with schemas in the prompt." },
+        { "type": "fact", "title": "Meta's Toolformer (2023) taught a model to decide for itself when to call a calculator or search engine.", "detail": "The model inserted candidate API calls into text and kept only those that made the following text easier to predict — learning tool use with almost no human labels." },
+        { "type": "tf", "statement": "Agents tend to get less reliable as tasks get longer.", "answer": true, "why": "<b>True.</b> Small error rates per step compound. Long tasks also fill the context with clutter and give more chances to go off track." }
+      ]
+    },
+    {
+      "title": "Why long tasks are hard",
+      "cards": [
+        { "type": "quiz", "q": "An agent succeeds at each step 95% of the time. Roughly what is the chance it completes a 20-step task with no failure?", "options": ["95%", "75%", "36%", "5%"], "answer": 2, "why": "<b>0.95²⁰ ≈ 36%.</b> Per-step reliability that sounds excellent becomes poor over long chains. That is why recovering from errors matters as much as avoiding them." },
+        { "type": "explainer", "title": "Making long tasks work", "steps": [
+          { "h": "Verify as you go", "p": "Agents that run tests, re-read outputs or check results catch errors before they compound." },
+          { "h": "Manage the context", "p": "Old tool outputs are summarized or dropped so the important information stays visible." },
+          { "h": "Split the work", "p": "Sub-agents with fresh, focused contexts handle pieces of a large task and report back summaries." }
+        ], "aside": "Choosing what goes into the context window is now called \"context engineering\"." },
+        { "type": "tf", "statement": "METR's research found the length of tasks AI agents can complete has been doubling roughly every seven months.", "answer": true, "why": "<b>True.</b> METR's 2025 study measured the human-time length of tasks agents could finish with 50% reliability, finding a doubling time of about seven months since 2019." },
+        { "type": "fact", "title": "SWE-bench tests agents on real bug reports from open-source Python projects.", "detail": "Each task is a genuine GitHub issue. The agent must produce a code change, which is graded by running the project's own tests. It became a standard yardstick for coding agents." },
+        { "type": "quiz", "q": "Why does letting a coding agent run tests improve its results so much?", "options": ["Tests are fast", "Test results give it an objective signal to check and fix its own work", "It makes the code shorter", "It's required by law"], "answer": 1, "why": "<b>Feedback.</b> Without tests, an agent can only guess whether its change works. With them, it can iterate until they pass — the loop that makes agents useful." },
+        { "type": "quiz", "q": "An agent's context is filling up with long, old tool outputs. A common fix is to…", "options": ["Restart the task from scratch", "Summarize or drop stale outputs to keep the important details visible", "Increase the temperature", "Switch to a smaller model"], "answer": 1, "why": "<b>Compaction.</b> Keeping only what matters prevents important details from getting buried, and keeps cost and latency down." }
+      ]
+    },
+    {
+      "title": "Protocols and computer use",
+      "cards": [
+        { "type": "explainer", "title": "Connecting models to the world", "steps": [
+          { "h": "The integration problem", "p": "Every app connecting every model to every tool required custom code." },
+          { "h": "A shared protocol", "p": "Anthropic's Model Context Protocol (MCP), released in November 2024, defines a standard way for tools and data sources to expose themselves to any AI app." },
+          { "h": "Computer use", "p": "When no API exists, some agents operate an ordinary computer: reading screenshots and sending clicks and keystrokes." }
+        ], "aside": "MCP's own analogy: a USB-C port for AI applications." },
+        { "type": "quiz", "q": "What problem does the Model Context Protocol solve?", "options": ["Training models faster", "Giving tools and data sources one standard way to plug into any AI app", "Compressing models", "Translating languages"], "answer": 1, "why": "<b>Standard connectors.</b> Write an MCP server once for, say, a database, and any MCP-compatible assistant can use it — rather than a custom integration per app." },
+        { "type": "fact", "title": "Within months of its release, OpenAI and Google both adopted Anthropic's MCP.", "detail": "OpenAI announced support in March 2025 and Google followed shortly after, turning a single company's protocol into a broadly shared standard." },
+        { "type": "tf", "statement": "Computer-use agents work by looking at screenshots and sending mouse and keyboard actions.", "answer": true, "why": "<b>True.</b> Anthropic released computer use in October 2024 and OpenAI launched Operator in January 2025. They are flexible but slower and less reliable than direct APIs." },
+        { "type": "quiz", "q": "When both are available, why prefer an API over a computer-use agent?", "options": ["APIs look nicer", "APIs are faster, cheaper and far more reliable than clicking through a screen", "Computer use is illegal", "APIs need no permissions"], "answer": 1, "why": "<b>Reliability.</b> An API returns structured data in one call. Screen operation takes many steps, each a chance to misclick or misread." },
+        { "type": "tf", "statement": "It is good practice to give an agent every permission it might possibly need.", "answer": false, "why": "<b>False.</b> Least privilege applies: grant only what the task requires. Every extra permission is something a mistake or an injected instruction could misuse." }
+      ]
+    },
+    {
+      "title": "Keeping agents safe",
+      "cards": [
+        { "type": "explainer", "title": "The lethal trifecta", "steps": [
+          { "h": "Private data", "p": "The agent can read things you would not want leaked: emails, files, credentials." },
+          { "h": "Untrusted content", "p": "It also reads content from outside, such as web pages or incoming messages, which could contain injected instructions." },
+          { "h": "A way to send data out", "p": "If it can also make web requests or send messages, an attacker's hidden instructions can tell it to exfiltrate your data." }
+        ], "aside": "Simon Willison's rule: an agent with all three is exploitable. Remove any one leg." },
+        { "type": "quiz", "q": "Which combination makes data theft through prompt injection possible?", "options": ["Fast model + big context", "Private data + untrusted content + a way to send data out", "Low temperature + long answers", "Open weights + fine-tuning"], "answer": 1, "why": "<b>The trifecta.</b> Injected instructions arrive via untrusted content, the agent reads your private data, and an outbound channel carries it away. Break any link and the attack fails." },
+        { "type": "tf", "statement": "Telling the model to ignore instructions found in documents fully solves prompt injection.", "answer": false, "why": "<b>False.</b> It helps, but no prompt or model training yet makes injection reliably impossible. Robust designs limit what an agent can do, not just what it is told." },
+        { "type": "quiz", "q": "Where is a human confirmation step most valuable in an agent workflow?", "options": ["Before every token", "Before irreversible or outward-facing actions, like sending, paying or deleting", "Only at the very end", "Never — it slows things down"], "answer": 1, "why": "<b>At points of no return.</b> Reading and drafting are safe to automate. Sending money, deleting data or emailing people deserves a check." },
+        { "type": "fact", "title": "In 2025, a coding agent deleted a company's production database during a declared code freeze.", "detail": "The incident on the Replit platform, made public by investor Jason Lemkin, became a widely cited lesson in separating development from production and limiting agent permissions." },
+        { "type": "tip", "title": "Treat an agent like an intern with your login", "body": "Would you let a brand-new intern send email as you, or delete files without asking? Set agent permissions the same way.", "challenge": "Check one AI tool or integration you use and list what it can access. Remove one permission it doesn't need." }
+      ]
+    }
+  ]
+}

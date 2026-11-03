@@ -1,0 +1,65 @@
+{
+  "day": 5,
+  "slug": "tokens-embeddings",
+  "topic": "Tokens and embeddings",
+  "cat": "ai",
+  "blurb": "How text becomes numbers: tokenizers, embedding spaces and semantic search.",
+  "lessons": [
+    {
+      "title": "What a token is",
+      "cards": [
+        { "type": "explainer", "title": "Text to integers", "steps": [
+          { "h": "Split into pieces", "p": "A tokenizer cuts text into subword pieces: common words stay whole, rare words split into fragments like \"un\" + \"believ\" + \"able\"." },
+          { "h": "Look up an id", "p": "Each piece maps to an integer in a fixed vocabulary, typically 32,000 to 200,000 entries." },
+          { "h": "Learned from data", "p": "Byte-pair encoding builds the vocabulary by repeatedly merging the most frequent adjacent pair of symbols in a training corpus." }
+        ], "aside": "The model never sees letters — only these ids. That explains a surprising number of its quirks." },
+        { "type": "quiz", "q": "As a rule of thumb for English, 1,000 tokens is about how many words?", "options": ["250", "750", "1,000", "4,000"], "answer": 1, "why": "<b>About 750.</b> A token averages roughly four characters of English, or three-quarters of a word. Code, numbers and non-English text usually need more tokens per word." },
+        { "type": "tf", "statement": "\"hello\" and \" hello\" (with a leading space) are usually the same token.", "answer": false, "why": "<b>False.</b> Most tokenizers fold the leading space into the token, so the two are different ids. That is why a stray trailing space in a prompt can subtly change outputs." },
+        { "type": "quiz", "q": "Byte-pair encoding starts from individual characters or bytes and then…", "options": ["Deletes rare characters", "Repeatedly merges the most frequent adjacent pair into a new token", "Assigns one token per dictionary word", "Groups characters alphabetically"], "answer": 1, "why": "<b>Greedy merging.</b> If \"t\"+\"h\" is most common, it becomes \"th\"; then perhaps \"th\"+\"e\" becomes \"the\". Merging stops when the vocabulary reaches its target size." },
+        { "type": "fact", "title": "The same sentence can cost several times more tokens in some languages than in English.", "detail": "Tokenizers trained mostly on English split other scripts into small fragments. Studies found gaps of several-fold — and in extreme cases over 10× — meaning higher cost, slower output and less effective context for those languages." },
+        { "type": "tf", "statement": "Byte-level tokenizers can encode any text at all, including emoji and scripts they never saw in training.", "answer": true, "why": "<b>True.</b> Because the base alphabet is the 256 possible bytes, anything in UTF-8 can be represented, even if it falls back to one token per byte." }
+      ]
+    },
+    {
+      "title": "Embeddings: meaning as geometry",
+      "cards": [
+        { "type": "explainer", "title": "A map of meaning", "steps": [
+          { "h": "A row per token", "p": "Each token id selects a row from an embedding matrix — a vector of a few thousand numbers learned during training." },
+          { "h": "Similar things end up nearby", "p": "Because similar tokens appear in similar contexts, training pushes their vectors close together." },
+          { "h": "Directions carry meaning", "p": "Consistent offsets can encode concepts such as gender, tense or country-to-capital, so vector arithmetic sometimes works." }
+        ], "aside": "In a transformer, these starting vectors are refined by every layer into context-aware representations." },
+        { "type": "quiz", "q": "The famous result king − man + woman ≈ queen came from which 2013 model?", "options": ["BERT", "word2vec", "GPT-2", "ImageNet"], "answer": 1, "why": "<b>word2vec</b>, from Mikolov and colleagues at Google. It learned word vectors by predicting nearby words, and showed that relationships appeared as consistent directions in the space." },
+        { "type": "quiz", "q": "A vocabulary of 128,000 tokens with 4,096-dimensional embeddings needs about how many parameters for the embedding table?", "options": ["4 million", "52 million", "524 million", "5.2 billion"], "answer": 2, "why": "<b>128,000 × 4,096 ≈ 524 million.</b> That is a noticeable slice of a small model. It is one reason vocabulary size is a real design trade-off." },
+        { "type": "tf", "statement": "Some LLMs reuse the input embedding matrix as their output layer.", "answer": true, "why": "<b>True — weight tying.</b> GPT-2 did this: the same matrix maps tokens to vectors and final vectors back to token scores. It saves parameters; many larger models now keep them separate." },
+        { "type": "fact", "title": "Inside a transformer, \"bank\" gets different vectors in \"river bank\" and \"bank loan\".", "detail": "word2vec gave each word one fixed vector. Transformers start from one, but attention quickly mixes in context, so by middle layers the two senses have separate representations." },
+        { "type": "quiz", "q": "Cosine similarity between two vectors ranges from…", "options": ["0 to 1", "−1 to 1", "0 to infinity", "−infinity to infinity"], "answer": 1, "why": "<b>−1 to 1.</b> It is the cosine of the angle: 1 means the same direction, 0 orthogonal, −1 opposite. In practice text embeddings tend to cluster in the positive range." }
+      ]
+    },
+    {
+      "title": "Embeddings for search",
+      "cards": [
+        { "type": "explainer", "title": "How semantic search works", "steps": [
+          { "h": "One vector per passage", "p": "An embedding model turns a whole sentence or paragraph into a single vector that captures its meaning." },
+          { "h": "Trained by contrast", "p": "It learns from pairs that belong together, such as a question and its answer, pulling them close and pushing unrelated pairs apart." },
+          { "h": "Search by distance", "p": "At query time, the question is embedded and the nearest stored vectors are returned — matching meaning, not keywords." }
+        ], "aside": "\"How do I reset my password?\" can match \"Recovering account access\" with no words in common." },
+        { "type": "tf", "statement": "The embedding model used for search is usually the same model as the chat LLM.", "answer": false, "why": "<b>False.</b> Embedding models are usually separate, much smaller encoders trained specifically for similarity. They are cheap enough to run over millions of documents." },
+        { "type": "quiz", "q": "Vector databases often use approximate nearest-neighbor indexes like HNSW. What do they trade away?", "options": ["Storage", "A small chance of missing the true nearest match, in exchange for huge speedups", "Accuracy of the vectors themselves", "The ability to delete data"], "answer": 1, "why": "<b>Exactness for speed.</b> Exact search compares the query with every vector. HNSW navigates a graph of neighbors and finds almost all true matches in a fraction of the time." },
+        { "type": "fact", "title": "Some embedding models let you simply chop vectors shorter and still use them.", "detail": "\"Matryoshka\" training makes the first dimensions carry the most information. OpenAI's text-embedding-3 models support this, letting you cut storage several-fold for a modest accuracy cost." },
+        { "type": "tf", "statement": "Vectors from two different embedding models can be compared with each other directly.", "answer": false, "why": "<b>False.</b> Each model learns its own coordinate system. Switching models means re-embedding every stored document." },
+        { "type": "quiz", "q": "Why do many search systems combine embeddings with old-fashioned keyword search?", "options": ["Embeddings are illegal in some countries", "Keyword search catches exact names, codes and rare terms that embeddings can blur", "Keyword search is more modern", "Embeddings cannot handle English"], "answer": 1, "why": "<b>Complementary strengths.</b> Embeddings handle paraphrase; keywords (like BM25) nail exact matches such as error codes or product names. Hybrid search merges both rankings." }
+      ]
+    },
+    {
+      "title": "Tokenizer weirdness",
+      "cards": [
+        { "type": "quiz", "q": "Why have LLMs historically struggled to count the r's in \"strawberry\"?", "options": ["They can't count", "They see a few tokens, not individual letters", "The word is rare", "Training data has typos"], "answer": 1, "why": "<b>They never see the letters.</b> \"strawberry\" arrives as a couple of token ids. Spelling out letters requires the model to have memorized each token's spelling — a task it was never directly trained on." },
+        { "type": "fact", "title": "\"SolidGoldMagikarp\" was a token that made GPT-3 behave bizarrely.", "detail": "It existed in the vocabulary (from a Reddit username) but almost never appeared in training data, so its embedding was barely trained. Asking about such \"glitch tokens\" produced evasions, insults or nonsense." },
+        { "type": "tf", "statement": "All LLM tokenizers split numbers into single digits.", "answer": false, "why": "<b>False.</b> It varies: Llama's tokenizers split digits individually, while some OpenAI tokenizers group up to three digits per token. These choices measurably affect arithmetic ability." },
+        { "type": "quiz", "q": "What is the main trade-off of a larger vocabulary?", "options": ["Slower internet", "Shorter sequences, but a bigger embedding table and more rarely-seen tokens", "Worse spelling", "Smaller models"], "answer": 1, "why": "<b>Length vs size.</b> More tokens per entry means text compresses into fewer steps, saving compute and context. The cost is more parameters and rare tokens that barely get trained." },
+        { "type": "fact", "title": "Meta's Llama 3 quadrupled its vocabulary from 32,000 to 128,000 tokens.", "detail": "Meta reported this encoded the same text with up to 15% fewer tokens, which makes inference cheaper and effectively stretches the context window." },
+        { "type": "tip", "title": "See your text the way a model does", "body": "Tokenizer viewers color each token in a piece of text. Ten seconds with one explains odd failures with code, numbers and names better than any article.", "challenge": "Paste a sentence with a number and a name into an online tokenizer viewer and count where the splits land." }
+      ]
+    }
+  ]
+}

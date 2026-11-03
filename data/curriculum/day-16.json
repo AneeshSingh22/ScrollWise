@@ -1,0 +1,69 @@
+{
+  "day": 16,
+  "slug": "evaluation",
+  "topic": "Evaluating AI",
+  "cat": "ai",
+  "blurb": "Benchmarks, leaderboards, LLM judges and testing agents — and why every score needs a second look.",
+  "lessons": [
+    {
+      "title": "Why benchmarks mislead",
+      "cards": [
+        { "type": "explainer", "title": "The life of a benchmark", "steps": [
+          { "h": "A fixed test", "p": "A benchmark is a fixed set of questions with known answers, so models can be compared on equal terms." },
+          { "h": "Contamination", "p": "Benchmarks get published online, and web-scale training data may then include the test questions themselves." },
+          { "h": "Saturation and gaming", "p": "Once models near 100%, a benchmark stops separating them. And whatever is measured gets optimized, sometimes at the expense of real ability." }
+        ], "aside": "Treat every score as a claim to be checked, not a fact." },
+        { "type": "quiz", "q": "MMLU, long a headline benchmark, tests…", "options": ["Coding speed", "Multiple-choice knowledge across 57 subjects", "Image recognition", "Conversation quality"], "answer": 1, "why": "<b>Broad academic knowledge.</b> It spans law, medicine, math, history and more, about 16,000 questions. Frontier models now score near its ceiling." },
+        { "type": "tf", "statement": "A model with a high MMLU score is guaranteed to perform well on your specific task.", "answer": false, "why": "<b>False.</b> Benchmarks sample narrow skills in a fixed format. Your task's data, wording and requirements may differ completely. Test on your own examples." },
+        { "type": "fact", "title": "A 2024 audit estimated about 6.5% of MMLU's questions contain errors — over half in its virology section.", "detail": "The \"Are We Done with MMLU?\" study found wrong answer keys, ambiguous questions and multiple correct options. Near the top, models may be scored against mistakes." },
+        { "type": "quiz", "q": "One way to detect benchmark contamination is to…", "options": ["Ask the model if it cheated", "Rephrase the questions and see whether the score drops sharply", "Run it on a faster GPU", "Delete the benchmark"], "answer": 1, "why": "<b>Perturb and compare.</b> A model that understands should handle a reworded question. A big drop suggests it memorized the originals." },
+        { "type": "tf", "statement": "Different labs always measure the same benchmark the same way.", "answer": false, "why": "<b>False.</b> Prompt wording, number of examples, chain of thought and answer extraction all vary — and can move scores by several points." }
+      ]
+    },
+    {
+      "title": "Leaderboards and human votes",
+      "cards": [
+        { "type": "explainer", "title": "How chatbot arenas work", "steps": [
+          { "h": "Blind head-to-head", "p": "A user asks a question; two anonymous models answer side by side; the user votes for the better one." },
+          { "h": "Ratings from votes", "p": "Millions of votes are turned into ratings with the Bradley–Terry model, the same idea behind chess Elo." },
+          { "h": "Then reveal", "p": "Model names appear only after voting, to prevent brand bias." }
+        ], "aside": "LMArena began in 2023 as Chatbot Arena, a research project from UC Berkeley's LMSYS group." },
+        { "type": "quiz", "q": "Why are models kept anonymous until after a vote?", "options": ["Legal requirements", "To prevent people voting based on brand rather than answer quality", "To save bandwidth", "Models have no names"], "answer": 1, "why": "<b>Avoiding brand bias.</b> People tend to favor names they recognize. Blind comparison isolates the answer itself." },
+        { "type": "tf", "statement": "Arena rankings can be swayed by style, such as longer answers and heavy formatting.", "answer": true, "why": "<b>True.</b> Voters often prefer longer, well-formatted replies even when content is equal. Arenas added \"style control\" to adjust for this." },
+        { "type": "quiz", "q": "In an Elo-style system, beating a much higher-rated opponent earns…", "options": ["Fewer points than beating an equal opponent", "More points, because the upset was unlikely", "No points", "The same as any win"], "answer": 1, "why": "<b>More points for surprises.</b> Rating changes scale with how unexpected the result was. Beating a much weaker opponent barely moves anything." },
+        { "type": "fact", "title": "A 2025 paper, \"The Leaderboard Illusion\", alleged some labs privately tested many model variants on the arena and published only the best.", "detail": "Picking the top score from many private tries inflates rankings. The arena's organizers disputed parts of the analysis, but the debate highlighted how leaderboards can be gamed." },
+        { "type": "tf", "statement": "Arena-style voting measures factual accuracy precisely.", "answer": false, "why": "<b>False.</b> Voters judge what looks better to them in the moment and rarely verify facts. It measures preference, not correctness." }
+      ]
+    },
+    {
+      "title": "Models grading models",
+      "cards": [
+        { "type": "explainer", "title": "LLM-as-a-judge", "steps": [
+          { "h": "A grader model", "p": "A strong model scores outputs against a rubric, or picks the better of two answers." },
+          { "h": "Cheap and scalable", "p": "It can grade thousands of open-ended answers in minutes, where human review would take weeks." },
+          { "h": "But biased", "p": "Judges favor certain positions, longer answers and outputs that resemble their own." }
+        ], "aside": "Judges work best with a clear rubric and, ideally, a reference answer." },
+        { "type": "quiz", "q": "To correct a judge's position bias when comparing two answers, you can…", "options": ["Use a bigger font", "Run the comparison twice with the order swapped and combine results", "Only show one answer", "Ask the judge to be fair"], "answer": 1, "why": "<b>Swap and average.</b> If the verdict flips when the order changes, the judge was reacting to position, not quality." },
+        { "type": "tf", "statement": "LLM judges tend to prefer outputs written by themselves.", "answer": true, "why": "<b>True — self-preference bias.</b> Research found models can often recognize, and favor, their own text. Using a different model family as judge helps." },
+        { "type": "fact", "title": "Strong LLM judges agreed with human experts about as often as humans agreed with each other.", "detail": "The 2023 MT-Bench study found GPT-4's pairwise judgments matched human preferences over 80% of the time, similar to human-human agreement, making automated evaluation practical." },
+        { "type": "quiz", "q": "What most improves an LLM judge's reliability?", "options": ["A longer system prompt", "A specific rubric and a reference answer to compare against", "Higher temperature", "Asking for a 1–100 score"], "answer": 1, "why": "<b>Concrete criteria.</b> \"Is it good?\" invites inconsistency. \"Does it cite the right clause and stay under 100 words?\" can be checked." },
+        { "type": "tip", "title": "Build a tiny eval for your own use", "body": "Twenty real examples with known good answers will tell you more about a model for your work than any public leaderboard.", "challenge": "Write down five real questions from your work with answers you trust, and run them on two AI tools." }
+      ]
+    },
+    {
+      "title": "Evaluating agents and risks",
+      "cards": [
+        { "type": "explainer", "title": "Beyond question-and-answer", "steps": [
+          { "h": "Agent benchmarks", "p": "Agents are tested on tasks in sandboxes: fixing real bugs (SWE-bench), using desktop apps (OSWorld), or serving simulated customers." },
+          { "h": "Dangerous capabilities", "p": "Labs test whether models could meaningfully help with cyberattacks or biological weapons, or operate autonomously." },
+          { "h": "Thresholds trigger safeguards", "p": "Frontier safety frameworks tie stronger protections to capability levels crossed in these tests." }
+        ], "aside": "Anthropic's Responsible Scaling Policy calls these levels AI Safety Levels (ASL)." },
+        { "type": "tf", "statement": "OSWorld tests agents on real desktop applications in a virtual machine.", "answer": true, "why": "<b>True.</b> Agents must complete tasks like editing spreadsheets or changing settings across real apps, judged by checking the final state of the computer." },
+        { "type": "quiz", "q": "Why should agent evaluations be run many times per task?", "options": ["To heat up GPUs", "Agents are stochastic, so a single run can be lucky or unlucky", "Benchmarks require it by law", "To train the agent"], "answer": 1, "why": "<b>Variance.</b> The same agent may succeed on one run and fail on the next. Reliability across repeated runs matters for real deployments." },
+        { "type": "fact", "title": "US and UK government AI safety institutes have tested frontier models before public release.", "detail": "In late 2024 they jointly published pre-deployment evaluations of models including an upgraded Claude 3.5 Sonnet and OpenAI's o1, covering cyber, biological and software capabilities." },
+        { "type": "tf", "statement": "If a model fails a dangerous-capability test once, it definitely lacks that capability.", "answer": false, "why": "<b>False.</b> Better prompting, tools or scaffolding can reveal abilities a simple test missed. Evaluators try hard to elicit maximum capability before concluding." },
+        { "type": "quiz", "q": "Anthropic's Responsible Scaling Policy links safety measures to…", "options": ["Company revenue", "Capability thresholds a model is tested against", "Model release dates", "User count"], "answer": 1, "why": "<b>Capabilities.</b> As models cross defined thresholds, stronger security and deployment safeguards become required before release." }
+      ]
+    }
+  ]
+}

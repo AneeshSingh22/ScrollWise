@@ -1,0 +1,69 @@
+{
+  "day": 7,
+  "slug": "post-training",
+  "topic": "Post-training: RLHF and beyond",
+  "cat": "ai",
+  "blurb": "How a raw text predictor becomes a helpful assistant: fine-tuning, human feedback, DPO and RL for reasoning.",
+  "lessons": [
+    {
+      "title": "From base model to assistant",
+      "cards": [
+        { "type": "explainer", "title": "Three stages after pretraining", "steps": [
+          { "h": "Supervised fine-tuning", "p": "The model trains on example conversations showing ideal assistant replies, learning the format and tone of a helpful answer." },
+          { "h": "Preference tuning", "p": "It then learns from comparisons — which of two replies is better — to sharpen judgment beyond imitation." },
+          { "h": "Targeted training", "p": "Further rounds handle safety, tool use, coding and reasoning, often with reinforcement learning against automated checks." }
+        ], "aside": "Pretraining gives knowledge; post-training gives behavior." },
+        { "type": "quiz", "q": "Supervised fine-tuning data for a chat model consists mainly of…", "options": ["Raw web pages", "Prompts paired with high-quality responses to imitate", "Images with captions", "Lists of banned words"], "answer": 1, "why": "<b>Demonstrations.</b> Each example is a prompt and an ideal reply, written by people or strong models. The model is trained to produce the reply given the prompt." },
+        { "type": "tf", "statement": "In OpenAI's InstructGPT study, people preferred outputs of a 1.3B tuned model over the original 175B GPT-3.", "answer": true, "why": "<b>True.</b> The 2022 paper found raters preferred the 100× smaller model after instruction tuning and RLHF. Alignment to what users want mattered more than raw size." },
+        { "type": "fact", "title": "To the model, a chat is just one long sequence of tokens.", "detail": "Special tokens mark where system, user and assistant turns begin and end. The \"conversation\" structure exists only because post-training taught the model to respect those markers." },
+        { "type": "quiz", "q": "Ask a base model \"What is the capital of France?\" and it might reply with…", "options": ["An error", "\"What is the capital of Germany? What is the capital of Spain?\"", "Silence", "Only the word Paris, always"], "answer": 1, "why": "<b>More of the same pattern.</b> On the web, a question is often followed by more questions, such as in a quiz list. The base model continues the document instead of answering." },
+        { "type": "tf", "statement": "Post-training has historically used far less compute than pretraining.", "answer": true, "why": "<b>True.</b> Traditionally a small fraction. That is changing as reinforcement learning for reasoning models scales up, with some labs reporting much larger RL budgets." }
+      ]
+    },
+    {
+      "title": "RLHF",
+      "cards": [
+        { "type": "explainer", "title": "Learning from human preferences", "steps": [
+          { "h": "Collect comparisons", "p": "The model writes several replies to each prompt, and people pick which they prefer." },
+          { "h": "Train a reward model", "p": "A separate model learns to predict those preferences, outputting a score for any prompt and reply." },
+          { "h": "Optimize against it", "p": "The assistant is then trained with reinforcement learning (often PPO) to earn high scores, while a penalty keeps it close to its starting behavior." }
+        ], "aside": "The reward model is a learned stand-in for human judgment — useful, but exploitable." },
+        { "type": "quiz", "q": "A reward model in RLHF takes a prompt and a response and outputs…", "options": ["A better response", "A single score of how good the response is", "A list of tokens", "The training loss"], "answer": 1, "why": "<b>A scalar score.</b> It is usually the language model itself with its output layer replaced by a single number, trained so preferred replies score higher." },
+        { "type": "quiz", "q": "Reward models are commonly trained with the Bradley–Terry model, where the probability A beats B is…", "options": ["rA ÷ rB", "sigmoid(rA − rB)", "Always 50%", "rA × rB"], "answer": 1, "why": "<b>sigmoid(rA − rB).</b> Only the difference in scores matters. The same model ranks chess players and sports teams." },
+        { "type": "tf", "statement": "Labelers usually compare two responses rather than scoring each one on an absolute scale, because comparisons are more consistent.", "answer": true, "why": "<b>True.</b> People disagree about whether a reply deserves a 6 or a 7, but agree much more on which of two is better." },
+        { "type": "fact", "title": "RLHF-trained models tend to tell people what they want to hear.", "detail": "Anthropic research (Sharma et al., 2023) found assistants often shift answers to match a user's stated opinion, partly because human raters reward agreement. This is called sycophancy." },
+        { "type": "quiz", "q": "Reward models often favor longer answers regardless of quality. This is an example of…", "options": ["Overfitting the tokenizer", "Reward hacking — exploiting a flaw in the proxy reward", "Model collapse", "Catastrophic forgetting"], "answer": 1, "why": "<b>Reward hacking.</b> If length correlates with preference in the training data, the policy learns to pad. Labs counter it by penalizing length or improving the reward model." }
+      ]
+    },
+    {
+      "title": "DPO and AI feedback",
+      "cards": [
+        { "type": "explainer", "title": "Preference tuning without RL", "steps": [
+          { "h": "The insight", "p": "Direct Preference Optimization (2023) showed the RLHF objective can be rewritten so no separate reward model or sampling loop is needed." },
+          { "h": "The training signal", "p": "Given a chosen and a rejected reply, DPO raises the chosen reply's likelihood relative to a frozen reference model, and lowers the rejected one's." },
+          { "h": "Why it spread", "p": "It is just a supervised loss: simpler, cheaper and more stable than PPO, so many open models adopted it." }
+        ], "aside": "The paper's subtitle summed it up: \"Your Language Model Is Secretly a Reward Model.\"" },
+        { "type": "quiz", "q": "What does DPO need that RLHF with PPO also needs?", "options": ["A separately trained reward model", "Pairs of preferred and rejected responses", "Sampling new responses during training", "A value network"], "answer": 1, "why": "<b>Preference pairs.</b> Both start from human (or AI) comparisons. DPO skips the reward model, the sampling and the value network that PPO uses." },
+        { "type": "tf", "statement": "DPO still uses a frozen copy of the starting model as a reference.", "answer": true, "why": "<b>True.</b> The loss compares the policy's probabilities to the reference's, which plays the role of RLHF's KL penalty and stops the model drifting too far." },
+        { "type": "quiz", "q": "Anthropic's Constitutional AI replaces many human labels with…", "options": ["Random rewards", "AI feedback guided by a written set of principles", "User click data", "No training at all"], "answer": 1, "why": "<b>AI feedback.</b> A model critiques and compares responses using a list of principles (a \"constitution\"), producing preference data at scale. This approach is often called RLAIF." },
+        { "type": "fact", "title": "AI-generated preference labels can work about as well as human ones for some tasks.", "detail": "A 2023 Google study found RLAIF matched RLHF on summarization and dialogue tasks, suggesting much preference data can be produced by models, with humans focusing on hard or high-stakes cases." },
+        { "type": "tf", "statement": "Offline methods like DPO and online RL methods behave identically.", "answer": false, "why": "<b>False.</b> Online RL learns from the model's own fresh samples; DPO learns from a fixed dataset. Studies often find online methods better on hard tasks, at higher cost." }
+      ]
+    },
+    {
+      "title": "Reinforcement learning for reasoning",
+      "cards": [
+        { "type": "explainer", "title": "Rewards you can check", "steps": [
+          { "h": "Verifiable rewards", "p": "For math with known answers or code with unit tests, correctness can be checked automatically — no human judge needed." },
+          { "h": "Let the model practice", "p": "The model attempts many problems, and RL reinforces whatever reasoning led to correct answers." },
+          { "h": "Thinking gets longer", "p": "Models trained this way learn to write long chains of thought: trying approaches, checking work, backtracking." }
+        ], "aside": "This is the core recipe behind OpenAI's o-series and DeepSeek-R1." },
+        { "type": "quiz", "q": "DeepSeek's GRPO algorithm avoids training a separate critic model by…", "options": ["Using human graders", "Comparing each answer to the average reward of a group of answers to the same prompt", "Ignoring rewards", "Training only on correct answers"], "answer": 1, "why": "<b>Group baselines.</b> Sample several answers per prompt; each one's advantage is its reward relative to the group's mean. That removes PPO's value network and its memory cost." },
+        { "type": "fact", "title": "DeepSeek-R1-Zero learned to reason at length using reinforcement learning alone, with no example reasoning to copy.", "detail": "Trained only with rewards for correct answers and format, it spontaneously began writing longer solutions and re-checking its work. The paper highlighted an \"aha moment\" where it paused to reconsider." },
+        { "type": "tf", "statement": "RL with verifiable rewards works best in domains where answers can be checked automatically.", "answer": true, "why": "<b>True.</b> Math, code and formal puzzles are ideal. Open-ended writing has no simple checker, so it still relies on reward models or human preferences." },
+        { "type": "quiz", "q": "DeepSeek fine-tuned small Qwen and Llama models on R1's reasoning traces. This technique is called…", "options": ["Pruning", "Distillation", "Quantization", "Federated learning"], "answer": 1, "why": "<b>Distillation.</b> A strong teacher generates outputs, and a smaller student learns to imitate them. The distilled models reasoned far better than their size suggested." },
+        { "type": "tip", "title": "Ask for the critique before the answer", "body": "Reasoning improves when a model checks itself. Asking it to list what could be wrong with a draft, then revise, often beats asking for a perfect answer in one shot.", "challenge": "Next time you use an AI for something important, add: \"First list the weaknesses of your answer, then give a revised one.\"" }
+      ]
+    }
+  ]
+}

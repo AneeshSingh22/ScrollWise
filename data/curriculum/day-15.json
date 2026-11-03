@@ -1,0 +1,69 @@
+{
+  "day": 15,
+  "slug": "speech-audio",
+  "topic": "Speech and audio AI",
+  "cat": "ai",
+  "blurb": "Speech recognition, text-to-speech, real-time voice assistants and the risks of cloned voices.",
+  "lessons": [
+    {
+      "title": "Turning speech into text",
+      "cards": [
+        { "type": "explainer", "title": "From sound waves to words", "steps": [
+          { "h": "Make a picture of sound", "p": "Audio is converted into a spectrogram: how much energy is at each frequency, over time." },
+          { "h": "Encode it", "p": "A transformer encoder processes the spectrogram frames, much as a vision model processes image patches." },
+          { "h": "Decode text", "p": "A decoder generates the transcript token by token, attending to the encoded audio." }
+        ], "aside": "OpenAI's Whisper (2022) uses exactly this encoder-decoder design." },
+        { "type": "quiz", "q": "OpenAI trained Whisper on roughly how much transcribed audio?", "options": ["680 hours", "68,000 hours", "680,000 hours", "68 million hours"], "answer": 2, "why": "<b>About 680,000 hours.</b> The transcripts were imperfect, scraped from the web, but sheer scale and variety made Whisper robust to accents and noise." },
+        { "type": "tf", "statement": "Most speech models read the raw audio waveform directly as their input.", "answer": false, "why": "<b>Mostly false.</b> Many, including Whisper, use log-Mel spectrograms, a compact representation of frequency content. Some self-supervised models do learn from raw waveforms." },
+        { "type": "quiz", "q": "A spectrogram shows…", "options": ["The words being spoken", "How strong each frequency is at each moment", "The speaker's identity", "Only the volume"], "answer": 1, "why": "<b>Frequency vs time.</b> Vowels show up as horizontal bands, consonants as bursts, and silence as dark gaps." },
+        { "type": "fact", "title": "OpenAI released Whisper's model weights openly in September 2022.", "detail": "It can also translate speech from many languages directly into English text. Open weights made it a building block for countless transcription apps." },
+        { "type": "tf", "statement": "A speech recognizer's word error rate can exceed 100%.", "answer": true, "why": "<b>True.</b> WER counts substitutions, deletions and insertions relative to the reference length. A system that inserts lots of extra words can go above 100%." }
+      ]
+    },
+    {
+      "title": "Making machines speak",
+      "cards": [
+        { "type": "explainer", "title": "How text-to-speech evolved", "steps": [
+          { "h": "Stitching recordings", "p": "Early systems glued together snippets of recorded speech, which sounded choppy." },
+          { "h": "Generating raw audio", "p": "DeepMind's WaveNet (2016) generated audio one sample at a time, producing strikingly natural voices." },
+          { "h": "Audio as tokens", "p": "Neural audio codecs compress sound into discrete tokens, so language-model techniques can generate speech." }
+        ], "aside": "Modern TTS can convey emotion, pacing and even laughter." },
+        { "type": "quiz", "q": "To capture sound frequencies up to 8 kHz, you must sample audio at least…", "options": ["4,000 times per second", "8,000 times per second", "16,000 times per second", "44,100 times per second"], "answer": 2, "why": "<b>16 kHz — twice the highest frequency.</b> That is the Nyquist rule. 16 kHz is standard for speech; CDs use 44.1 kHz to cover the whole range of human hearing." },
+        { "type": "quiz", "q": "Neural audio codecs like SoundStream and EnCodec convert audio into…", "options": ["Text", "Compact sequences of discrete tokens", "Images", "MIDI notes"], "answer": 1, "why": "<b>Audio tokens.</b> Once speech is a token sequence, a transformer can predict it like text, enabling voice cloning, music generation and speech-to-speech models." },
+        { "type": "tf", "statement": "Modern voice cloning can imitate a voice from just a few seconds of audio.", "answer": true, "why": "<b>True.</b> Microsoft's VALL-E (2023) reported cloning from a three-second sample. Commercial tools now offer similar abilities." },
+        { "type": "fact", "title": "WaveNet initially needed so much computation that generating one second of speech took far longer than a second.", "detail": "Producing tens of thousands of samples one by one was slow. Later techniques made it fast enough that Google deployed WaveNet voices in its Assistant in 2017." },
+        { "type": "quiz", "q": "What made WaveNet's voices sound so much more natural than older systems?", "options": ["Better microphones", "It generated the raw waveform directly with a neural network", "It used more recordings", "It spoke slower"], "answer": 1, "why": "<b>Direct waveform modeling.</b> Instead of stitching or vocoding, it learned the fine structure of real speech sample by sample." }
+      ]
+    },
+    {
+      "title": "Real-time voice assistants",
+      "cards": [
+        { "type": "explainer", "title": "Cascaded vs native", "steps": [
+          { "h": "The cascade", "p": "Classic assistants chain three models: speech recognition, a language model, then text-to-speech. Each adds delay." },
+          { "h": "What gets lost", "p": "Converting to text throws away tone, emotion, laughter and background sounds." },
+          { "h": "Speech-to-speech", "p": "Native audio models hear and speak directly, responding faster and handling interruptions more naturally." }
+        ], "aside": "Turn-taking timing is what makes a voice assistant feel human or robotic." },
+        { "type": "quiz", "q": "In human conversation, the typical gap between one person finishing and the other starting is about…", "options": ["20 milliseconds", "200 milliseconds", "2 seconds", "5 seconds"], "answer": 1, "why": "<b>About 200 ms</b>, found consistently across many languages. We start planning replies before the other person finishes, which assistants struggle to match." },
+        { "type": "tf", "statement": "Cascaded voice pipelines lose information such as tone of voice.", "answer": true, "why": "<b>True.</b> Once speech becomes text, sarcasm, hesitation or distress in the voice is gone unless separately detected." },
+        { "type": "quiz", "q": "Voice activity detection in an assistant decides…", "options": ["Which language is spoken", "When the user has started or stopped speaking", "Who the speaker is", "How loud to reply"], "answer": 1, "why": "<b>Turn boundaries.</b> Too eager and it interrupts mid-pause; too cautious and responses feel sluggish." },
+        { "type": "fact", "title": "Some voice models are \"full-duplex\": they can listen and talk at the same time.", "detail": "Like people, they can handle interruptions and small listener cues such as \"mm-hmm\" while speaking, rather than strictly taking turns." },
+        { "type": "quiz", "q": "The biggest latency win from speech-to-speech models comes from…", "options": ["Faster internet", "Skipping separate transcription and synthesis stages", "Shorter answers", "Larger microphones"], "answer": 1, "why": "<b>Removing handoffs.</b> Each stage in a cascade waits for the previous one. One model can begin responding almost immediately." }
+      ]
+    },
+    {
+      "title": "Music, clones and risks",
+      "cards": [
+        { "type": "explainer", "title": "Generative audio grows up", "steps": [
+          { "h": "Music from text", "p": "Systems like Suno and Udio generate full songs with vocals from a short text description." },
+          { "h": "Legal pushback", "p": "In 2024, major record labels sued Suno and Udio, alleging they trained on copyrighted recordings without permission." },
+          { "h": "Misuse", "p": "Cloned voices have been used in scams and political disinformation." }
+        ], "aside": "Audio is especially persuasive because people trust familiar voices." },
+        { "type": "quiz", "q": "Who sued AI music companies Suno and Udio in 2024?", "options": ["Spotify", "Major record labels, coordinated by the RIAA", "Individual fans", "The US government"], "answer": 1, "why": "<b>The major labels</b> — Universal, Sony and Warner — through the Recording Industry Association of America, alleging copyright infringement in training." },
+        { "type": "fact", "title": "In 2024, a robocall faked President Biden's voice to tell New Hampshire voters not to vote.", "detail": "Soon after, the US Federal Communications Commission ruled that AI-generated voices in robocalls fall under existing restrictions on artificial voices, making such calls illegal without consent." },
+        { "type": "tf", "statement": "Scammers have used cloned voices to impersonate family members asking for money.", "answer": true, "why": "<b>True.</b> Consumer protection agencies have warned about calls in which a cloned voice of a relative claims an emergency and asks for urgent payment." },
+        { "type": "quiz", "q": "What is a simple, effective defense against voice-clone scams in a family?", "options": ["Never answer the phone", "Agree on a private code word to confirm identity in emergencies", "Use video calls only", "Change your voice"], "answer": 1, "why": "<b>A shared secret.</b> A cloner can copy a voice but not a word you never said online. Hanging up and calling back on a known number also works." },
+        { "type": "tip", "title": "Set a family code word", "body": "A pre-agreed word lets you verify a frantic call in seconds. It costs nothing and defeats even a perfect voice clone.", "challenge": "Message your family today and agree on a code word for emergency calls." }
+      ]
+    }
+  ]
+}

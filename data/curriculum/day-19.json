@@ -1,0 +1,69 @@
+{
+  "day": 19,
+  "slug": "data-centers",
+  "topic": "Data centers and energy",
+  "cat": "tech",
+  "blurb": "The physical side of AI: power-hungry racks, cooling, electricity demand and the gigawatt build-out.",
+  "lessons": [
+    {
+      "title": "Inside an AI data center",
+      "cards": [
+        { "type": "explainer", "title": "A factory for computation", "steps": [
+          { "h": "Dense racks", "p": "A traditional server rack drew perhaps 5–15 kW. A rack of NVIDIA's GB200 NVL72 systems draws around 120 kW." },
+          { "h": "Power and cooling", "p": "Nearly every watt consumed becomes heat that must be removed. Power delivery and cooling dominate the building's design." },
+          { "h": "The network", "p": "Thousands of optical links tie GPUs together so they can act like one giant computer." }
+        ], "aside": "AI data centers are increasingly described by their power capacity — megawatts and gigawatts — rather than by floor space." },
+        { "type": "quiz", "q": "Power Usage Effectiveness (PUE) is total facility power divided by IT equipment power. A PUE of 1.1 means…", "options": ["The site wastes 110% extra", "About 10% extra power goes to cooling and other overhead", "It is 10% efficient", "It uses 1.1 MW"], "answer": 1, "why": "<b>10% overhead.</b> A perfect facility would score 1.0. Modern hyperscale sites run around 1.1–1.2; older enterprise data centers are often far higher." },
+        { "type": "tf", "statement": "Liquid cooling is becoming standard for the newest, densest AI racks.", "answer": true, "why": "<b>True.</b> Air cannot carry away 100+ kW from a single rack efficiently. Direct-to-chip liquid cooling pipes coolant through plates on the GPUs." },
+        { "type": "fact", "title": "xAI said it built its \"Colossus\" supercomputer in Memphis with 100,000 GPUs in 122 days.", "detail": "Such projects usually take years. To get power quickly, the site initially relied partly on on-site gas turbines, which drew local environmental objections." },
+        { "type": "tf", "statement": "Where AI data centers get built is driven mainly by cheap land.", "answer": false, "why": "<b>False.</b> The binding constraint is access to large amounts of electricity — and how quickly the grid can connect a new site. Land is a minor cost." },
+        { "type": "quiz", "q": "Roughly how much more power does a modern AI rack draw than a typical traditional server rack?", "options": ["About the same", "About twice", "About ten times or more", "A thousand times"], "answer": 2, "why": "<b>Around 10× or more.</b> Roughly 120 kW versus 5–15 kW. That jump forces new electrical and cooling designs, not just more of the same." }
+      ]
+    },
+    {
+      "title": "AI's electricity appetite",
+      "cards": [
+        { "type": "explainer", "title": "How much power AI uses", "steps": [
+          { "h": "Today", "p": "The International Energy Agency estimated data centers used about 415 TWh in 2024 — around 1.5% of global electricity." },
+          { "h": "Tomorrow", "p": "Its 2025 projection: roughly doubling to about 945 TWh by 2030, with AI the main driver." },
+          { "h": "Unevenly spread", "p": "Demand clusters in certain regions, like northern Virginia and Ireland, where data centers take a large share of local power." }
+        ], "aside": "Globally modest, locally enormous: that is the shape of the AI energy story." },
+        { "type": "quiz", "q": "According to the IEA, what share of global electricity did data centers use in 2024?", "options": ["About 0.1%", "About 1.5%", "About 10%", "About 25%"], "answer": 1, "why": "<b>About 1.5%.</b> Significant and growing fast, but still smaller than sectors like industry or buildings. The concern is the growth rate and local concentration." },
+        { "type": "tf", "statement": "A typical chatbot query uses about as much energy as boiling a kettle.", "answer": false, "why": "<b>False.</b> Recent estimates for a typical text query are around 0.3 watt-hours. Boiling a kettle takes roughly 100 Wh — hundreds of times more. Long reasoning or video generation costs much more." },
+        { "type": "quiz", "q": "For a widely used model, which typically uses more energy over its lifetime?", "options": ["Training it once", "Serving it to users", "Downloading it", "Testing it"], "answer": 1, "why": "<b>Serving.</b> Training is a huge one-time cost, but answering billions of queries for months or years usually adds up to more." },
+        { "type": "fact", "title": "Microsoft agreed to buy power from a restarted reactor at Three Mile Island to supply its data centers.", "detail": "The 2024 deal covers Unit 1 — not the reactor damaged in the 1979 accident — which had shut down in 2019 for economic reasons. It was renamed the Crane Clean Energy Center." },
+        { "type": "tf", "statement": "Major tech companies have signed agreements to buy power from small modular nuclear reactors.", "answer": true, "why": "<b>True.</b> Google agreed with Kairos Power and Amazon invested in X-energy in 2024, betting on reactors that are not yet operating commercially." }
+      ]
+    },
+    {
+      "title": "Water and heat",
+      "cards": [
+        { "type": "explainer", "title": "Where the heat goes", "steps": [
+          { "h": "Evaporative cooling", "p": "Many data centers cool by evaporating water, which absorbs a lot of heat but consumes water permanently." },
+          { "h": "Closed loops", "p": "Liquid-cooled systems circulate the same coolant and reject heat through dry coolers, using little water but more electricity." },
+          { "h": "Hidden water", "p": "Power plants that supply the electricity also use water, so a site's footprint is larger than its own meter shows." }
+        ], "aside": "Building water-cooled sites in dry regions has become a local political issue." },
+        { "type": "quiz", "q": "Why do evaporative cooling systems consume water rather than just circulate it?", "options": ["Water leaks", "Heat is removed by evaporating water, which leaves as vapor", "Water is used for cleaning", "Regulations require dumping it"], "answer": 1, "why": "<b>Evaporation carries heat away.</b> Turning water to vapor absorbs a lot of energy, which is why it is so effective — and why the water is gone afterwards." },
+        { "type": "tf", "statement": "All of a data center's water footprint comes from its on-site cooling.", "answer": false, "why": "<b>False.</b> Generating its electricity also uses water, often a large share. Full accounting includes both direct and indirect use." },
+        { "type": "quiz", "q": "Liquid cooling works so much better than air mainly because water…", "options": ["Is cheaper than air", "Carries thousands of times more heat per unit volume", "Conducts electricity", "Is heavier"], "answer": 1, "why": "<b>Heat capacity.</b> By volume, water absorbs about 3,500 times more heat than air for the same temperature rise, so small pipes replace huge airflows." },
+        { "type": "fact", "title": "Microsoft once ran a sealed data center on the seabed off Scotland's Orkney Islands.", "detail": "Project Natick's two-year experiment ending in 2020 found servers failed at one-eighth the rate of a land-based control group, possibly thanks to the stable temperature and a nitrogen atmosphere." },
+        { "type": "quiz", "q": "Some Nordic data centers reduce waste by…", "options": ["Shutting down in winter", "Piping their waste heat into district heating networks for homes", "Selling water", "Using solar only"], "answer": 1, "why": "<b>Heat reuse.</b> Server heat warms nearby buildings through district heating, turning a waste stream into a resource." }
+      ]
+    },
+    {
+      "title": "The gigawatt race",
+      "cards": [
+        { "type": "explainer", "title": "Building at unprecedented scale", "steps": [
+          { "h": "Capital spending", "p": "Microsoft, Alphabet, Amazon and Meta together spent over $200 billion on capital expenditure in 2024, largely for AI infrastructure." },
+          { "h": "Mega projects", "p": "In January 2025, OpenAI, SoftBank and Oracle announced Stargate, pledging up to $500 billion over four years for US AI infrastructure." },
+          { "h": "Gigawatt campuses", "p": "Single sites are now planned in gigawatts — the output of a large power station." }
+        ], "aside": "The bottlenecks have shifted from chips to power, transformers and grid connections." },
+        { "type": "tf", "statement": "One gigawatt of data center capacity draws roughly the output of a large nuclear reactor.", "answer": true, "why": "<b>True.</b> A typical large reactor produces about 1 GW. Several planned AI campuses aim for one or more gigawatts each." },
+        { "type": "quiz", "q": "Why do grid interconnection queues matter so much for AI data centers?", "options": ["They set electricity prices", "Connecting a large new load can take years, delaying projects even when chips are ready", "They decide chip exports", "They manage internet traffic"], "answer": 1, "why": "<b>Time to power.</b> New transmission lines and substations take years, so developers chase sites with spare capacity or build their own generation." },
+        { "type": "quiz", "q": "Stargate, announced in January 2025, pledged up to how much investment?", "options": ["$5 billion", "$50 billion", "$500 billion", "$5 trillion"], "answer": 2, "why": "<b>Up to $500 billion</b> over four years, starting with a campus in Abilene, Texas. Its full scale depends on financing that was still being arranged." },
+        { "type": "fact", "title": "Hyperscalers' capital spending on AI rivals the largest infrastructure programs in history.", "detail": "Annual spending of hundreds of billions of dollars exceeds what most countries spend on all their roads and railways, raising questions about whether demand will justify it." },
+        { "type": "tip", "title": "Estimate a cluster's power", "body": "An H100 draws up to 700 W. Running all year that is about 6 MWh. Multiply by GPU count, then add 20–50% for servers, networking and cooling.", "challenge": "Estimate the power for 100,000 GPUs at 700 W each before overhead. (Answer: 70 MW — the scale of a small city.)" }
+      ]
+    }
+  ]
+}

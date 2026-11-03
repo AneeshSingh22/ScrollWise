@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { baseId, buildRound, buildSession, byId, DECK } from "@/lib/deck";
+import {
+  baseId,
+  buildRound,
+  buildSession,
+  byId,
+  DECK,
+  freshnessOrder,
+  ROUND_SIZE,
+  SPRINT_AT,
+  spaceByCategory,
+} from "@/lib/deck";
+import { seededRng } from "@/lib/shuffle";
 import { CATS, KIND } from "@/lib/constants";
 import { isAnswerable, type Card } from "@/types/card";
 
@@ -108,33 +119,95 @@ describe("byId", () => {
   });
 });
 
+/** A fixed RNG so sampling tests are reproducible. */
+const rng = () => seededRng(42);
+
 describe("buildRound", () => {
-  it("returns the whole deck with no filter and no muted topics", () => {
-    expect(buildRound("all", [])).toHaveLength(DECK.length);
+  it("samples a round of ROUND_SIZE cards, not the whole deck", () => {
+    expect(DECK.length).toBeGreaterThan(ROUND_SIZE * 5);
+    expect(buildRound("all", [], [], rng())).toHaveLength(ROUND_SIZE);
+  });
+
+  it("never repeats a card within a round", () => {
+    const ids = buildRound("all", [], [], rng()).map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("puts exactly one math sprint at SPRINT_AT on the For you feed", () => {
+    const round = buildRound("all", [], [], rng());
+    expect(round.filter((c) => c.type === "sprint")).toHaveLength(1);
+    expect(round[SPRINT_AT].type).toBe("sprint");
   });
 
   it("filters to a single category", () => {
-    const ai = buildRound("ai", []);
+    const ai = buildRound("ai", [], [], rng());
     expect(ai.length).toBeGreaterThan(0);
     for (const c of ai) expect(c.cat).toBe("ai");
   });
 
-  it("halves a muted topic but keeps the others whole", () => {
-    const all = buildRound("all", []);
-    const muted = buildRound("all", ["ai"]);
+  it("never runs one category three times in a row on For you", () => {
+    for (let seed = 0; seed < 20; seed++) {
+      const round = buildRound("all", [], [], seededRng(seed)).filter((c) => c.type !== "sprint");
+      for (let i = 2; i < round.length; i++) {
+        const run = round[i].cat === round[i - 1].cat && round[i].cat === round[i - 2].cat;
+        expect(run, `seed ${seed} at ${i}`).toBe(false);
+      }
+    }
+  });
 
-    const aiAll = all.filter((c) => c.cat === "ai").length;
-    const aiMuted = muted.filter((c) => c.cat === "ai").length;
-    expect(aiMuted).toBe(Math.ceil(aiAll / 2));
+  it("prefers cards the user hasn't seen", () => {
+    const first = buildRound("all", [], [], rng());
+    const seen = first.map((c) => c.id);
+    const second = buildRound("all", [], seen, rng());
+    const repeats = second.filter((c) => c.type !== "sprint" && seen.includes(c.id));
+    expect(repeats).toHaveLength(0);
+  });
 
-    const techAll = all.filter((c) => c.cat === "tech").length;
-    expect(muted.filter((c) => c.cat === "tech")).toHaveLength(techAll);
+  it("serves the least recently seen cards once everything has been seen", () => {
+    const pool = DECK.filter((c) => c.cat === "math" && c.type !== "sprint");
+    const seen = pool.map((c) => c.id); // oldest first
+    const ordered = freshnessOrder(pool, seen, rng());
+    expect(ordered.map((c) => c.id)).toEqual(seen);
+  });
+
+  it("thins a muted topic on For you", () => {
+    let muted = 0;
+    let plain = 0;
+    for (let seed = 0; seed < 30; seed++) {
+      plain += buildRound("all", [], [], seededRng(seed)).filter((c) => c.cat === "world").length;
+      muted += buildRound("all", ["world"], [], seededRng(seed)).filter((c) => c.cat === "world").length;
+    }
+    expect(muted).toBeLessThan(plain);
   });
 
   it("ignores muting when a category is explicitly selected", () => {
-    // Picking the AI chip means you want AI, even if you muted it before.
-    const ai = buildRound("ai", ["ai"]);
-    expect(ai).toHaveLength(DECK.filter((c) => c.cat === "ai").length);
+    // Picking the World chip means you want World, even if you muted it before.
+    const world = buildRound("world", ["world"], [], rng());
+    expect(world.length).toBeGreaterThan(0);
+    for (const c of world) expect(c.cat).toBe("world");
+  });
+
+  it("never produces an empty round for any chip", () => {
+    for (const f of ["all", "ai", "tech", "life", "world", "math"] as const) {
+      expect(buildRound(f, [], [], rng()).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("spaceByCategory", () => {
+  const card = (id: string, cat: Card["cat"]) => ({ id, cat, type: "fact", title: id, detail: "" }) as Card;
+
+  it("breaks up a run when another category is available", () => {
+    const out = spaceByCategory(
+      [card("a1", "ai"), card("a2", "ai"), card("a3", "ai"), card("w1", "world")],
+      4,
+    );
+    expect(out.map((c) => c.id)).toEqual(["a1", "a2", "w1", "a3"]);
+  });
+
+  it("still fills the round when only one category is left", () => {
+    const out = spaceByCategory([card("a1", "ai"), card("a2", "ai"), card("a3", "ai")], 3);
+    expect(out).toHaveLength(3);
   });
 });
 
@@ -142,25 +215,23 @@ describe("buildSession", () => {
   const last = (cards: Card[]) => cards[cards.length - 1];
 
   it("ends with the summary card", () => {
-    expect(last(buildSession("all", [], true)).type).toBe("summary");
-    expect(last(buildSession("ai", [], false)).type).toBe("summary");
+    expect(last(buildSession("all", [], true, [], rng())).type).toBe("summary");
+    expect(last(buildSession("ai", [], false, [], rng())).type).toBe("summary");
   });
 
-  it("opens with the intro only on the first unfiltered session", () => {
-    expect(buildSession("all", [], true)[0].type).toBe("intro");
-    expect(buildSession("all", [], false)[0].type).not.toBe("intro");
-    // A filtered first session skips the intro too.
-    expect(buildSession("ai", [], true)[0].type).not.toBe("intro");
+  it("opens with the intro only on an unfiltered session that asks for it", () => {
+    expect(buildSession("all", [], true, [], rng())[0].type).toBe("intro");
+    expect(buildSession("all", [], false, [], rng())[0].type).not.toBe("intro");
+    expect(buildSession("ai", [], true, [], rng())[0].type).not.toBe("intro");
   });
 
-  it("holds every round card between the bookends", () => {
-    const session = buildSession("all", [], true);
-    expect(session).toHaveLength(DECK.length + 2);
+  it("holds one round between the bookends", () => {
+    expect(buildSession("all", [], true, [], rng())).toHaveLength(ROUND_SIZE + 2);
   });
+});
 
-  it("never produces an empty round for any chip", () => {
-    for (const f of ["all", "ai", "tech", "life", "world", "math"] as const) {
-      expect(buildRound(f, []).length).toBeGreaterThan(0);
-    }
+describe("byId across the feed and the course", () => {
+  it("finds a course card", () => {
+    expect(byId("d01-l1-c1")?.type).toBe("explainer");
   });
 });

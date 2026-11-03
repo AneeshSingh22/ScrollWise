@@ -1,0 +1,69 @@
+{
+  "day": 25,
+  "slug": "ai-history",
+  "topic": "A history of AI",
+  "cat": "world",
+  "blurb": "From Turing and Dartmouth through two AI winters to deep learning and the LLM era.",
+  "lessons": [
+    {
+      "title": "The birth of a field",
+      "cards": [
+        { "type": "explainer", "title": "1950–1966", "steps": [
+          { "h": "Turing's question", "p": "In 1950, Alan Turing's paper \"Computing Machinery and Intelligence\" asked whether machines can think and proposed the imitation game." },
+          { "h": "A name and a summer", "p": "The 1956 Dartmouth workshop gathered the founders of the field, under the name \"artificial intelligence\"." },
+          { "h": "Early optimism", "p": "Programs proved theorems, played checkers and held simple conversations. Many predicted human-level AI within a generation." }
+        ], "aside": "The optimism of the 1950s and 60s set up the disappointments that followed." },
+        { "type": "quiz", "q": "Who coined the term \"artificial intelligence\"?", "options": ["Alan Turing", "John McCarthy", "Marvin Minsky", "Claude Shannon"], "answer": 1, "why": "<b>John McCarthy</b>, in the 1955 proposal for the Dartmouth workshop, written with Minsky, Rochester and Shannon. McCarthy later created the Lisp programming language." },
+        { "type": "tf", "statement": "The Dartmouth proposal suggested significant progress could be made in a single summer.", "answer": true, "why": "<b>True.</b> It proposed that a carefully selected group of scientists could make a significant advance on making machines use language and form abstractions over one summer." },
+        { "type": "quiz", "q": "Turing's \"imitation game\" asks whether…", "options": ["A machine can beat a human at chess", "A judge, chatting by text, can tell a machine from a human", "A machine can copy a painting", "A computer can imitate another computer"], "answer": 1, "why": "<b>Indistinguishability in conversation.</b> Turing replaced \"can machines think?\" with a practical test. It is now known as the Turing test." },
+        { "type": "fact", "title": "ELIZA's creator was disturbed when his own secretary asked him to leave the room so she could talk to it privately.", "detail": "Joseph Weizenbaum's 1966 program imitated a therapist by reflecting users' words back. People's emotional attachment to such a simple trick turned him into a lifelong critic of AI hype." },
+        { "type": "tf", "statement": "ELIZA understood the meaning of what users typed.", "answer": false, "why": "<b>False.</b> It matched keywords and rearranged sentences using scripts, such as turning \"I am sad\" into \"Why are you sad?\". There was no understanding at all." }
+      ]
+    },
+    {
+      "title": "Winters and expert systems",
+      "cards": [
+        { "type": "explainer", "title": "Boom and bust", "steps": [
+          { "h": "The first winter", "p": "By the mid-1970s, promises had outrun results. Critical reviews led governments to slash funding." },
+          { "h": "Expert systems boom", "p": "In the 1980s, companies built systems encoding experts' knowledge as thousands of if-then rules." },
+          { "h": "The second winter", "p": "Rule systems proved brittle and expensive to maintain. The market for specialized AI hardware collapsed in the late 1980s." }
+        ], "aside": "Each winter followed a gap between what was promised and what was delivered." },
+        { "type": "quiz", "q": "The 1973 Lighthill Report in the UK led to…", "options": ["The first chatbot", "Deep cuts to AI research funding", "The invention of the GPU", "The Turing test"], "answer": 1, "why": "<b>Funding cuts.</b> Mathematician James Lighthill concluded AI had failed to meet its grand objectives, and British support for AI research collapsed for years." },
+        { "type": "quiz", "q": "Expert systems of the 1980s worked by…", "options": ["Learning from large datasets", "Applying large sets of hand-written if-then rules from human experts", "Using neural networks", "Searching the internet"], "answer": 1, "why": "<b>Hand-coded rules.</b> Knowledge engineers interviewed experts and wrote rules. Every new situation needed new rules, which made the systems brittle." },
+        { "type": "fact", "title": "DEC's XCON expert system configured computer orders and was reported to save the company around $25 million a year.", "detail": "It checked that each VAX computer order had compatible components. Its success fueled the 1980s expert system boom, but it needed constant maintenance as products changed." },
+        { "type": "tf", "statement": "IBM's Deep Blue, which beat Garry Kasparov at chess in 1997, was a neural network.", "answer": false, "why": "<b>False.</b> Deep Blue used custom chips to search about 200 million positions per second with a hand-tuned evaluation function. It learned nothing on its own." },
+        { "type": "tf", "statement": "Neural network research continued through the AI winters, even when it was unfashionable.", "answer": true, "why": "<b>True.</b> Researchers like Hinton, LeCun and Bengio kept working on it through the 1990s and 2000s, when much of the field favored other methods." }
+      ]
+    },
+    {
+      "title": "The deep learning revolution",
+      "cards": [
+        { "type": "explainer", "title": "Three ingredients arrive together", "steps": [
+          { "h": "Data", "p": "The internet produced enormous datasets, and ImageNet (2009) gave vision researchers millions of labeled images." },
+          { "h": "Compute", "p": "GPUs made training large networks practical." },
+          { "h": "Better techniques", "p": "ReLU activations, dropout and better initialization made deep networks trainable. AlexNet's 2012 win combined everything." }
+        ], "aside": "Most ideas were decades old; what changed was the scale available to test them." },
+        { "type": "quiz", "q": "The 2018 Turing Award, computing's top honor, went to which three deep learning pioneers?", "options": ["Turing, McCarthy and Minsky", "Hinton, LeCun and Bengio", "Page, Brin and Dean", "Hassabis, Altman and Amodei"], "answer": 1, "why": "<b>Geoffrey Hinton, Yann LeCun and Yoshua Bengio</b>, often called the godfathers of deep learning, for work that made deep neural networks practical." },
+        { "type": "tf", "statement": "Yann LeCun's convolutional networks were reading handwritten checks commercially in the 1990s.", "answer": true, "why": "<b>True.</b> LeNet-based systems from AT&T Bell Labs processed a significant share of US checks by the late 1990s — long before deep learning was fashionable." },
+        { "type": "quiz", "q": "Who led the creation of the ImageNet dataset?", "options": ["Andrew Ng", "Fei-Fei Li", "Demis Hassabis", "Ilya Sutskever"], "answer": 1, "why": "<b>Fei-Fei Li</b>, then at Princeton and later Stanford. Her team used crowd workers to label millions of images, betting that data was the missing ingredient." },
+        { "type": "fact", "title": "Geoffrey Hinton and John Hopfield won the 2024 Nobel Prize in Physics for foundational work on neural networks.", "detail": "The prize recognized Hopfield networks and Hinton's Boltzmann machines, which drew on ideas from statistical physics." },
+        { "type": "quiz", "q": "The \"deep\" in deep learning refers to…", "options": ["Deep understanding", "Networks with many layers", "Deep-sea data", "Large datasets"], "answer": 1, "why": "<b>Many layers.</b> Depth lets networks build complex features from simpler ones, layer upon layer." }
+      ]
+    },
+    {
+      "title": "The LLM era",
+      "cards": [
+        { "type": "explainer", "title": "2017 to now", "steps": [
+          { "h": "Transformers and pretraining", "p": "The transformer (2017) was followed by GPT and BERT (2018), showing pretraining on raw text transfers to many tasks." },
+          { "h": "Scale", "p": "GPT-3 (2020) showed sheer scale brought few-shot learning. ChatGPT (2022) put it in front of the public." },
+          { "h": "Beyond chat", "p": "GPT-4 (2023), multimodal models, reasoning models (2024) and agents followed in quick succession." }
+        ], "aside": "In under a decade, language models went from research curiosity to a technology used by hundreds of millions." },
+        { "type": "quiz", "q": "Which is the correct chronological order?", "options": ["ChatGPT → BERT → GPT-3 → o1", "BERT → GPT-3 → ChatGPT → o1", "GPT-3 → BERT → o1 → ChatGPT", "o1 → ChatGPT → GPT-3 → BERT"], "answer": 1, "why": "<b>BERT (2018) → GPT-3 (2020) → ChatGPT (2022) → o1 (2024).</b> Each step took about two years." },
+        { "type": "tf", "statement": "In 2019, OpenAI initially withheld the full GPT-2 model over concerns about misuse.", "answer": true, "why": "<b>True.</b> It released GPT-2 in stages over nine months. Critics called it hype; others saw it as an early experiment in responsible release." },
+        { "type": "fact", "title": "GPT-3 had about 1,500 times more parameters than GPT-1, just two years earlier.", "detail": "GPT-1 (2018) had 117 million parameters; GPT-3 (2020) had 175 billion. That pace of scaling was unprecedented in computing." },
+        { "type": "quiz", "q": "Demis Hassabis and John Jumper shared the 2024 Nobel Prize in Chemistry for…", "options": ["Inventing the transformer", "AlphaFold's prediction of protein structures", "Creating ChatGPT", "Building TPUs"], "answer": 1, "why": "<b>AlphaFold.</b> They shared the prize with David Baker, honored for computational protein design." },
+        { "type": "tip", "title": "Read the paper that started it", "body": "Turing's 1950 paper is short, witty and readable. He anticipated objections still argued today, including that machines can only do what they are told.", "challenge": "Read the \"Learning Machines\" section of Turing's \"Computing Machinery and Intelligence\" — about ten minutes." }
+      ]
+    }
+  ]
+}

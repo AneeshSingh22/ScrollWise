@@ -1,0 +1,69 @@
+{
+  "day": 6,
+  "slug": "pretraining",
+  "topic": "Pretraining and scaling",
+  "cat": "ai",
+  "blurb": "Next-token prediction on trillions of tokens, the data that goes in, and the laws that predict the result.",
+  "lessons": [
+    {
+      "title": "Next-token prediction",
+      "cards": [
+        { "type": "explainer", "title": "The simplest objective that works", "steps": [
+          { "h": "Predict what comes next", "p": "Pretraining shows the model text and asks it to predict each next token, over trillions of tokens." },
+          { "h": "Labels are free", "p": "The \"right answer\" is just the next token in the data, so no human labeling is needed. This is called self-supervised learning." },
+          { "h": "Skills emerge as side effects", "p": "To predict well, the model has to learn grammar, facts, styles and some reasoning, because all of these make text more predictable." }
+        ], "aside": "Predicting the next line of a proof well requires something like understanding the proof." },
+        { "type": "quiz", "q": "Pretraining is called self-supervised because…", "options": ["The model grades its own answers", "The training targets come from the data itself", "No GPUs are needed", "Humans supervise it once"], "answer": 1, "why": "<b>The data is its own label.</b> Every position in a document gives a free training example: the context so far, and the token that actually follows." },
+        { "type": "tf", "statement": "Most pretraining data is labeled by hand.", "answer": false, "why": "<b>False.</b> It is overwhelmingly raw text — web pages, books, code, papers — filtered automatically. Human-written data matters much more in post-training." },
+        { "type": "quiz", "q": "Common Crawl, a major source of pretraining text, is…", "options": ["A curated encyclopedia", "A free archive of billions of web pages collected since 2008", "A dataset of books", "Google's search index"], "answer": 1, "why": "<b>An open web archive.</b> It is petabytes of raw crawled pages. Labs filter it heavily — removing duplicates, spam and low-quality text — before training on a small fraction." },
+        { "type": "fact", "title": "Meta's Llama 3 models were pretrained on over 15 trillion tokens.", "detail": "That is roughly 11 trillion words — far more than any human could read in thousands of lifetimes, and about seven times the data used for Llama 2." },
+        { "type": "tf", "statement": "A base model, straight out of pretraining, reliably follows instructions like a chatbot.", "answer": false, "why": "<b>False.</b> A base model continues text. Ask it a question and it may answer — or generate a list of similar questions. Instruction-following comes from post-training." }
+      ]
+    },
+    {
+      "title": "Data quality",
+      "cards": [
+        { "type": "explainer", "title": "What goes into the mix", "steps": [
+          { "h": "Filter and deduplicate", "p": "Near-duplicate pages are removed and classifiers score quality, keeping text that resembles high-quality references." },
+          { "h": "Choose a mixture", "p": "Labs tune the share of web text, code, math, books and other languages. Mixtures strongly affect what the model is good at." },
+          { "h": "Decontaminate", "p": "Text overlapping with evaluation benchmarks is removed, so test scores reflect ability rather than memorization." }
+        ], "aside": "Many researchers now argue data curation matters as much as architecture." },
+        { "type": "quiz", "q": "Why do labs aggressively deduplicate training data?", "options": ["To save disk space only", "Repeated text wastes compute and encourages verbatim memorization", "Duplicates are illegal", "Tokenizers cannot handle repeats"], "answer": 1, "why": "<b>Waste and memorization.</b> Seeing the same passage hundreds of times teaches little new and makes the model more likely to regurgitate it word for word." },
+        { "type": "tf", "statement": "Training for several passes over the same data is always as good as training on fresh data.", "answer": false, "why": "<b>False.</b> Research (Muennighoff et al., 2023) found a few epochs are nearly as good as new data, but returns drop sharply after that. Repeated data is worth less each pass." },
+        { "type": "quiz", "q": "\"Model collapse\" describes what risk?", "options": ["GPUs failing mid-run", "Models trained repeatedly on their own outputs losing diversity and the rare tails of the data", "A model forgetting its tokenizer", "Running out of electricity"], "answer": 1, "why": "<b>Recursive degradation.</b> A 2024 Nature paper showed that training each generation on the previous generation's output narrows the distribution. Mixing in real data counteracts it." },
+        { "type": "fact", "title": "Microsoft's Phi models showed that small models trained on carefully made \"textbook-quality\" data can outperform much bigger ones.", "detail": "The 2023 paper \"Textbooks Are All You Need\" trained a 1.3B-parameter coding model largely on filtered and synthetic educational text, rivaling models many times its size." },
+        { "type": "quiz", "q": "The \"data wall\" refers to…", "options": ["Firewalls blocking crawlers", "The stock of high-quality human text running out relative to what scaling demands", "Data centers' physical walls", "Copyright pages"], "answer": 1, "why": "<b>Running out of good text.</b> Estimates such as Epoch AI's suggest frontier training could use up the stock of public human-written text around the late 2020s, pushing labs toward synthetic data and other modalities." }
+      ]
+    },
+    {
+      "title": "Scaling laws",
+      "cards": [
+        { "type": "explainer", "title": "Predictable improvement", "steps": [
+          { "h": "Smooth power laws", "p": "In 2020, OpenAI researchers found loss falls as a power law in parameters, data and compute — smoothly, over many orders of magnitude." },
+          { "h": "Straight lines on log plots", "p": "Plot loss against compute on log-log axes and you get a nearly straight line. Extending it predicts bigger models." },
+          { "h": "Bets become plannable", "p": "Labs fit these curves on cheap small runs before spending tens of millions of dollars on a large one." }
+        ], "aside": "Loss is predictable; which specific skills appear at a given loss is much less so." },
+        { "type": "quiz", "q": "A power law relationship, plotted on log-log axes, looks like…", "options": ["An exponential curve", "A straight line", "A circle", "A step function"], "answer": 1, "why": "<b>A straight line.</b> If y = a·xᵇ, then log y = log a + b·log x. The slope b is the scaling exponent." },
+        { "type": "tf", "statement": "OpenAI predicted GPT-4's final loss in advance from much smaller training runs.", "answer": true, "why": "<b>True.</b> The GPT-4 technical report says its final loss was predicted from models trained with up to 10,000× less compute, using fitted scaling laws." },
+        { "type": "quiz", "q": "Using Chinchilla's rule of thumb of about 20 tokens per parameter, a compute-optimal 10B model should train on about…", "options": ["20 billion tokens", "200 billion tokens", "2 trillion tokens", "20 trillion tokens"], "answer": 1, "why": "<b>About 200 billion.</b> 10 billion × 20. This balances parameters and data for the best loss at a fixed training budget." },
+        { "type": "tf", "statement": "Modern small open models are often trained far past the Chinchilla-optimal amount of data.", "answer": true, "why": "<b>True.</b> Llama 3 8B saw about 15 trillion tokens — nearly 2,000 per parameter. Extra training costs once; a smaller, better model saves money on every query served." },
+        { "type": "fact", "title": "Whether abilities \"emerge\" suddenly with scale is still debated.", "detail": "Some skills seem to jump from near zero to good at a certain size. A 2023 paper argued much of this is an artifact of all-or-nothing metrics; measured smoothly, improvement often looks gradual." }
+      ]
+    },
+    {
+      "title": "Inside a training run",
+      "cards": [
+        { "type": "explainer", "title": "Months on thousands of GPUs", "steps": [
+          { "h": "Warm up, then decay", "p": "The learning rate ramps up over the first steps, then slowly decreases, often along a cosine curve." },
+          { "h": "Watch for spikes", "p": "Loss sometimes jumps suddenly. Teams roll back to an earlier checkpoint and skip or reorder the offending data." },
+          { "h": "Survive hardware failures", "p": "With tens of thousands of GPUs, something breaks every few hours. Frequent checkpoints and automatic restarts are essential." }
+        ], "aside": "Big training runs are as much an operations challenge as a research one." },
+        { "type": "quiz", "q": "Why do training runs start with a learning-rate warmup?", "options": ["To heat the GPUs", "Early updates on random weights are large and unstable, and Adam's statistics aren't settled yet", "To save electricity", "Because the data isn't loaded"], "answer": 1, "why": "<b>Stability.</b> At the start, gradients are erratic and the optimizer's running averages are empty. Small steps at first prevent an early blow-up." },
+        { "type": "fact", "title": "Meta's 54-day Llama 3 405B run hit hundreds of unexpected interruptions.", "detail": "Its paper reports over 400 unplanned interruptions on a cluster of about 16,000 H100s, most caused by hardware — faulty GPUs and their HBM memory being the leading causes." },
+        { "type": "quiz", "q": "Large training runs typically achieve what fraction of the GPUs' theoretical peak FLOPs (\"MFU\")?", "options": ["Around 5%", "Around 40%", "Around 90%", "Over 100%"], "answer": 1, "why": "<b>Roughly 35–45%.</b> Llama 3 reported about 38–43%. Communication, memory traffic and pipeline bubbles eat the rest." },
+        { "type": "tf", "statement": "Loss spikes during training are always caused by bad data.", "answer": false, "why": "<b>False.</b> Optimizer instabilities, numerical issues and learning rates can also cause them. Fixes include rolling back, lowering the learning rate, or architectural tweaks like QK-normalization." },
+        { "type": "quiz", "q": "Using 6 × parameters × tokens, GPT-3 (175B parameters, 300B tokens) needed roughly how much training compute?", "options": ["3 × 10¹⁹ FLOPs", "3 × 10²¹ FLOPs", "3 × 10²³ FLOPs", "3 × 10²⁶ FLOPs"], "answer": 2, "why": "<b>About 3.1 × 10²³.</b> 6 × 1.75×10¹¹ × 3×10¹¹. The GPT-3 paper reported 3.14 × 10²³ FLOPs — the rule of thumb is that accurate." }
+      ]
+    }
+  ]
+}

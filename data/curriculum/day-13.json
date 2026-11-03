@@ -1,0 +1,69 @@
+{
+  "day": 13,
+  "slug": "vision",
+  "topic": "Vision and multimodal AI",
+  "cat": "ai",
+  "blurb": "How machines see: convolutions, vision transformers, CLIP and models that read images and text together.",
+  "lessons": [
+    {
+      "title": "Convolutional networks",
+      "cards": [
+        { "type": "explainer", "title": "Sliding pattern detectors", "steps": [
+          { "h": "Small filters", "p": "A convolution slides a small grid of weights, say 3×3, across the image, responding strongly wherever its pattern appears." },
+          { "h": "Building up", "p": "Early layers detect edges and colors; deeper layers combine them into textures, parts, and finally whole objects." },
+          { "h": "Shared weights", "p": "The same filter is reused at every position, so a cat detector works anywhere in the frame with far fewer parameters." }
+        ], "aside": "CNNs dominated computer vision from 2012 until vision transformers caught up around 2020." },
+        { "type": "quiz", "q": "The main benefit of sharing a filter's weights across every image position is that…", "options": ["It makes images sharper", "A pattern is detected anywhere using far fewer parameters", "It removes the need for training", "It works only on faces"], "answer": 1, "why": "<b>Efficiency and translation awareness.</b> One edge detector applied everywhere beats learning a separate detector for every pixel location." },
+        { "type": "tf", "statement": "CNNs assume nearby pixels are more related than distant ones.", "answer": true, "why": "<b>True.</b> Small local filters build in that assumption, called an inductive bias. It helps CNNs learn from less data but can limit modeling of long-range relationships." },
+        { "type": "fact", "title": "AlexNet won the 2012 ImageNet challenge with a 15.3% top-5 error rate — the runner-up had 26.2%.", "detail": "That gap stunned the computer vision field, which then rapidly abandoned hand-designed features for deep networks." },
+        { "type": "quiz", "q": "What let 2015's ResNet train networks 152 layers deep?", "options": ["Bigger filters", "Skip connections that add each block's input to its output", "Smaller images", "Removing nonlinearities"], "answer": 1, "why": "<b>Residual connections.</b> They give gradients a direct path through the network. The same idea now sits in every transformer." },
+        { "type": "tf", "statement": "ImageNet contains over 14 million labeled images.", "answer": true, "why": "<b>True.</b> The full dataset has over 14 million images in about 20,000 categories. The famous competition used a 1.2-million-image subset with 1,000 classes." }
+      ]
+    },
+    {
+      "title": "Vision transformers",
+      "cards": [
+        { "type": "explainer", "title": "Images as sequences", "steps": [
+          { "h": "Cut into patches", "p": "A vision transformer splits an image into square patches, embeds each one, and processes the sequence with attention." },
+          { "h": "Fewer assumptions", "p": "Unlike CNNs, it does not assume locality. Every patch can attend to every other from the first layer." },
+          { "h": "Data hungry, then dominant", "p": "With little data, CNNs win. With hundreds of millions of images, ViTs match or beat them." }
+        ], "aside": "Fewer built-in assumptions means more must be learned from data — but there is more room to learn." },
+        { "type": "quiz", "q": "Why did early vision transformers need much more training data than CNNs?", "options": ["They had more pixels", "They lack CNNs' built-in assumptions about locality, so they must learn them", "They are slower", "They use color"], "answer": 1, "why": "<b>Weaker inductive bias.</b> The original ViT only beat strong CNNs after pretraining on a 300-million-image dataset." },
+        { "type": "tf", "statement": "A 224×224 image cut into 16×16 patches becomes 196 tokens.", "answer": true, "why": "<b>True.</b> 224 ÷ 16 = 14 patches per side, and 14 × 14 = 196. Doubling the resolution quadruples the token count." },
+        { "type": "quiz", "q": "Masked autoencoders (MAE) learn visual features by hiding what fraction of an image's patches and reconstructing them?", "options": ["5%", "25%", "75%", "100%"], "answer": 2, "why": "<b>75%.</b> Images are so redundant that hiding a little is too easy. Masking most of them forces the model to understand the content." },
+        { "type": "fact", "title": "Meta's Segment Anything model was trained on over 1 billion object masks.", "detail": "Its SA-1B dataset (2023) covers 11 million images. The model can outline almost any object from a single click, even objects it never saw labeled." },
+        { "type": "tf", "statement": "Image classifiers can be fooled by pixel changes too small for a human to notice.", "answer": true, "why": "<b>True — adversarial examples.</b> A famous 2014 demonstration made a network label a panda as a gibbon with imperceptible noise. Robustness remains an open problem." }
+      ]
+    },
+    {
+      "title": "Connecting images and words",
+      "cards": [
+        { "type": "explainer", "title": "CLIP", "steps": [
+          { "h": "Two encoders", "p": "OpenAI's CLIP (2021) has an image encoder and a text encoder, each producing a vector." },
+          { "h": "Trained to match", "p": "Using 400 million image-caption pairs from the web, it learned to place each image near its own caption and far from others." },
+          { "h": "Classify with words", "p": "To classify, embed prompts like \"a photo of a dog\" and \"a photo of a cat\", and choose whichever is closest to the image." }
+        ], "aside": "CLIP's text encoder later guided many image generators, including early Stable Diffusion." },
+        { "type": "quiz", "q": "CLIP was trained on…", "options": ["ImageNet labels", "About 400 million image-text pairs from the internet", "Hand-drawn sketches", "Video only"], "answer": 1, "why": "<b>Web image-caption pairs.</b> Natural-language supervision gave it a far broader vocabulary of concepts than any fixed label set." },
+        { "type": "tf", "statement": "CLIP must be retrained to recognize a new category.", "answer": false, "why": "<b>False.</b> You just write a text prompt for the new category. This \"zero-shot\" classification was CLIP's headline feature." },
+        { "type": "fact", "title": "CLIP labeled an apple as an iPod when someone stuck a paper note reading \"iPod\" on it.", "detail": "OpenAI documented these \"typographic attacks\" in 2021: because CLIP learned to read text in images, written words could override what the object actually was." },
+        { "type": "quiz", "q": "Many vision-language models feed an image to their language model by…", "options": ["Describing it in English first", "Turning it into a sequence of embedding vectors that the LLM treats like tokens", "Sending the raw file", "Converting it to ASCII art"], "answer": 1, "why": "<b>Image tokens.</b> A vision encoder produces patch embeddings, a small projection maps them into the LLM's embedding space, and the LLM attends to them like text." },
+        { "type": "quiz", "q": "With CLIP, how would you check whether a photo shows a beach or a forest?", "options": ["Train a new classifier", "Compare the image's vector with vectors for \"a photo of a beach\" and \"a photo of a forest\"", "Count blue pixels", "Ask a human"], "answer": 1, "why": "<b>Nearest text prompt.</b> Whichever caption vector has the highest similarity to the image vector is the prediction." }
+      ]
+    },
+    {
+      "title": "Multimodal models today",
+      "cards": [
+        { "type": "explainer", "title": "One model, many senses", "steps": [
+          { "h": "Bolted on", "p": "Early systems attached a separately trained vision encoder to a finished language model." },
+          { "h": "Natively multimodal", "p": "Newer models are trained on text, images and audio together from early on, sharing one representation." },
+          { "h": "What it unlocks", "p": "Reading charts, screenshots and handwriting; answering about photos; and acting on screens for computer-use agents." }
+        ], "aside": "GPT-4o, released in May 2024, was named \"o\" for omni." },
+        { "type": "quiz", "q": "Why can sending a large image cost as much as a long text prompt?", "options": ["Images are copyrighted", "An image becomes hundreds or thousands of tokens depending on its resolution", "Images are sent twice", "Providers dislike images"], "answer": 1, "why": "<b>Patches are tokens.</b> More resolution means more patches, which means more tokens to process and pay for." },
+        { "type": "tf", "statement": "Vision-language models are excellent at precisely counting many objects in a cluttered image.", "answer": false, "why": "<b>False.</b> Counting, exact positions and fine spatial reasoning remain known weaknesses, though they are improving." },
+        { "type": "quiz", "q": "A model misreads small numbers on a dense chart. The most likely reason is…", "options": ["It cannot read", "The image was downscaled, so fine detail was lost before the model saw it", "Charts are banned", "It needs a bigger context window"], "answer": 1, "why": "<b>Resolution limits.</b> Many models resize or tile images to a fixed size. Cropping to the relevant region often fixes it." },
+        { "type": "fact", "title": "GPT-4o could respond to spoken input in as little as 232 milliseconds.", "detail": "OpenAI said that is similar to human response times in conversation, because one model handled audio directly rather than chaining speech recognition, an LLM and text-to-speech." },
+        { "type": "tip", "title": "Crop before you ask", "body": "When you share a screenshot with an AI, crop it to what matters. Fewer, larger pixels on the relevant part beat a full screen shrunk down.", "challenge": "Next time you paste a screenshot into an AI tool, crop it to just the relevant area first." }
+      ]
+    }
+  ]
+}
