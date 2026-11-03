@@ -1,0 +1,69 @@
+{
+  "slug": "how-wifi-works",
+  "topic": "How WiFi works",
+  "cat": "tech",
+  "blurb": "How invisible radio waves carry your data, why walls and neighbours slow it down, and what WiFi 6 and 7 really changed.",
+  "created": "2026-11-03",
+  "lessons": [
+    {
+      "title": "Data riding on radio waves",
+      "cards": [
+        { "type": "explainer", "title": "WiFi is just very clever radio", "steps": [
+          { "h": "A tiny radio station", "p": "Your router and phone both contain radios. They swap data by sending radio waves, the same kind of energy as FM radio, just at much higher frequencies." },
+          { "h": "Waves that change shape", "p": "A plain wave carries nothing. Data is added by rapidly changing the wave's strength and timing; the receiver reads those changes back as 0s and 1s." },
+          { "h": "The router is a bridge", "p": "The router turns radio into wired signals and back. It links your devices to each other and, through your modem, to the internet." }
+        ], "aside": "WiFi only covers the last few metres. Everything beyond your router travels through cables and fibre." },
+        { "type": "quiz", "q": "Which radio frequency bands does home WiFi use?", "options": ["Around 2.4, 5 and 6 GHz", "Around 100 MHz, like FM radio", "Visible light frequencies", "Around 60 Hz, like mains electricity"], "answer": 0, "why": "<b>2.4, 5 and 6 GHz.</b> These are unlicensed bands anyone may use at low power. Higher frequencies carry more data but fade faster through walls." },
+        { "type": "fact", "title": "\"Wi-Fi\" doesn't stand for anything. \"Wireless Fidelity\" was invented afterwards.", "detail": "A branding firm coined the name in 1999 because \"IEEE 802.11b Direct Sequence\" wasn't catchy. The \"Wireless Fidelity\" tagline was added later and soon dropped." },
+        { "type": "tf", "statement": "If your WiFi signal shows full bars, your internet connection must be fast.", "answer": false, "why": "<b>False.</b> Bars only measure the radio link between device and router. The internet connection behind the router, or a crowded channel, can still be the bottleneck." },
+        { "type": "quiz", "q": "Your laptop sends a photo to a printer in the same room over WiFi. Which path does it usually take?", "options": ["Laptop → router → printer", "Laptop → internet server → printer", "Laptop → satellite → printer", "Laptop → mobile phone mast → printer"], "answer": 0, "why": "<b>Via the router.</b> On a normal home network, devices talk through the router (the access point). The data never needs to leave your home." },
+        { "type": "tf", "statement": "WiFi and microwave ovens use roughly the same radio frequency.", "answer": true, "why": "<b>True.</b> Microwave ovens run near 2.45 GHz, inside WiFi's 2.4 GHz band. Their shielding leaks a little, which is why a running microwave can slow nearby 2.4 GHz WiFi." }
+      ]
+    },
+    {
+      "title": "How the signal carries bits",
+      "cards": [
+        { "type": "explainer", "title": "Packing bits into a wave", "steps": [
+          { "h": "Each symbol = several bits", "p": "WiFi tweaks a wave's strength and phase (where it is in its cycle) into one of many set patterns. More patterns per symbol means more bits sent each time." },
+          { "h": "Many sub-waves at once", "p": "OFDM splits a channel into many narrow sub-channels sent side by side. If interference hits a few, the rest still get through." },
+          { "h": "Taking turns", "p": "On one channel, devices mostly take turns. Each listens first, waits if the air is busy, then sends. That's called CSMA/CA." }
+        ], "aside": "Cramming in more patterns only works when the signal is clean. Far from the router, devices fall back to simpler, slower patterns." },
+        { "type": "quiz", "q": "WiFi 6 can use 1024-QAM, with 1,024 possible signal patterns. How many bits does each symbol carry?", "options": ["10", "1,024", "512", "32"], "answer": 0, "why": "<b>10 bits.</b> 2¹⁰ = 1,024, so picking one of 1,024 patterns encodes 10 bits. WiFi 7's 4096-QAM carries 12 bits per symbol." },
+        { "type": "tf", "statement": "Two laptops on the same WiFi channel can transmit whenever they like without affecting each other.", "answer": false, "why": "<b>False.</b> Overlapping transmissions on one channel garble each other. Devices listen before talking and back off, so the channel's capacity is shared, not multiplied." },
+        { "type": "fact", "title": "Your router shouts its network name about ten times every second.", "detail": "These \"beacon\" messages, sent roughly every 0.1 seconds by default, announce the network name and settings. That's how your phone lists nearby networks without connecting." },
+        { "type": "quiz", "q": "What does MIMO, a feature of modern routers with several antennas, let them do?", "options": ["Send separate data streams at once over the same channel", "Connect to the internet without a modem", "Turn WiFi into mobile 5G", "Charge phones wirelessly"], "answer": 0, "why": "<b>Parallel streams.</b> Multiple-input, multiple-output uses several antennas and the way signals bounce around a room to send independent streams simultaneously, multiplying speed." },
+        { "type": "quiz", "q": "Beamforming in a WiFi router works by…", "options": ["Timing signals from several antennas so they add up toward your device", "Physically turning the antennas to face you", "Raising transmit power far above legal limits", "Using a laser to aim data"], "answer": 0, "why": "<b>Adjusting timing.</b> Slightly shifting each antenna's signal makes the waves reinforce in your direction and partly cancel elsewhere. Nothing moves physically." }
+      ]
+    },
+    {
+      "title": "Bands, channels and speeds",
+      "cards": [
+        { "type": "explainer", "title": "Three bands, different trade-offs", "steps": [
+          { "h": "2.4 GHz: long reach", "p": "Travels furthest and passes walls best, but it's crowded and narrow, with room for only about three non-overlapping channels." },
+          { "h": "5 GHz: the workhorse", "p": "Much more space, so wider and faster channels. It weakens faster through walls, so range is shorter." },
+          { "h": "6 GHz: the fast lane", "p": "Opened from around 2020 for WiFi 6E and WiFi 7. Lots of clean spectrum and very wide channels, but the shortest range of all." }
+        ], "aside": "Wider channels carry more data, like a wider road, but fewer of them fit side by side." },
+        { "type": "quiz", "q": "In the crowded 2.4 GHz band, which channel numbers are the standard non-overlapping set?", "options": ["1, 6 and 11", "1, 2 and 3", "10, 20 and 30", "Any channel; they never overlap"], "answer": 0, "why": "<b>1, 6 and 11.</b> Each 2.4 GHz channel is about 20 MHz wide but channels are only 5 MHz apart, so neighbours overlap. Choosing anything else interferes with two groups." },
+        { "type": "fact", "title": "The original 1997 WiFi standard topped out at 2 megabits per second.", "detail": "That's slower than a basic mobile connection today. Newer generations multiplied speeds through wider channels, denser signal patterns and multiple antennas, reaching multiple gigabits." },
+        { "type": "tf", "statement": "A router sold as \"AX5400\" will give your laptop 5,400 megabits per second.", "answer": false, "why": "<b>False.</b> That number adds up the maximum link rates of every band combined, under ideal lab conditions. One laptop uses one band and typically sees a fraction of it." },
+        { "type": "quiz", "q": "WiFi 6E and WiFi 7 gained much of their extra speed from…", "options": ["Access to the 6 GHz band with wider channels", "Switching from radio waves to infrared light", "Using mobile phone towers as relays", "Compressing all web pages"], "answer": 0, "why": "<b>The 6 GHz band.</b> It offers lots of uncluttered spectrum, and WiFi 7 allows channels up to 320 MHz wide, double WiFi 6's maximum." },
+        { "type": "tf", "statement": "Higher-frequency WiFi signals generally pass through walls less well than lower-frequency ones.", "answer": true, "why": "<b>True.</b> Building materials tend to absorb and reflect higher frequencies more. That's why 2.4 GHz reaches the far bedroom while 6 GHz may not leave the room." }
+      ]
+    },
+    {
+      "title": "Limits, myths and better WiFi",
+      "cards": [
+        { "type": "explainer", "title": "Why WiFi slows down", "steps": [
+          { "h": "Distance and obstacles", "p": "Signals fade fast with distance. Walls, metal, mirrors and water (including fish tanks and people) absorb or reflect them." },
+          { "h": "Sharing the airtime", "p": "Every device and every neighbour on the same channel takes turns. One slow, distant device can hog airtime and drag everyone down." },
+          { "h": "Mesh and extenders", "p": "Extra access points fill dead zones. Wired connections between them work best; wireless links between them spend some airtime relaying." }
+        ], "aside": "Newer WiFi versions schedule many devices together, which helps crowded homes more than raw top speed." },
+        { "type": "fact", "title": "A perfectly usable WiFi signal can arrive at less than a billionth of a watt.", "detail": "Signal strength is measured in dBm. A decent reading of −70 dBm equals 0.0000000001 watts. Receivers are extraordinarily sensitive at picking such faint signals out of noise." },
+        { "type": "quiz", "q": "Where is the best place for a home router?", "options": ["Central and raised, in the open", "Inside a cupboard to keep it tidy", "On the floor behind the TV", "In a corner next to the microwave"], "answer": 0, "why": "<b>Central and high.</b> Signals spread outward, so a central, elevated spot covers the home evenly. Cupboards, metal and electronics absorb or interfere with the waves." },
+        { "type": "tf", "statement": "Your WiFi password encrypts your data all the way to the websites you visit.", "answer": false, "why": "<b>False.</b> WiFi encryption (WPA2 or WPA3) only protects the radio hop to the router. Protection beyond that comes from HTTPS, the padlock in your browser." },
+        { "type": "quiz", "q": "Which WiFi security setting should you avoid because it can be cracked in minutes?", "options": ["WEP", "WPA3", "WPA2 with a long password", "WPA2/WPA3 mixed mode"], "answer": 0, "why": "<b>WEP.</b> The original late-1990s scheme has deep design flaws and free tools break it quickly. Use WPA3, or WPA2 with a long password if older devices need it." },
+        { "type": "tip", "title": "Find your WiFi's weak spots", "body": "Run a speed test next to the router, then in your worst room. A big drop means placement or walls are the problem, not your internet plan.", "challenge": "Test speed in three rooms today and move the router toward the slowest one if you can." }
+      ]
+    }
+  ]
+}
