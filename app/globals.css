@@ -26,28 +26,45 @@
   --font-mono:var(--font-mono-src),'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
   color-scheme:dark;
 }
+/* CHANGED (mobile fix): the prototype used height:100%. In iOS Safari (not
+   installed to the home screen) 100% resolves against the LARGE viewport —
+   the full screen including the strip behind the address bar — so the whole
+   .app column was taller than the visible area and the header's pills and
+   topic chips were pushed up out of sight. 100dvh tracks the *visible*
+   viewport and shrinks when the toolbar is showing. The 100% line stays
+   first as the fallback for browsers without dvh. */
 html{box-sizing:border-box;height:100%;background:var(--ground)}
+/* The @supports wrapper is deliberate: written as two height declarations on
+   one rule, the CSS minifier drops the 100% fallback as dead code. This way
+   both survive the build. */
+@supports (height:100dvh){html{height:100dvh}}
 *,*::before,*::after{box-sizing:inherit}
 body{height:100%;margin:0;background:var(--ground);color:var(--ink);font-family:var(--font-body);font-size:16px;overflow:hidden;-webkit-tap-highlight-color:transparent}
+@supports (height:100dvh){body{height:100dvh}}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 .app{display:flex;flex-direction:column;height:100%}
 
 /* Header */
-/* CHANGED (Phase 1): added the top safe-area inset. Installed to the home
-   screen with status-bar-style black-translucent, iOS draws the status bar
-   over the page, so without this the header sits under the notch / Dynamic
-   Island — unreadable and hard to tap. In the browser the inset is 0 and
-   this is exactly the prototype's 10px. */
-.top{flex:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);background:var(--ground);position:relative;z-index:5}
-.row{display:flex;align-items:center;gap:10px}
-.mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin-right:auto}
+/* CHANGED (Phase 1 + mobile fix): the top safe-area inset keeps the header
+   clear of the notch / Dynamic Island when the app is installed to the home
+   screen (status-bar-style black-translucent makes iOS draw the status bar
+   over the page). In Safari that inset is 0, which left the pills jammed
+   against the address bar, so the inset is floored at 6px: the header always
+   has breathing room above the pills. */
+.top{flex:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(10px + max(6px,env(safe-area-inset-top,0px)));padding-bottom:8px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);background:var(--ground);position:relative;z-index:5}
+.row{display:flex;align-items:center;gap:8px}
+/* CHANGED (mobile fix): on a 375px iPhone the wordmark pushed the three
+   pills past the right edge and the saved button was the one to get clipped.
+   min-width:0 + flex-shrink lets the wordmark give up space first, and it
+   truncates instead of squeezing the pills. */
+.mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin-right:auto;min-width:0;flex-shrink:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mark span{color:var(--gold)}
 /* CHANGED (Phase 1): same tap-target fix as .chip. The saved pill is a
    button, so it needs a real target; the streak and XP pills match it
    so the row stays even. */
-.pill{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:0;min-height:38px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:0;min-height:38px;flex:none;white-space:nowrap}
 .pill svg{width:15px;height:15px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-2px;padding-inline:2px}
 .chips::-webkit-scrollbar{display:none}
@@ -71,7 +88,10 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .c-math{--bg:#1b1a30;--acc:#c8b7ff;--acc-ink:#21134f}
 .c-intro{--bg:#14151c;--acc:var(--gold);--acc-ink:#3a2a00}
 .glow{position:absolute;inset:-30% -40% auto auto;width:90%;aspect-ratio:1;max-width:none;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--acc) 22%,transparent),transparent);pointer-events:none}
-.content{position:relative;height:100%;display:flex;flex-direction:column;gap:18px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:calc(max(16px,env(safe-area-inset-right,0px)) + 60px);padding-block:22px 26px;overflow-y:auto;scrollbar-width:none}
+/* CHANGED (mobile fix): the bottom padding was a flat 26px, so on an iPhone
+   with a home indicator the last line of a card and the "Another round"
+   buttons sat under it. The bottom inset is added in. */
+.content{position:relative;height:100%;display:flex;flex-direction:column;gap:18px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:calc(max(16px,env(safe-area-inset-right,0px)) + 60px);padding-top:22px;padding-bottom:calc(26px + env(safe-area-inset-bottom,0px));overflow-y:auto;scrollbar-width:none}
 .content::-webkit-scrollbar{display:none}
 .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:6px;background:var(--acc);color:var(--acc-ink)}
@@ -137,8 +157,10 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .keys .go{background:var(--acc);color:var(--acc-ink)}
 
 /* Rail */
-.rail{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:26px;display:flex;flex-direction:column;gap:16px;align-items:center;z-index:2}
-.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font-size:11px;font-weight:600;color:var(--ink)}
+/* CHANGED (mobile fix): the rail's bottom was a flat 26px, which put the
+   "Fewer" button on top of the home indicator and made it hard to tap. */
+.rail{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;align-items:center;z-index:2}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font-size:11px;font-weight:600;color:var(--ink);min-width:48px;padding:4px 0}
 .rail svg{width:28px;height:28px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
 .rail .on svg{color:var(--acc)}
 .rail .liked svg{color:#ff4d6d}
@@ -165,6 +187,20 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .sheet{--acc:var(--gold);--acc-ink:#3a2a00}
 .account{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .account .btn{text-decoration:none;display:inline-block}
+
+/* ADDED: today's fixed-session menu (the picker card). Built from the
+   prototype's existing primitives — .opt's radius/border/background, .stat's
+   fill, the same type scale — so it reads as part of the same design. */
+.picks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.pick{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);background:rgba(255,255,255,.05);transition:transform .12s ease,border-color .2s}
+.pick:active{transform:scale(.98)}
+.pick-n{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--acc);color:var(--acc-ink);font-family:var(--font-mono);font-weight:700;font-size:14px}
+.pick-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pick-text b{font-size:16px;font-weight:700}
+.pick-text small{font-size:13px;line-height:1.35;color:var(--ink-dim)}
+.pick-min{flex:none;margin-left:auto;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ink-dim)}
+.pick.done{opacity:.6;border-color:color-mix(in srgb,var(--good) 55%,transparent)}
+.pick.done .pick-n{background:var(--good);color:#06301c}
 
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{padding:12px;border-radius:14px;background:rgba(255,255,255,.06)}
