@@ -1,68 +1,76 @@
 {
   "day": 17,
-  "slug": "hallucination-interpretability",
+  "slug": "hallucinations-interpretability",
   "topic": "Hallucinations and looking inside models",
   "cat": "ai",
-  "blurb": "Why models make things up, how to reduce it, and what interpretability research has found inside them.",
+  "blurb": "Why AI confidently makes things up, how to catch it, and what researchers find when they look inside a model's \"brain\".",
   "lessons": [
     {
       "title": "Why models make things up",
       "cards": [
         { "type": "explainer", "title": "Fluent but wrong", "steps": [
-          { "h": "Trained to sound plausible", "p": "Pretraining rewards predicting likely text, not true text. Plausible-sounding falsehoods score fine." },
-          { "h": "Guessing beats abstaining", "p": "Many evaluations give no credit for \"I don't know\", so models learn that a confident guess has better expected score." },
-          { "h": "Rare facts are fragile", "p": "Facts seen only a few times in training are stored weakly, and the model fills gaps with plausible patterns." }
-        ], "aside": "A hallucination is not a bug in one place; it is what next-token prediction does without grounding." },
-        { "type": "quiz", "q": "A 2025 OpenAI paper argued one key cause of hallucination is that evaluations…", "options": ["Are too hard", "Reward guessing over admitting uncertainty, like tests with no penalty for wrong answers", "Use too much data", "Are run at night"], "answer": 1, "why": "<b>Incentives to guess.</b> On a test where blanks score zero and guesses sometimes score, guessing wins. The paper proposed crediting appropriate abstention." },
-        { "type": "quiz", "q": "Which is a model more likely to hallucinate?", "options": ["Einstein's year of birth", "The birth year of an obscure local politician", "The boiling point of water", "The capital of France"], "answer": 1, "why": "<b>The obscure fact.</b> Facts that appear rarely in training data are poorly memorized, but the model still produces a confident-sounding answer." },
-        { "type": "fact", "title": "In 2023, US lawyers were fined for submitting a court brief citing cases that ChatGPT had invented.", "detail": "In Mata v. Avianca, the judge found six cited decisions did not exist. The lawyers had even asked ChatGPT whether the cases were real, and it said yes." },
-        { "type": "tf", "statement": "Hallucinations only happen on obscure topics.", "answer": false, "why": "<b>False.</b> They are more common there, but models also invent citations, quotes, URLs and numbers about well-known subjects, especially when asked for specifics." },
-        { "type": "tf", "statement": "OpenAI reported that GPT-4's pretrained base model was better calibrated about its confidence than the model after post-training.", "answer": true, "why": "<b>True.</b> The GPT-4 technical report showed the base model's confidence matched its accuracy well, and post-training reduced that calibration." }
+          { "h": "Trained to sound right", "p": "A model learned to produce likely-sounding text. A made-up fact in the right style sounds just as likely as a real one — so it can come out just as confidently.", "analogy": "A student who has read a lot and bluffs fluently when they don't actually know." },
+          { "h": "Guessing gets rewarded", "p": "Most tests give marks for right answers and nothing for \"I don't know\". So guessing scores better than admitting doubt, and models learn to guess.", "visual": { "kind": "compare", "left": { "title": "Says \"I don't know\"", "points": ["Always 0 points"] }, "right": { "title": "Guesses", "points": ["Sometimes right → points", "Wrong costs nothing"] } } },
+          { "h": "Rare facts are fragile", "p": "Things seen thousands of times in training (Paris is in France) stick. Things seen once or twice (an obscure person's birthday) are hazy, so the model fills gaps.", "visual": { "kind": "line", "points": [[1, 20], [2, 45], [3, 70], [4, 85], [5, 92]], "x": "How often a fact appears in training", "y": "Accuracy", "caption": "Illustration: rarer facts, more made-up answers." } },
+          { "h": "Hard to tell from the outside", "p": "A hallucination reads exactly like a true answer — same tone, same confidence, sometimes with fake sources." },
+          { "h": "Confidence gets bent", "p": "Base models are fairly well calibrated — their confidence matches how often they're right. Post-training to be helpful and decisive can weaken that." }
+        ] },
+        { "type": "quiz", "q": "A 2025 OpenAI paper argued one key cause of hallucination is that tests…", "options": ["Reward guessing over admitting uncertainty, with no penalty for wrong answers", "Are too long", "Use too many images", "Are marked by people"], "answer": 0, "hint": "Look at the comparison in step 2.", "why": "<b>Guessing pays.</b> If wrong answers cost nothing and \"I don't know\" scores zero, a model maximising its score learns to always guess. Penalising confident errors would change that." },
+        { "type": "quiz", "q": "Which is a model more likely to make up?", "options": ["The birth year of an obscure local politician", "The capital of France", "How many days are in a week", "The colour of the sky"], "answer": 0, "why": "<b>The obscure fact.</b> Rarely mentioned facts are weakly learned, so the model fills the gap with a plausible guess." },
+        { "type": "fact", "title": "In 2023, US lawyers were fined for submitting a court filing citing cases ChatGPT had invented.", "detail": "In Mata v. Avianca, the judge found six cited decisions didn't exist. The lawyers had even asked ChatGPT whether the cases were real — and it said yes." },
+        { "type": "tf", "statement": "Hallucinations only happen on obscure topics.", "answer": false, "why": "<b>False.</b> They're more common there, but models also invent quotes, sources, numbers and steps in reasoning on familiar topics." },
+        { "type": "tf", "statement": "OpenAI reported that GPT-4's base model was better calibrated about its confidence than the model after post-training.", "answer": true, "why": "<b>True.</b> The GPT-4 report showed post-training hurt calibration: the chatbot's confidence matched its accuracy less well than the raw model's." }
       ]
     },
     {
       "title": "Reducing hallucinations",
       "cards": [
-        { "type": "explainer", "title": "Practical defenses", "steps": [
-          { "h": "Ground it", "p": "Give the model the source material, through search or RAG, and ask it to answer only from that." },
-          { "h": "Allow \"I don't know\"", "p": "Explicitly permitting abstention reduces confident guessing." },
-          { "h": "Make it show evidence", "p": "Ask for quotes supporting each claim, then check the quotes. A claim without a quote is suspect." }
-        ], "aside": "None of these is perfect, but together they cut error rates sharply." },
-        { "type": "quiz", "q": "Which instruction most directly helps you catch hallucinations in a summary of a document?", "options": ["\"Be accurate\"", "\"Quote the sentence from the document that supports each claim\"", "\"Write more\"", "\"Use simple words\""], "answer": 1, "why": "<b>Demand evidence.</b> Quotes can be checked against the source in seconds, and a claim with no matching quote is a red flag." },
-        { "type": "tf", "statement": "A more fluent and detailed answer is more likely to be true.", "answer": false, "why": "<b>False.</b> Fluency and detail are what the model is best at regardless of truth. Specific-sounding details are exactly what hallucinations look like." },
-        { "type": "quiz", "q": "SelfCheckGPT detects likely hallucinations by…", "options": ["Searching the web", "Sampling several answers and checking whether they agree", "Using a dictionary", "Counting words"], "answer": 1, "why": "<b>Consistency.</b> Facts the model really knows tend to come out the same each time. Invented details vary between samples." },
-        { "type": "fact", "title": "Meta's \"Chain-of-Verification\" reduced hallucinations by having the model fact-check itself in separate steps.", "detail": "The model drafts an answer, writes verification questions, answers each independently — without seeing the draft — then revises. Independence keeps it from repeating its own mistakes." },
-        { "type": "tip", "title": "Check numbers and names", "body": "Hallucinations cluster in specifics: figures, dates, citations, names and URLs. Those are also the easiest things to verify quickly.", "challenge": "Next time you use AI output at work, verify every number and citation in it before sending." }
+        { "type": "explainer", "title": "Practical defences", "steps": [
+          { "h": "Give it the source", "p": "Paste the document or connect search, and tell it to answer only from that. Answering from text in front of it is far more reliable than from memory." },
+          { "h": "Make \"I don't know\" OK", "p": "Explicitly allow it to say it isn't sure or that the document doesn't say. Models bluff less when told bluffing is worse than admitting a gap." },
+          { "h": "Ask for evidence", "p": "Ask it to quote the exact sentence supporting each claim. Made-up claims have nothing to quote, so they stand out.", "analogy": "\"Show me where it says that\" — the question every good teacher asks." },
+          { "h": "Ask again, compare", "p": "Ask the same question several times. Real knowledge stays consistent; invented details change each time.", "visual": { "kind": "compare", "left": { "title": "Known fact", "points": ["Ask 1: 1969", "Ask 2: 1969", "Ask 3: 1969"] }, "right": { "title": "Made up", "points": ["Ask 1: 1987", "Ask 2: 1991", "Ask 3: 1983"] } } },
+          { "h": "Double-check what matters", "p": "Numbers, names, dates, quotes and citations are where invented details hide. Verify those before you rely on them." }
+        ] },
+        { "type": "quiz", "q": "Which instruction most directly helps you catch made-up claims in a document summary?", "options": ["\"Quote the sentence from the document that supports each claim\"", "\"Be very confident\"", "\"Make it longer\"", "\"Use bullet points\""], "answer": 0, "hint": "Show me where it says that.", "why": "<b>Ask for quotes.</b> You can search the document for each quote. A claim with no real supporting sentence is a red flag." },
+        { "type": "tf", "statement": "A more fluent and detailed answer is more likely to be true.", "answer": false, "why": "<b>False.</b> Models are fluent either way. Extra detail can actually mean extra invented specifics." },
+        { "type": "quiz", "q": "SelfCheckGPT spots likely hallucinations by…", "options": ["Asking several times and checking whether the answers agree", "Searching Google", "Asking a human", "Counting words"], "answer": 0, "hint": "Look at the comparison in step 4.", "why": "<b>Consistency.</b> If the model really knows something, repeated answers match. Wildly varying answers suggest it's making it up." },
+        { "type": "fact", "title": "Meta's \"Chain-of-Verification\" reduced hallucinations by having the model fact-check itself in separate steps.", "detail": "It drafts an answer, writes checking questions, answers each one independently without seeing the draft, then revises. Independence stops it simply repeating its own mistakes." },
+        { "type": "tip", "title": "Check numbers and names", "body": "Invented details cluster in specifics: statistics, dates, names, quotes and references.", "challenge": "Next time an AI gives you a statistic or quote, search for its original source before using it." }
       ]
     },
     {
       "title": "Interpretability: features",
       "cards": [
-        { "type": "explainer", "title": "Reverse-engineering a network", "steps": [
-          { "h": "Neurons are messy", "p": "Individual neurons often respond to several unrelated things — say, legal text and DNA — which makes them hard to interpret." },
-          { "h": "Superposition", "p": "Models represent far more concepts than they have neurons by spreading each concept across many neurons in overlapping patterns." },
-          { "h": "Untangling with dictionaries", "p": "Sparse autoencoders decompose activations into many more \"features\", each firing rarely and often matching one clear concept." }
-        ], "aside": "The goal: describe what a model computes in human-understandable parts." },
-        { "type": "tf", "statement": "Each neuron in a large language model typically represents one clean, understandable concept.", "answer": false, "why": "<b>False.</b> Most neurons are polysemantic, responding to mixtures of unrelated concepts. That is why researchers look for features rather than neurons." },
-        { "type": "quiz", "q": "\"Superposition\" refers to models…", "options": ["Running on quantum computers", "Representing more features than they have neurons by overlapping them", "Using two GPUs", "Stacking layers"], "answer": 1, "why": "<b>Compression.</b> If features rarely occur together, they can share neurons with little interference, letting a model pack in many more concepts." },
-        { "type": "fact", "title": "Anthropic made Claude believe it was the Golden Gate Bridge by amplifying one internal feature.", "detail": "In May 2024, researchers found a feature for the bridge and turned it up. The resulting \"Golden Gate Claude\" steered nearly every conversation toward the bridge and even described itself as it." },
-        { "type": "quiz", "q": "Anthropic's 2024 \"Scaling Monosemanticity\" work found millions of features in Claude 3 Sonnet, including…", "options": ["Only features for single words", "Abstract features, such as for code bugs or deception, that work across languages and images", "No interpretable features", "Features only for numbers"], "answer": 1, "why": "<b>Abstract, multilingual, multimodal features.</b> The same feature might fire for a concept in English, French, or an image of it." },
-        { "type": "quiz", "q": "A sparse autoencoder is trained to…", "options": ["Generate images", "Rebuild a model's activations from a small number of active features out of a large dictionary", "Compress files", "Replace the model"], "answer": 1, "why": "<b>Sparse reconstruction.</b> Forcing only a few features to be active at once encourages each feature to capture one meaningful direction." }
+        { "type": "explainer", "title": "Looking inside an AI's brain", "steps": [
+          { "h": "A black box of numbers", "p": "We know every number in a model, but not what they mean. Interpretability research tries to work out what's going on inside.", "analogy": "Having a full wiring diagram of a brain but no idea which wires mean \"dog\"." },
+          { "h": "Neurons are messy", "p": "You might hope each neuron means one thing. Instead most respond to a jumble of unrelated things — say, Korean text, legal terms and cat photos." },
+          { "h": "Superposition: overlapping ideas", "p": "Models have to represent far more ideas than they have neurons, so they store them as overlapping combinations — many ideas squeezed into the same space." },
+          { "h": "Untangle with a dictionary", "p": "A sparse autoencoder learns a big list of \"features\" so that each moment's activity is a few features added together. Many features turn out to be clean, readable ideas.", "visual": { "kind": "flow", "items": ["Messy neuron activity", "Sparse autoencoder", "A few clear features: bridge, code bug, sarcasm"] } },
+          { "h": "Turn the dial", "p": "Find a feature and you can turn it up or down, and watch the model's behaviour change — proof the feature really matters." }
+        ] },
+        { "type": "tf", "statement": "Each neuron in a large language model usually represents one clean, understandable idea.", "answer": false, "why": "<b>False.</b> Most neurons respond to many unrelated things. That's why researchers look for features — combinations of neurons — instead." },
+        { "type": "quiz", "q": "\"Superposition\" means models…", "options": ["Store more ideas than they have neurons by overlapping them", "Run on two GPUs at once", "Answer two questions at once", "Have two copies of every layer"], "answer": 0, "hint": "Many ideas squeezed into the same space.", "why": "<b>Overlapping storage.</b> Since most ideas are rarely active together, the model can pack them into shared neurons with little confusion." },
+        { "type": "fact", "title": "Anthropic made Claude believe it was the Golden Gate Bridge by turning up one internal feature.", "detail": "In May 2024 researchers found a feature for the bridge and amplified it. \"Golden Gate Claude\" steered nearly every conversation to the bridge — even describing itself as it." },
+        { "type": "quiz", "q": "Anthropic's 2024 research found millions of features in a Claude model, including…", "options": ["Abstract ones, like for code bugs or deception, that work across languages and images", "Only one feature per word", "Features for each GPU", "Nothing readable"], "answer": 0, "why": "<b>Abstract, cross-language features.</b> A \"Golden Gate Bridge\" feature fired for English, other languages and photos — evidence of real concepts, not just word patterns." },
+        { "type": "quiz", "q": "A sparse autoencoder is trained to…", "options": ["Rebuild a model's activity from a few active features out of a large dictionary", "Compress files on disk", "Translate languages", "Generate images"], "answer": 0, "why": "<b>Explain activity with few features.</b> Forcing only a few features to be active at once pushes each one to mean something specific." }
       ]
     },
     {
       "title": "Interpretability: circuits",
       "cards": [
         { "type": "explainer", "title": "Tracing a thought", "steps": [
-          { "h": "From features to circuits", "p": "Researchers trace how features connect across layers to produce a specific answer." },
-          { "h": "Multi-step reasoning", "p": "Asked for the capital of the state containing Dallas, a model was seen to represent \"Texas\" internally before outputting \"Austin\"." },
-          { "h": "Planning ahead", "p": "When writing rhyming poetry, models were found to pick the rhyming word before writing the line that leads to it." }
-        ], "aside": "From Anthropic's 2025 work \"On the Biology of a Large Language Model\"." },
-        { "type": "quiz", "q": "When writing a rhyming couplet, interpretability research found Claude…", "options": ["Picked words purely one at a time", "Chose the rhyming word in advance and wrote the line to reach it", "Copied poems from training", "Ignored rhyme"], "answer": 1, "why": "<b>Planning ahead.</b> Despite generating one token at a time, the model held a target word internally — evidence that next-token prediction can involve planning." },
-        { "type": "tf", "statement": "Adding a vector to a model's activations can change its behavior without any retraining.", "answer": true, "why": "<b>True — activation steering.</b> Adding a direction for a concept, such as a sentiment or topic, shifts outputs toward it during inference." },
-        { "type": "quiz", "q": "A \"probe\" in interpretability is…", "options": ["A hardware sensor", "A simple classifier trained on a model's activations to test what information they contain", "A jailbreak prompt", "A type of benchmark"], "answer": 1, "why": "<b>A test for encoded information.</b> If a simple linear probe can read, say, \"is this statement true?\" from activations, that information is readily represented there." },
-        { "type": "fact", "title": "Models appear to encode truth and falsehood along a simple direction in their activations.", "detail": "Research such as \"The Geometry of Truth\" (2023) found that true and false statements separate along a linear direction, and that shifting along it can flip how the model treats a statement." },
-        { "type": "tf", "statement": "Interpretability research can already fully explain how frontier models make their decisions.", "answer": false, "why": "<b>False.</b> Researchers can trace specific behaviors, but current methods capture only part of the computation. Full understanding of a frontier model remains far off." }
+          { "h": "From features to circuits", "p": "Features connect into circuits: chains of features that together carry out a step of thinking." },
+          { "h": "Two-step answers", "p": "Ask \"What's the capital of the state containing Dallas?\" and researchers can watch \"Texas\" light up inside before \"Austin\" — a real middle step.", "visual": { "kind": "flow", "items": ["\"Dallas\"", "Feature: Texas", "Feature: capital of", "\"Austin\""] } },
+          { "h": "Planning ahead", "p": "When writing a rhyming couplet, Claude picks the rhyming word for the end of the line first, then writes the line to reach it.", "analogy": "Like a poet who decides on the punchline before writing the setup." },
+          { "h": "Probes: asking the activity", "p": "A probe is a simple test trained on a model's internal activity to check whether some information — like \"is this statement true?\" — is in there." },
+          { "h": "Still early days", "p": "These are glimpses of small pieces. Fully explaining how a frontier model reaches a decision is far beyond current methods." }
+        ] },
+        { "type": "quiz", "q": "When writing a rhyming couplet, research found Claude…", "options": ["Chose the rhyming word in advance and wrote the line to reach it", "Picked words completely at random", "Wrote the line backwards", "Copied existing poems"], "answer": 0, "hint": "Punchline first.", "why": "<b>It plans ahead.</b> Even though it outputs one token at a time, it had already settled on the ending — evidence of planning inside." },
+        { "type": "tf", "statement": "Adding a direction to a model's internal activity can change its behaviour without any retraining.", "answer": true, "why": "<b>True.</b> This is called steering — like Golden Gate Claude. It changes behaviour for as long as the nudge is applied." },
+        { "type": "quiz", "q": "A \"probe\" in interpretability is…", "options": ["A simple test trained on a model's activity to see what information it contains", "A tool that physically opens a GPU", "A type of prompt injection", "A hardware sensor"], "answer": 0, "why": "<b>A simple detector.</b> If a tiny classifier can read, say, \"true or false\" from the activity, that information is encoded there." },
+        { "type": "fact", "title": "Models seem to store \"true\" versus \"false\" along a single direction in their internal activity.", "detail": "Research such as \"The Geometry of Truth\" (2023) found true and false statements separate cleanly, and pushing along that direction could flip how the model treats a statement." },
+        { "type": "tf", "statement": "Interpretability research can already fully explain how frontier models make their decisions.", "answer": false, "why": "<b>False.</b> It can explain specific behaviours in pieces. A full account of a frontier model's decisions is still far away." }
       ]
     }
   ]
