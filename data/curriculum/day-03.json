@@ -3,66 +3,74 @@
   "slug": "semiconductors",
   "topic": "Semiconductors",
   "cat": "tech",
-  "blurb": "How chips are made: ultra-pure silicon, EUV lithography, new transistor shapes, and why it's all geopolitics.",
+  "blurb": "How chips are made: from sand to ultra-pure silicon, printing with light, tiny switch shapes, and why it's all geopolitics.",
   "lessons": [
     {
       "title": "From sand to wafer",
       "cards": [
         { "type": "explainer", "title": "Making the canvas", "steps": [
-          { "h": "Purify the silicon", "p": "Quartz sand is reduced to silicon and then refined until roughly one atom in a billion is a contaminant." },
-          { "h": "Grow a single crystal", "p": "A seed crystal is dipped into molten silicon and slowly pulled up while rotating (the Czochralski process), growing a single-crystal ingot." },
-          { "h": "Slice and polish", "p": "The ingot is sawn into wafers less than a millimeter thick and polished to near-atomic flatness. Hundreds of chips are then built on each wafer." }
-        ], "aside": "A perfect, uninterrupted crystal lattice matters because defects scatter electrons and kill transistors." },
-        { "type": "quiz", "q": "What diameter wafer do leading-edge fabs use today?", "options": ["100 mm", "200 mm", "300 mm", "450 mm"], "answer": 2, "why": "<b>300 mm.</b> It has been the standard since the early 2000s. A move to 450 mm was planned around 2012 but abandoned because re-tooling the whole industry cost too much." },
-        { "type": "tf", "statement": "A transistor is essentially a switch that electricity can turn on and off.", "answer": true, "why": "<b>True.</b> In a MOSFET, voltage on the gate creates or removes a conducting channel between source and drain. Billions of these switches, combined, implement all digital logic." },
-        { "type": "quiz", "q": "Adding phosphorus atoms to silicon (doping) makes it…", "options": ["An insulator", "n-type — extra free electrons", "p-type — extra holes", "Magnetic"], "answer": 1, "why": "<b>n-type.</b> Phosphorus has five outer electrons to silicon's four, so one is left free to move. Boron, with three, creates holes and makes p-type silicon. Junctions between the two are the basis of transistors." },
-        { "type": "fact", "title": "Electronic-grade silicon is around 99.9999999% pure — \"nine nines\".", "detail": "That is roughly one foreign atom per billion silicon atoms, far purer than solar-grade silicon. Even trace metals at this level can ruin transistor behavior." },
-        { "type": "tf", "statement": "Moore's law is a law of physics.", "answer": false, "why": "<b>False.</b> It is an observation and an industry target. Gordon Moore noted in 1965 that transistor counts doubled yearly, revised it to every two years in 1975, and the industry organized its roadmaps to keep it true." }
+          { "h": "What a chip is made of", "p": "A chip is billions of transistors — microscopic on/off switches — built on silicon, a material made from sand.", "analogy": "Each transistor is like a tap: it lets electricity flow or stops it. Billions of taps switching on and off do all the computing." },
+          { "h": "Purify it", "p": "Sand is refined into silicon so pure that only about one atom in a billion is anything else." },
+          { "h": "Grow a giant crystal", "p": "A seed crystal is dipped into molten silicon and slowly pulled out, growing a single perfect crystal about 2 metres long.", "visual": { "kind": "flow", "items": ["Sand", "Ultra-pure silicon", "One giant crystal", "Sliced into wafers", "Hundreds of chips per wafer"] } },
+          { "h": "Slice into wafers", "p": "The crystal is sliced into thin discs 300 mm across — wafers — and polished mirror-smooth. Hundreds of chips are built on each." },
+          { "h": "Tune the silicon", "p": "Adding tiny amounts of other atoms (doping) controls how silicon conducts. Phosphorus adds spare electrons; boron creates gaps. That's what makes switches possible." }
+        ] },
+        { "type": "quiz", "q": "What size wafers do the most advanced chip factories use?", "options": ["300 mm across", "3 mm across", "3 metres across", "30 mm across"], "answer": 0, "why": "<b>300 mm</b> — about the size of a dinner plate. Bigger wafers fit more chips per batch." },
+        { "type": "tf", "statement": "A transistor is basically a switch that electricity can turn on and off.", "answer": true, "hint": "Like a tap.", "why": "<b>True.</b> A small voltage on one terminal lets current flow (on) or blocks it (off). Every calculation is built from billions of these." },
+        { "type": "quiz", "q": "Adding phosphorus atoms to silicon makes it…", "options": ["n-type — extra free electrons", "Melt", "Transparent", "Magnetic"], "answer": 0, "why": "<b>n-type.</b> Phosphorus brings one extra electron that's free to move. Boron does the opposite, making \"p-type\"." },
+        { "type": "fact", "title": "Chip-grade silicon is about 99.9999999% pure — \"nine nines\".", "detail": "That's roughly one foreign atom per billion silicon atoms. Even tiny traces of metal at this level can ruin transistors." },
+        { "type": "tf", "statement": "Moore's law is a law of physics.", "answer": false, "why": "<b>False.</b> It's an observation from 1965 that transistor counts doubled roughly every two years — kept going by huge engineering effort, and slowing." }
       ]
     },
     {
       "title": "Lithography: printing with light",
       "cards": [
         { "type": "explainer", "title": "How patterns get onto silicon", "steps": [
-          { "h": "Coat and expose", "p": "The wafer is coated in light-sensitive photoresist. Light shines through a patterned mask, shrunk by optics, onto the resist." },
-          { "h": "Develop and etch", "p": "Exposed (or unexposed) resist is washed away, and the uncovered material is etched or implanted. The resist is then stripped." },
-          { "h": "Repeat many times", "p": "A modern chip needs dozens of such patterned layers, each aligned to the previous one within a few nanometers." }
-        ], "aside": "The smallest feature you can print scales with the wavelength of light, which is why the industry chased shorter wavelengths for decades." },
-        { "type": "quiz", "q": "Extreme ultraviolet (EUV) lithography uses light with a wavelength of about…", "options": ["365 nm", "193 nm", "13.5 nm", "1 nm"], "answer": 2, "why": "<b>13.5 nm.</b> The previous workhorse, deep ultraviolet, uses 193 nm. The 14× shorter wavelength lets fabs print fine features in a single exposure instead of multiple patterning passes." },
-        { "type": "quiz", "q": "Which company is the only supplier of EUV lithography machines?", "options": ["Intel", "ASML", "TSMC", "Canon"], "answer": 1, "why": "<b>ASML</b>, based in the Netherlands. Each machine costs well over $150 million, and it relies on suppliers such as Zeiss for mirrors and Trumpf for its lasers." },
-        { "type": "tf", "statement": "EUV light passes through glass lenses just like visible light.", "answer": false, "why": "<b>False.</b> EUV is absorbed by almost everything, including air and glass. Machines run in vacuum and focus with multilayer mirrors, each reflecting only part of the light." },
-        { "type": "fact", "title": "EUV light is made by hitting molten tin droplets with a laser around 50,000 times per second.", "detail": "Each droplet is struck twice — once to flatten it, once to vaporize it into a plasma that emits 13.5 nm light. Very little of the input energy ends up as usable light." },
-        { "type": "tf", "statement": "The \"3 nm\" in a 3 nm process refers to the size of a transistor's gate.", "answer": false, "why": "<b>False.</b> Node names became marketing labels long ago. No physical feature on a \"3 nm\" chip is 3 nm; gate pitches are several times larger. Compare densities, not names." }
+          { "h": "Coat and shine", "p": "The wafer is coated with light-sensitive chemical. Light shines through a stencil (a mask), and where it hits, the chemical changes.", "analogy": "Like developing an old photo, or a sun print." },
+          { "h": "Develop and etch", "p": "The changed areas are washed away, and the exposed silicon is etched or filled with material — copying the pattern." },
+          { "h": "Repeat many times", "p": "A modern chip needs dozens of these layers stacked precisely on top of each other.", "visual": { "kind": "flow", "items": ["Coat with chemical", "Shine light through stencil", "Wash away exposed parts", "Etch or add material", "Repeat for each layer"] } },
+          { "h": "Smaller light for smaller lines", "p": "Finer lines need shorter wavelengths of light. The latest machines use extreme ultraviolet (EUV) at 13.5 nanometres — thousands of times thinner than a hair.", "visual": { "kind": "bars", "items": [ { "label": "Older deep ultraviolet", "value": 193, "note": "193 nm" }, { "label": "EUV", "value": 13.5, "note": "13.5 nm" } ], "caption": "Wavelength of light used: shorter is finer." } },
+          { "h": "Mirrors, not lenses", "p": "EUV light is absorbed by glass and even air, so the machines use ultra-smooth mirrors in a vacuum." }
+        ] },
+        { "type": "quiz", "q": "EUV lithography uses light with a wavelength of about…", "options": ["13.5 nm", "500 nm", "1 mm", "1 metre"], "answer": 0, "hint": "Look at the bar chart.", "why": "<b>13.5 nm.</b> Shorter light can draw finer lines, like a sharper pencil." },
+        { "type": "quiz", "q": "Which company is the only supplier of EUV machines?", "options": ["ASML", "Intel", "NVIDIA", "Apple"], "answer": 0, "why": "<b>ASML</b>, from the Netherlands. Each machine costs well over $100 million and is the size of a bus." },
+        { "type": "tf", "statement": "EUV light passes through glass lenses just like visible light.", "answer": false, "why": "<b>False.</b> Glass absorbs it, so the machines use special mirrors inside a vacuum." },
+        { "type": "fact", "title": "EUV light is made by hitting tiny drops of molten tin with a laser about 50,000 times a second.", "detail": "Each drop is struck twice — once to flatten it, once to blast it into a glowing plasma that gives off 13.5 nm light." },
+        { "type": "tf", "statement": "The \"3 nm\" in a \"3 nm chip\" is the actual size of its transistors.", "answer": false, "why": "<b>False.</b> It's a marketing label for a generation. The real features are bigger; the number just signals \"newer and denser\"." }
       ]
     },
     {
       "title": "New transistor shapes",
       "cards": [
-        { "type": "explainer", "title": "From flat to fins to nanosheets", "steps": [
-          { "h": "Planar transistors leaked", "p": "As flat transistors shrank, the gate lost control of the channel underneath, and current leaked even when switched off." },
-          { "h": "FinFETs stood the channel up", "p": "Raising the channel into a vertical fin let the gate wrap three sides, restoring control. Intel shipped them first, around 2011–2012." },
-          { "h": "Gate-all-around wraps every side", "p": "Stacked horizontal nanosheets let the gate surround the channel completely. Samsung, TSMC and Intel are moving to these at their newest nodes." }
-        ], "aside": "Each shape change was about one thing: keeping the switch from leaking as it shrank." },
-        { "type": "quiz", "q": "What mainly forced the move away from planar transistors?", "options": ["They were too expensive", "Leakage — the gate could no longer fully turn the channel off", "They were too slow to manufacture", "Patent disputes"], "answer": 1, "why": "<b>Leakage.</b> At short channel lengths, the drain's field competes with the gate. Off-state current and power climb, so a better-wrapped gate was needed." },
-        { "type": "quiz", "q": "The end of Dennard scaling in the mid-2000s meant that…", "options": ["Transistors stopped shrinking", "Shrinking transistors no longer kept power density constant, so clock speeds stalled", "Chips became analog", "Memory stopped improving"], "answer": 1, "why": "<b>Power density stopped falling.</b> Voltages could not keep dropping, so faster clocks meant more heat. That is why CPUs plateaued near 3–5 GHz and the industry went multicore." },
-        { "type": "tf", "statement": "Intel was the first company to ship FinFET transistors in volume.", "answer": true, "why": "<b>True.</b> Intel's 22 nm \"Tri-Gate\" process in Ivy Bridge CPUs (2012) was the first high-volume FinFET product. TSMC and Samsung followed a few years later." },
-        { "type": "fact", "title": "NVIDIA's H100 GPU packs about 80 billion transistors onto one die.", "detail": "Its Blackwell successor exceeds 200 billion by joining two dies at the reticle limit — the largest area a lithography scanner can expose in one shot." },
-        { "type": "quiz", "q": "\"Backside power delivery\" moves which wiring underneath the transistors?", "options": ["Signal wires", "Power supply wires", "Cooling channels", "Memory"], "answer": 1, "why": "<b>Power.</b> Normally power and signal wires compete for space above the transistors. Feeding power from below frees the top for signals and reduces voltage drop. Intel calls its version PowerVia." }
+        { "type": "explainer", "title": "From flat to fins to wrap-around", "steps": [
+          { "h": "Flat transistors leaked", "p": "Early transistors were flat. As they shrank, the control part (the gate) could no longer fully stop current — they leaked even when \"off\".", "analogy": "A tap so small it can't fully close, so it always drips." },
+          { "h": "Stand it up: FinFETs", "p": "From 2011, the channel became a thin vertical fin, with the gate wrapped around three sides — much better control." },
+          { "h": "Wrap it all: gate-all-around", "p": "The newest transistors use stacked sheets with the gate surrounding them on every side.", "visual": { "kind": "flow", "items": ["Flat: gate on top only", "FinFET: gate on 3 sides", "Gate-all-around: all 4 sides"] } },
+          { "h": "Clock speeds stopped rising", "p": "Around 2005, shrinking transistors stopped saving power in proportion, so chips got hotter. Speeds stalled at a few GHz and chips added more cores instead." },
+          { "h": "Bigger chips", "p": "NVIDIA's H100 has about 80 billion transistors. Its successor joins two chips to exceed 200 billion." }
+        ] },
+        { "type": "quiz", "q": "What mainly forced the move away from flat transistors?", "options": ["Leakage — the gate could no longer fully switch them off", "They were too expensive to draw", "Customers disliked them", "Silicon ran out"], "answer": 0, "hint": "The dripping tap.", "why": "<b>Leakage.</b> Wrapping the gate around more sides gives it a firmer grip on the channel." },
+        { "type": "quiz", "q": "When shrinking transistors stopped saving power in the mid-2000s…", "options": ["Clock speeds stalled, and chips added more cores instead", "Chips became free", "Computers got slower", "Transistors got bigger"], "answer": 0, "why": "<b>Speeds stalled.</b> Running faster made chips too hot, so designers used extra transistors for more cores." },
+        { "type": "tf", "statement": "Intel was the first company to ship FinFET transistors in volume.", "answer": true, "why": "<b>True.</b> In its 22 nm chips in 2011–12. TSMC and Samsung followed a few years later." },
+        { "type": "fact", "title": "NVIDIA's H100 GPU packs about 80 billion transistors onto one chip.", "detail": "Its Blackwell successor exceeds 200 billion by joining two chips, each as large as manufacturing machines can print in one go." },
+        { "type": "quiz", "q": "\"Backside power delivery\" moves which wiring underneath the transistors?", "options": ["The power supply wires", "The data wires", "The fan", "The battery"], "answer": 0, "why": "<b>Power wires.</b> Moving them below frees room above for data wiring and delivers power more efficiently." }
       ]
     },
     {
       "title": "The geopolitics of chips",
       "cards": [
         { "type": "explainer", "title": "Who makes what", "steps": [
-          { "h": "Designers", "p": "Companies like NVIDIA, Apple, AMD and Qualcomm design chips but own no factories. They are called fabless." },
-          { "h": "Foundries", "p": "TSMC, founded by Morris Chang in Taiwan in 1987, pioneered manufacturing chips for others. Samsung and Intel also offer foundry services." },
-          { "h": "Tool and material suppliers", "p": "A few firms dominate key steps: ASML in lithography, Applied Materials, Lam and Tokyo Electron in deposition and etch, Japanese firms in photoresists." }
-        ], "aside": "No single country controls the whole supply chain, which is exactly what makes it a strategic issue." },
-        { "type": "quiz", "q": "Which of these companies is fabless?", "options": ["Intel", "Samsung", "TSMC", "NVIDIA"], "answer": 3, "why": "<b>NVIDIA.</b> It designs GPUs and has them manufactured mostly by TSMC. Intel and Samsung run their own fabs; TSMC is the foundry itself." },
-        { "type": "tf", "statement": "Most of the world's most advanced logic chips are manufactured in Taiwan.", "answer": true, "why": "<b>True.</b> TSMC's Taiwan fabs produce the large majority of leading-edge chips, including most AI accelerators. New fabs in Arizona, Japan and Germany are meant to diversify that." },
-        { "type": "quiz", "q": "TSMC's CoWoS packaging became a bottleneck for AI chips. What does it do?", "options": ["Tests finished chips", "Places GPU dies and HBM stacks side by side on a silicon interposer", "Cools chips with water", "Recycles defective wafers"], "answer": 1, "why": "<b>Advanced packaging.</b> CoWoS (Chip-on-Wafer-on-Substrate) connects the GPU to its HBM through thousands of tiny wires in a silicon layer. Capacity for it, not just wafers, has limited AI GPU supply." },
-        { "type": "fact", "title": "A single leading-edge chip fab costs upwards of $20 billion to build.", "detail": "Cleanrooms, EUV scanners and hundreds of other tools drive the price. That cost is why only three companies — TSMC, Samsung and Intel — compete at the frontier." },
-        { "type": "tf", "statement": "Since 2022, the US has restricted exports of top AI GPUs and chipmaking tools to China.", "answer": true, "why": "<b>True.</b> Rules issued in October 2022 and tightened since limit sales of advanced accelerators and the equipment to make leading-edge chips, aiming to slow China's frontier AI and military computing." }
+          { "h": "Designers", "p": "Companies like NVIDIA, Apple and AMD design chips but don't own factories — they're \"fabless\"." },
+          { "h": "Manufacturers (foundries)", "p": "TSMC in Taiwan makes most of the world's most advanced chips. Samsung and Intel are the only other leading-edge makers." },
+          { "h": "Tool and material makers", "p": "Specialised suppliers from the Netherlands, Japan and the US make the machines and chemicals — including ASML's EUV machines.", "visual": { "kind": "flow", "items": ["Design (NVIDIA, Apple — US)", "Tools (ASML — Netherlands)", "Manufacture (TSMC — Taiwan)", "Packaging with memory", "Your GPU or phone"] } },
+          { "h": "Packaging is a bottleneck too", "p": "AI chips are packaged with HBM memory side by side on a shared base (TSMC's CoWoS). This step became a major shortage." },
+          { "h": "A strategic resource", "p": "Because so much depends on a few companies and places, chips are now a matter of national security, with export controls and huge subsidies.", "analogy": "Like oil in the 20th century." }
+        ] },
+        { "type": "quiz", "q": "Which of these companies is \"fabless\" — designs chips but doesn't make them?", "options": ["NVIDIA", "TSMC", "Intel", "Samsung"], "answer": 0, "hint": "Look at the flow in step 3.", "why": "<b>NVIDIA.</b> It designs GPUs and pays TSMC to manufacture them." },
+        { "type": "tf", "statement": "Most of the world's most advanced chips are made in Taiwan.", "answer": true, "why": "<b>True.</b> TSMC's Taiwanese factories produce the large majority of leading-edge chips, which is why the island matters so much strategically." },
+        { "type": "quiz", "q": "TSMC's CoWoS packaging became a bottleneck for AI chips. What does it do?", "options": ["Places GPU chips and HBM memory side by side on a shared base", "Paints the chips", "Ships chips overseas", "Tests chips for bugs"], "answer": 0, "why": "<b>Puts GPU and memory together.</b> Placing them close allows the huge memory speeds AI needs — but capacity was limited." },
+        { "type": "fact", "title": "A single leading-edge chip factory costs over $20 billion to build.", "detail": "Ultra-clean rooms, EUV machines and hundreds of other tools drive the price — which is why only three companies compete at the frontier." },
+        { "type": "tf", "statement": "Since 2022, the US has restricted exports of top AI GPUs and chipmaking tools to China.", "answer": true, "why": "<b>True.</b> The rules have been tightened several times, pushing China to develop its own chips and tools." }
       ]
     }
   ]
