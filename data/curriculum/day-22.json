@@ -53,7 +53,7 @@
         { "type": "quiz", "q": "Why did cheap-training claims rattle chip stocks?", "options": ["They suggested AI might need far less spending on GPUs than expected", "Chips became illegal", "DeepSeek made its own GPUs", "GPUs stopped working"], "answer": 0, "why": "<b>Fear of lower demand.</b> If great models need far fewer chips, the boom in chip sales might slow." },
         { "type": "quiz", "q": "The Jevons paradox suggests that making AI cheaper to run might…", "options": ["Increase total demand, as cheaper AI gets used far more", "End AI use completely", "Make chips more expensive to build", "Have no effect"], "answer": 0, "why": "<b>More total use.</b> Cheaper steam engines led to more coal burned, not less. Cheaper AI may similarly mean more chips." },
         { "type": "fact", "title": "DeepSeek released R1 under the permissive MIT licence.", "detail": "That let anyone use, change and sell products built on it with almost no restrictions, and it quickly appeared on major cloud platforms." },
-        { "type": "tf", "statement": "DeepSeek's app briefly became the top free app on Apple's US App Store.", "answer": true, "why": "<b>True.</b> In late January 2025 it overtook ChatGPT there, briefly." }
+        { "type": "tf", "statement": "DeepSeek's app briefly became the top free app on Apple's US App Store.", "answer": true, "why": "<b>True.</b> In late January 2025 it briefly overtook ChatGPT there, as curiosity about the cheap, strong model spread." }
       ]
     },
     {
