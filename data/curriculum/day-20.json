@@ -1,69 +1,393 @@
 {
-  "day": 20,
-  "slug": "distributed-training",
-  "topic": "Training across thousands of GPUs",
-  "cat": "tech",
-  "blurb": "Data, tensor, pipeline and expert parallelism — and keeping a huge training run alive.",
-  "lessons": [
+ "day": 20,
+ "slug": "distributed-training",
+ "topic": "Training across thousands of GPUs",
+ "cat": "tech",
+ "blurb": "One model, thousands of chips: the ways to split the work, and how to keep a giant training run going when hardware keeps breaking.",
+ "lessons": [
+  {
+   "title": "Data parallelism",
+   "cards": [
     {
-      "title": "Data parallelism",
-      "cards": [
-        { "type": "explainer", "title": "Same model, different data", "steps": [
-          { "h": "Copy the model", "p": "Every GPU holds a full copy of the model." },
-          { "h": "Split the batch", "p": "Each GPU processes a different slice of the training batch and computes its own gradients." },
-          { "h": "Average and update", "p": "An all-reduce averages gradients across GPUs, and every copy applies the identical update." }
-        ], "aside": "It is the simplest form of parallelism, and almost every run uses it in some form." },
-        { "type": "quiz", "q": "What is the main limitation of pure data parallelism?", "options": ["It changes the model's results", "The entire model, gradients and optimizer state must fit on every GPU", "It only works on CPUs", "It requires small batches"], "answer": 1, "why": "<b>Memory.</b> Every GPU holds everything. Once a model's training state exceeds one GPU's memory, you need to split the model itself." },
-        { "type": "quiz", "q": "Training with Adam in mixed precision needs about 16 bytes per parameter before activations. Roughly how much memory does a 7B model need?", "options": ["14 GB", "28 GB", "112 GB", "1 TB"], "answer": 2, "why": "<b>About 112 GB.</b> 2 bytes for BF16 weights, 2 for gradients, and 12 for the FP32 master weights and Adam's two moment estimates. That is more than one 80 GB GPU." },
-        { "type": "tf", "statement": "Data parallelism produces the same result as training on one giant GPU with the full batch.", "answer": true, "why": "<b>True, mathematically.</b> Averaging gradients from slices equals the full-batch gradient. Only floating-point rounding order differs." },
-        { "type": "fact", "title": "Microsoft's ZeRO technique removed the redundant copies that data parallelism wastes memory on.", "detail": "Introduced in 2019 in DeepSpeed, ZeRO shards optimizer states, gradients and even parameters across GPUs, fetching pieces only when needed. PyTorch's FSDP follows the same idea." },
-        { "type": "quiz", "q": "Fully sharded data parallelism (FSDP or ZeRO-3) saves memory by…", "options": ["Compressing the dataset", "Splitting parameters, gradients and optimizer state across GPUs instead of replicating them", "Skipping the backward pass", "Using fewer layers"], "answer": 1, "why": "<b>Sharding.</b> Each GPU stores a fraction and gathers the rest just in time, trading extra communication for much less memory per GPU." }
-      ]
+     "type": "explainer",
+     "title": "Same model, different homework",
+     "steps": [
+      {
+       "h": "One GPU is far too slow",
+       "p": "Training a frontier model on a single GPU would take centuries. The work has to be shared across thousands."
+      },
+      {
+       "h": "Copy the model",
+       "p": "The simplest split: give every GPU a full copy of the model, and a different slice of each batch of training text.",
+       "visual": {
+        "kind": "flow",
+        "items": [
+         "Batch of text split into slices",
+         "Each GPU: same model, its own slice",
+         "Each works out its gradients",
+         "Average them, everyone updates"
+        ]
+       }
+      },
+      {
+       "h": "Average the lessons",
+       "p": "Each GPU works out how the model should change from its slice. They average their answers, and every copy makes the same update — staying identical.",
+       "analogy": "Ten students each mark a tenth of the exam papers, then pool their notes on common mistakes."
+      },
+      {
+       "h": "The memory problem",
+       "p": "Training needs far more memory than just the parameters: gradients and the optimizer's notes too — about 16 bytes per parameter. A 7-billion-parameter model needs about 112 GB.",
+       "visual": {
+        "kind": "bars",
+        "items": [
+         {
+          "label": "Parameters alone (16-bit)",
+          "value": 14,
+          "note": "14 GB"
+         },
+         {
+          "label": "Everything for training",
+          "value": 112,
+          "note": "~112 GB"
+         }
+        ],
+        "caption": "Memory for a 7B model in training."
+       }
+      },
+      {
+       "h": "Stop keeping copies",
+       "p": "Sharding (ZeRO / FSDP) splits all that memory across GPUs instead of copying it, fetching pieces only when needed."
+      }
+     ]
     },
     {
-      "title": "Splitting the model",
-      "cards": [
-        { "type": "explainer", "title": "Tensor and pipeline parallelism", "steps": [
-          { "h": "Tensor parallelism", "p": "Individual matrix multiplications are split across GPUs — each computes part of every layer. This needs very fast, frequent communication." },
-          { "h": "Pipeline parallelism", "p": "Layers are divided into stages on different GPUs, like an assembly line. Data passes stage to stage." },
-          { "h": "Microbatches fill the line", "p": "Splitting each batch into small microbatches keeps more stages busy at once." }
-        ], "aside": "Large runs combine data, tensor and pipeline parallelism — often called 3D parallelism." },
-        { "type": "quiz", "q": "Why is tensor parallelism usually kept within a single server?", "options": ["Licensing", "It needs extremely frequent, high-bandwidth communication that only links like NVLink provide", "Servers have more memory", "It only works on 8 GPUs exactly"], "answer": 1, "why": "<b>Bandwidth.</b> Tensor-parallel GPUs exchange data inside every layer. Over slower links between servers, they would spend most of their time waiting." },
-        { "type": "quiz", "q": "A \"pipeline bubble\" is…", "options": ["A cooling leak", "Idle time when pipeline stages wait for work at the start and end of a batch", "A memory error", "A type of attention"], "answer": 1, "why": "<b>Idle stages.</b> The first stage starts before later ones have work, and the last finishes after the first is done. More microbatches shrink the bubble." },
-        { "type": "tf", "statement": "Pipeline parallelism needs less communication bandwidth than tensor parallelism.", "answer": true, "why": "<b>True.</b> Pipeline stages only pass activations between neighbors once per microbatch, so they can span slower links between servers." },
-        { "type": "fact", "title": "Meta trained Llama 3 405B using four kinds of parallelism at once.", "detail": "On about 16,000 H100s it combined tensor, pipeline, context and data parallelism — splitting layers, matrices, long sequences and batches simultaneously." },
-        { "type": "tf", "statement": "NVIDIA's Megatron-LM work helped popularize tensor parallelism for transformers.", "answer": true, "why": "<b>True.</b> The 2019 Megatron-LM paper showed how to split attention and MLP layers across GPUs with only a few communication steps per layer." }
-      ]
+     "type": "quiz",
+     "q": "What's the main limitation of plain data parallelism?",
+     "options": [
+      "The whole model and its training memory must fit on every GPU",
+      "It only works with images",
+      "GPUs can't share results",
+      "It gives a different answer than one GPU"
+     ],
+     "answer": 0,
+     "hint": "Every GPU holds a full copy.",
+     "why": "<b>Everything must fit on each GPU.</b> Fine for small models; impossible for a model needing hundreds of gigabytes."
     },
     {
-      "title": "Experts and long sequences",
-      "cards": [
-        { "type": "explainer", "title": "More ways to split", "steps": [
-          { "h": "Expert parallelism", "p": "In mixture-of-experts models, different experts live on different GPUs, and tokens are sent to whichever GPU holds their chosen expert." },
-          { "h": "All-to-all traffic", "p": "Routing tokens means every GPU sends data to every other one, twice per MoE layer." },
-          { "h": "Context parallelism", "p": "Very long sequences are split across GPUs, which pass keys and values around in turn so each sees the whole context." }
-        ], "aside": "Each new axis of parallelism trades memory or compute for communication." },
-        { "type": "quiz", "q": "Expert parallelism relies heavily on which communication pattern?", "options": ["Broadcast", "All-to-all", "Point-to-point between two GPUs only", "None"], "answer": 1, "why": "<b>All-to-all.</b> Each GPU dispatches tokens to the GPUs hosting the selected experts, then collects results back — a demanding pattern for the network." },
-        { "type": "tf", "statement": "Ring attention lets attention over a very long sequence be split across many GPUs.", "answer": true, "why": "<b>True.</b> Each GPU holds one block of the sequence and passes key-value blocks around a ring, overlapping communication with computation." },
-        { "type": "quiz", "q": "Why do MoE models add a load-balancing loss during training?", "options": ["To save memory", "To stop the router sending most tokens to a few experts while others sit idle", "To speed up inference", "To reduce the vocabulary"], "answer": 1, "why": "<b>Even usage.</b> Without it, routers often collapse onto a few favorite experts, overloading their GPUs and wasting the rest." },
-        { "type": "fact", "title": "DeepSeek wrote custom low-level GPU code to work around export-restricted chips.", "detail": "Its H800 GPUs had reduced chip-to-chip bandwidth. The V3 report describes custom communication kernels and a \"DualPipe\" schedule that overlaps nearly all communication with computation." },
-        { "type": "quiz", "q": "Why do training systems try to overlap communication with computation?", "options": ["To use more electricity", "So GPUs keep computing while data transfers happen, instead of waiting", "To reduce accuracy", "Regulations require it"], "answer": 1, "why": "<b>Hiding latency.</b> If the next transfer runs while the current computation does, communication time effectively disappears." }
-      ]
+     "type": "quiz",
+     "q": "Training needs about 16 bytes per parameter. Roughly how much memory does a 7-billion-parameter model need?",
+     "options": [
+      "112 GB",
+      "7 GB",
+      "16 GB",
+      "1,600 GB"
+     ],
+     "answer": 0,
+     "hint": "7 billion × 16 bytes.",
+     "why": "<b>About 112 GB.</b> 7 × 16 = 112. That's more than one 80 GB GPU holds — before even counting working memory."
     },
     {
-      "title": "Keeping a run alive",
-      "cards": [
-        { "type": "explainer", "title": "Failure is normal", "steps": [
-          { "h": "Something always breaks", "p": "With tens of thousands of GPUs, cables, memory and power supplies, failures happen every few hours." },
-          { "h": "Checkpoint often", "p": "The full training state is saved regularly, so a crash costs minutes or hours rather than weeks." },
-          { "h": "Watch for silent errors", "p": "Some hardware faults produce wrong numbers without crashing, which can quietly corrupt a run." }
-        ], "aside": "At this scale, reliability engineering decides how much of the cluster's time is real progress." },
-        { "type": "quiz", "q": "\"Silent data corruption\" is dangerous because…", "options": ["It deletes files", "Faulty hardware returns wrong results without raising any error", "It is very loud", "It only happens on CPUs"], "answer": 1, "why": "<b>No alarm.</b> A chip that miscalculates occasionally may only show up as an odd loss spike, or not at all. Teams detect it with redundant checks and by monitoring statistics." },
-        { "type": "tf", "statement": "On a cluster of tens of thousands of GPUs, an interruption every few hours is normal.", "answer": true, "why": "<b>True.</b> Meta's Llama 3 run on about 16,000 GPUs averaged an interruption roughly every three hours. Bigger clusters fail more often." },
-        { "type": "quiz", "q": "Why do large runs save checkpoints asynchronously?", "options": ["To save electricity", "Writing hundreds of gigabytes would otherwise pause training", "Checkpoints are optional", "To encrypt them"], "answer": 1, "why": "<b>Avoiding stalls.</b> Copying state to memory quickly and writing it to storage in the background keeps GPUs training." },
-        { "type": "fact", "title": "Google trained Gemini Ultra across multiple data centers at once.", "detail": "Its 2023 technical report describes TPU pods in several facilities working on one run, linked by Google's network — an early example of multi-site training." },
-        { "type": "tip", "title": "Estimate training time", "body": "Time ≈ total FLOPs ÷ (GPUs × peak FLOP/s × utilization). An H100 offers about 10¹⁵ BF16 FLOP/s, and 40% utilization is a good real-world figure.", "challenge": "How long would 4.2 × 10²² FLOPs take on 1,000 H100s at 40% utilization? (About 29 hours.)" }
-      ]
+     "type": "tf",
+     "statement": "Data parallelism gives the same result as training on one giant GPU with the whole batch.",
+     "answer": true,
+     "why": "<b>True.</b> Averaging the slices' gradients is mathematically the same as computing them all together. It just runs faster."
+    },
+    {
+     "type": "fact",
+     "title": "Microsoft's ZeRO technique removed the wasteful copies that data parallelism keeps.",
+     "detail": "Introduced in 2019 in DeepSpeed, it splits optimizer notes, gradients and even parameters across GPUs, fetching pieces only when needed."
+    },
+    {
+     "type": "quiz",
+     "q": "Fully sharded data parallelism (FSDP) saves memory by…",
+     "options": [
+      "Splitting the parameters, gradients and optimizer notes across GPUs instead of copying them",
+      "Deleting half the model",
+      "Using smaller pictures",
+      "Training on less text"
+     ],
+     "answer": 0,
+     "why": "<b>Sharing, not copying.</b> Each GPU stores only its share and borrows the rest briefly when it's needed."
     }
-  ]
+   ]
+  },
+  {
+   "title": "Splitting the model",
+   "cards": [
+    {
+     "type": "explainer",
+     "title": "Cutting the model itself into pieces",
+     "steps": [
+      {
+       "h": "Split each layer: tensor parallelism",
+       "p": "Each big matrix multiplication is divided across several GPUs, which each do part and combine results — many times per layer.",
+       "analogy": "Four people each adding up one column of a giant spreadsheet, then combining totals."
+      },
+      {
+       "h": "Needs super-fast links",
+       "p": "Because GPUs swap results constantly, this is usually kept inside one server, where GPUs are joined by very fast links like NVLink."
+      },
+      {
+       "h": "Split by layers: pipeline parallelism",
+       "p": "Different GPUs hold different layers. Data flows from one group to the next, like an assembly line.",
+       "visual": {
+        "kind": "flow",
+        "items": [
+         "GPUs 1–8: layers 1–20",
+         "GPUs 9–16: layers 21–40",
+         "GPUs 17–24: layers 41–60",
+         "GPUs 25–32: layers 61–80"
+        ]
+       }
+      },
+      {
+       "h": "The bubble",
+       "p": "At the start of a batch, later stages wait with nothing to do; at the end, early stages do. That idle time is the pipeline bubble."
+      },
+      {
+       "h": "Fill the line",
+       "p": "Splitting each batch into many small micro-batches keeps every stage busy most of the time.",
+       "analogy": "A car factory sends cars through one after another, not one car all the way before starting the next."
+      }
+     ]
+    },
+    {
+     "type": "quiz",
+     "q": "Why is tensor parallelism usually kept within a single server?",
+     "options": [
+      "It needs extremely frequent, fast communication that only links inside a server provide",
+      "Servers are cheaper",
+      "It's illegal across buildings",
+      "It only works with 2 GPUs"
+     ],
+     "answer": 0,
+     "hint": "Look at step 2.",
+     "why": "<b>Constant chatter.</b> GPUs exchange results many times per layer. Slower links between servers would leave them waiting."
+    },
+    {
+     "type": "quiz",
+     "q": "A \"pipeline bubble\" is…",
+     "options": [
+      "Idle time when stages wait for work at the start and end of a batch",
+      "A bug in the code",
+      "Air in the cooling pipes",
+      "A sudden jump in loss"
+     ],
+     "answer": 0,
+     "why": "<b>Waiting time.</b> Like an assembly line warming up and winding down. Micro-batches shrink it."
+    },
+    {
+     "type": "tf",
+     "statement": "Pipeline parallelism needs less communication bandwidth than tensor parallelism.",
+     "answer": true,
+     "why": "<b>True.</b> Stages only pass results along at layer boundaries, so it can stretch across servers."
+    },
+    {
+     "type": "fact",
+     "title": "Meta trained its 405-billion-parameter Llama 3 using four kinds of parallelism at once.",
+     "detail": "On about 16,000 H100 GPUs it combined tensor, pipeline, context and data parallelism — splitting matrices, layers, long sequences and batches all at once."
+    },
+    {
+     "type": "tf",
+     "statement": "NVIDIA's Megatron-LM work helped popularise tensor parallelism for transformers.",
+     "answer": true,
+     "why": "<b>True.</b> Its 2019 paper showed how to split transformer layers neatly across GPUs, and the approach became standard."
+    }
+   ]
+  },
+  {
+   "title": "Experts and long sequences",
+   "cards": [
+    {
+     "type": "explainer",
+     "title": "Even more ways to split",
+     "steps": [
+      {
+       "h": "Experts on different GPUs",
+       "p": "Mixture-of-experts models have many \"expert\" sub-networks. Expert parallelism puts different experts on different GPUs."
+      },
+      {
+       "h": "Everyone talks to everyone",
+       "p": "Each token must travel to whichever GPU holds its chosen expert and back — an \"all-to-all\" shuffle of data across the cluster.",
+       "analogy": "A sorting office where every letter may need to go to any desk."
+      },
+      {
+       "h": "Keep the experts busy",
+       "p": "If most tokens pick the same few experts, those GPUs are overloaded while others idle. Training adds a penalty that encourages even use."
+      },
+      {
+       "h": "Very long texts: context parallelism",
+       "p": "A single very long sequence can be split across GPUs. \"Ring attention\" passes chunks around a ring so each part can attend to all the others."
+      },
+      {
+       "h": "Hide the waiting",
+       "p": "Good systems start sending data while still computing, so GPUs don't sit idle waiting for messages.",
+       "visual": {
+        "kind": "compare",
+        "left": {
+         "title": "Without overlap",
+         "points": [
+          "Compute",
+          "Wait for data",
+          "Compute",
+          "Wait"
+         ]
+        },
+        "right": {
+         "title": "With overlap",
+         "points": [
+          "Compute while data moves",
+          "Almost no waiting"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "type": "quiz",
+     "q": "Expert parallelism relies heavily on which communication pattern?",
+     "options": [
+      "All-to-all",
+      "One-to-one",
+      "None at all",
+      "Broadcast from one GPU only"
+     ],
+     "answer": 0,
+     "hint": "Think of the sorting office.",
+     "why": "<b>All-to-all.</b> Tokens on every GPU may need experts on every other GPU, so data is shuffled in every direction."
+    },
+    {
+     "type": "quiz",
+     "q": "Why do mixture-of-experts models add a load-balancing penalty during training?",
+     "options": [
+      "To stop most tokens going to a few experts while others sit idle",
+      "To make the model smaller",
+      "To speed up the internet",
+      "To pick experts at random"
+     ],
+     "answer": 0,
+     "why": "<b>Even workloads.</b> An overloaded expert slows everyone, and unused experts waste memory."
+    },
+    {
+     "type": "tf",
+     "statement": "Ring attention lets attention over a very long sequence be split across many GPUs.",
+     "answer": true,
+     "why": "<b>True.</b> Each GPU holds part of the sequence and passes its chunk around the ring, so every part eventually meets every other."
+    },
+    {
+     "type": "fact",
+     "title": "DeepSeek wrote custom low-level GPU code to work around export-restricted chips.",
+     "detail": "Its H800 GPUs had slower chip-to-chip links. The V3 report describes custom communication code and a schedule that overlapped computing with data transfers."
+    },
+    {
+     "type": "quiz",
+     "q": "Why do training systems overlap communication with computation?",
+     "options": [
+      "So GPUs keep computing while data moves, instead of waiting",
+      "To save electricity at night",
+      "To make results more random",
+      "Because GPUs can't compute otherwise"
+     ],
+     "answer": 0,
+     "hint": "Look at the comparison in step 5.",
+     "why": "<b>No idle chips.</b> Every second a GPU waits is wasted money. Overlapping hides the transfer time behind useful work."
+    }
+   ]
+  },
+  {
+   "title": "Keeping a run alive",
+   "cards": [
+    {
+     "type": "explainer",
+     "title": "When breakdowns are normal",
+     "steps": [
+      {
+       "h": "Something always breaks",
+       "p": "With tens of thousands of GPUs, cables and power supplies, a failure every few hours is normal — even if each part is very reliable.",
+       "visual": {
+        "kind": "bars",
+        "items": [
+         {
+          "label": "1,000 GPUs",
+          "value": 0.5,
+          "note": "~1 every 2 days"
+         },
+         {
+          "label": "10,000 GPUs",
+          "value": 5,
+          "note": "~5 a day"
+         },
+         {
+          "label": "16,000 GPUs",
+          "value": 8,
+          "note": "~8 a day"
+         }
+        ],
+        "caption": "Rough failures per day, scaled from Meta's Llama 3 run."
+       }
+      },
+      {
+       "h": "Save often",
+       "p": "The run saves checkpoints regularly. After a crash it restarts from the last one, losing only the work since then.",
+       "analogy": "Saving your game every few minutes because the power keeps cutting out."
+      },
+      {
+       "h": "Save without stopping",
+       "p": "Writing hundreds of gigabytes takes time, so checkpoints are saved in the background while training continues."
+      },
+      {
+       "h": "Silent errors",
+       "p": "Worst of all: faulty hardware that quietly returns wrong numbers without any error message. Teams run checks to spot suspicious results."
+      },
+      {
+       "h": "Beyond one building",
+       "p": "The largest runs now span multiple data centers, linked by fast long-distance networks."
+      }
+     ]
+    },
+    {
+     "type": "quiz",
+     "q": "\"Silent data corruption\" is dangerous because…",
+     "options": [
+      "Faulty hardware returns wrong results without raising any error",
+      "It makes the computers noisy",
+      "It deletes the training data",
+      "It only happens at night"
+     ],
+     "answer": 0,
+     "why": "<b>No alarm.</b> A crash is obvious. Wrong numbers that look normal can quietly damage the model for days."
+    },
+    {
+     "type": "tf",
+     "statement": "On a cluster of tens of thousands of GPUs, an interruption every few hours is normal.",
+     "answer": true,
+     "why": "<b>True.</b> Meta reported 419 unexpected interruptions in 54 days training Llama 3 — about one every three hours."
+    },
+    {
+     "type": "quiz",
+     "q": "Why do large runs save checkpoints in the background?",
+     "options": [
+      "Writing hundreds of gigabytes would otherwise pause training",
+      "To hide them from hackers",
+      "Because disks are slow to start",
+      "To save electricity"
+     ],
+     "answer": 0,
+     "why": "<b>No pausing.</b> Stopping thousands of GPUs while a huge save finishes wastes a lot of expensive time."
+    },
+    {
+     "type": "fact",
+     "title": "Google trained Gemini Ultra across multiple data centers at once.",
+     "detail": "Its 2023 report describes TPU pods in several facilities working on one run, linked by Google's network — an early example of multi-site training."
+    },
+    {
+     "type": "tip",
+     "title": "Estimate training time",
+     "body": "Training compute ≈ 6 × parameters × tokens. Divide by (GPUs × each GPU's useful speed) to get seconds.",
+     "challenge": "Try it: a 7B model on 1 trillion tokens is about 4 × 10²² FLOPs. With 1,000 GPUs each doing a useful 4 × 10¹⁴ per second, how many hours?"
+    }
+   ]
+  }
+ ]
 }

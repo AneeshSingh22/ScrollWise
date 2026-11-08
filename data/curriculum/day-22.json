@@ -3,66 +3,74 @@
   "slug": "ai-industry",
   "topic": "The AI industry",
   "cat": "world",
-  "blurb": "Open versus closed models, who the major labs are, the DeepSeek shock and how AI makes money.",
+  "blurb": "Who builds AI, open versus closed models, the DeepSeek shock, and how the money works.",
   "lessons": [
     {
       "title": "Open weights vs closed models",
       "cards": [
-        { "type": "explainer", "title": "Two ways to ship a model", "steps": [
-          { "h": "Closed", "p": "Models like GPT, Claude and Gemini are used through an API or app. The weights never leave the company." },
-          { "h": "Open weights", "p": "Models like Llama, Mistral, Qwen and DeepSeek publish their weights for anyone to download, run and modify." },
-          { "h": "Not quite \"open source\"", "p": "Most open-weight releases withhold training data and full code, and many carry license restrictions." }
-        ], "aside": "The Open Source Initiative published a formal definition of open-source AI in 2024 that most open-weight models do not meet." },
-        { "type": "quiz", "q": "What separates \"open-weight\" from fully \"open-source\" AI?", "options": ["Nothing", "Open source also requires enough information about training data and the code to reproduce the model", "Open weights are free; open source is paid", "Open source models are smaller"], "answer": 1, "why": "<b>Reproducibility.</b> Weights let you run and fine-tune a model. Open source in the traditional sense means you could study and rebuild it." },
-        { "type": "tf", "statement": "Meta's Llama models qualify as open source under the Open Source Initiative's definition.", "answer": false, "why": "<b>False.</b> Llama's license includes restrictions — for example, very large companies need a separate license — and training data is not disclosed." },
-        { "type": "quiz", "q": "A main reason a company might pick an open-weight model is to…", "options": ["Get the absolute best quality", "Run it privately on its own servers and customize it without vendor lock-in", "Avoid needing any hardware", "Get free customer support"], "answer": 1, "why": "<b>Control.</b> Sensitive data never leaves your infrastructure, you can fine-tune freely, and you are not exposed to a provider's price or policy changes." },
-        { "type": "fact", "title": "Meta's first LLaMA model leaked onto the internet within about a week of its limited release in 2023.", "detail": "Meta had shared it only with approved researchers. The leak spread via 4chan and kicked off a wave of open experimentation — and Meta later chose to release its models openly." },
-        { "type": "tf", "statement": "The best open-weight models have generally trailed the best closed models by around a year or less.", "answer": true, "why": "<b>True.</b> Analyses such as Epoch AI's estimated the gap at roughly a year, and releases like DeepSeek-R1 narrowed it to months at times." }
+        { "type": "explainer", "title": "Two ways to release a model", "steps": [
+          { "h": "Closed", "p": "The company keeps the model on its own servers. You use it through an app or API but never get the model itself — like ChatGPT or Claude." },
+          { "h": "Open weights", "p": "The company publishes the trained parameters for anyone to download and run — like Meta's Llama or DeepSeek's models.", "visual": { "kind": "compare", "left": { "title": "Closed", "points": ["Use via app or API", "Company controls updates and safety", "Pay per use"] }, "right": { "title": "Open weights", "points": ["Download and run yourself", "Customise freely", "Keep data private"] } } },
+          { "h": "Open weights ≠ open source", "p": "Truly open-source software lets you see how it was built. Most \"open\" models share the finished parameters but not the training data or full recipe.", "analogy": "Being given a cake, versus being given the recipe and ingredients list too." },
+          { "h": "Why companies choose open", "p": "Businesses can run open models privately on their own servers, customise them and avoid depending on one supplier." },
+          { "h": "The gap", "p": "The best open models have usually trailed the best closed ones by about a year or less — sometimes much less." }
+        ] },
+        { "type": "quiz", "q": "What separates \"open-weight\" from fully \"open-source\" AI?", "options": ["Open source also shares enough about training data and code to rebuild the model", "Open source is always free and open-weight costs money", "Open-weight models can't be downloaded", "There's no difference"], "answer": 0, "hint": "The cake vs the recipe.", "why": "<b>The recipe.</b> Open weights give you the finished model. Open source, by the usual definition, also lets you see and reproduce how it was made." },
+        { "type": "tf", "statement": "Meta's Llama models count as open source under the Open Source Initiative's definition.", "answer": false, "why": "<b>False.</b> Llama's licence has usage restrictions and the training data isn't released, so it's open-weight, not open source by that standard." },
+        { "type": "quiz", "q": "A main reason a company might pick an open-weight model is to…", "options": ["Run it privately on its own servers and customise it", "Get it to answer faster than any closed model", "Avoid needing any computers", "Get free customer support"], "answer": 0, "why": "<b>Control and privacy.</b> Sensitive data never leaves the company, and it can fine-tune the model however it likes." },
+        { "type": "fact", "title": "Meta's first LLaMA model leaked onto the internet within about a week of its limited release in 2023.", "detail": "Meta had shared it only with approved researchers. The leak sparked a wave of open experimentation — and Meta released later versions openly by choice." },
+        { "type": "tf", "statement": "The best open-weight models have generally trailed the best closed models by around a year or less.", "answer": true, "why": "<b>True.</b> Analyses like Epoch AI's put the gap at roughly a year, and it narrowed sharply when DeepSeek-R1 arrived." }
       ]
     },
     {
       "title": "The major labs",
       "cards": [
         { "type": "explainer", "title": "Who builds frontier AI", "steps": [
-          { "h": "US labs", "p": "OpenAI, Anthropic, Google DeepMind, Meta and xAI lead in frontier models, with Microsoft, Amazon and Google supplying much of the computing." },
-          { "h": "China", "p": "DeepSeek, Alibaba's Qwen team, Moonshot and others release strong models, many with open weights." },
-          { "h": "Europe", "p": "France's Mistral AI is Europe's best-known model maker." }
-        ], "aside": "A handful of organizations account for nearly all frontier-scale training runs." },
-        { "type": "quiz", "q": "Anthropic was founded in 2021 by…", "options": ["Google executives", "Former OpenAI researchers, including Dario and Daniela Amodei", "A Chinese hedge fund", "Meta's AI team"], "answer": 1, "why": "<b>Ex-OpenAI researchers.</b> The founders focused the company on AI safety research alongside building frontier models like Claude." },
-        { "type": "tf", "statement": "OpenAI was founded in 2015 as a nonprofit.", "answer": true, "why": "<b>True.</b> It added a \"capped-profit\" company in 2019 to raise capital, and its structure has been restructured and debated since." },
-        { "type": "quiz", "q": "In 2023, Google merged two AI groups to form Google DeepMind. They were…", "options": ["YouTube AI and Android AI", "Google Brain and DeepMind", "Waymo and Verily", "Bard and Gemini"], "answer": 1, "why": "<b>Google Brain and DeepMind.</b> Brain (where the transformer was invented) and London-based DeepMind (AlphaGo) combined under Demis Hassabis." },
-        { "type": "fact", "title": "DeepSeek is funded by High-Flyer, a Chinese quantitative hedge fund.", "detail": "The fund had stockpiled GPUs for trading research. Founder Liang Wenfeng spun out DeepSeek in 2023 to pursue general AI." },
-        { "type": "tf", "statement": "Mistral AI is headquartered in France.", "answer": true, "why": "<b>True.</b> Founded in Paris in 2023 by former Google DeepMind and Meta researchers, it releases both open-weight and commercial models." }
+          { "h": "United States", "p": "OpenAI (ChatGPT), Anthropic (Claude), Google DeepMind (Gemini), Meta (Llama) and xAI (Grok) lead, backed by enormous computing budgets." },
+          { "h": "Family tree", "p": "Many labs share roots: Anthropic was founded by former OpenAI researchers; Google merged its two AI groups into Google DeepMind.", "visual": { "kind": "flow", "items": ["OpenAI (2015, nonprofit)", "Former staff found Anthropic (2021)", "Google Brain + DeepMind merge (2023)"] } },
+          { "h": "China", "p": "DeepSeek, Alibaba (Qwen), Moonshot and others release strong models, often open-weight, despite limits on buying top US chips." },
+          { "h": "Europe", "p": "France's Mistral AI is Europe's best-known model maker. Many others focus on applications rather than the largest models." },
+          { "h": "Partners and investors", "p": "Cloud giants pair with labs: Microsoft with OpenAI; Amazon and Google with Anthropic. Labs get computing, clouds get customers.", "analogy": "Like car makers teaming up with engine makers." }
+        ] },
+        { "type": "quiz", "q": "Anthropic was founded in 2021 by…", "options": ["Former OpenAI researchers, including Dario and Daniela Amodei", "Google's founders", "A Chinese hedge fund", "The French government"], "answer": 0, "hint": "Look at the family tree.", "why": "<b>Ex-OpenAI researchers.</b> A group left to start a company with a stronger focus on AI safety." },
+        { "type": "tf", "statement": "OpenAI was founded in 2015 as a nonprofit.", "answer": true, "why": "<b>True.</b> It later added a capped-profit company to raise the huge sums needed for computing." },
+        { "type": "quiz", "q": "In 2023, Google merged two AI groups to form Google DeepMind. They were…", "options": ["Google Brain and DeepMind", "YouTube and Gmail", "Android and Chrome", "Waymo and Fitbit"], "answer": 0, "why": "<b>Brain and DeepMind.</b> Two rival in-house teams combined to compete with OpenAI." },
+        { "type": "fact", "title": "DeepSeek is funded by High-Flyer, a Chinese hedge fund that uses computer-driven trading.", "detail": "The fund had stockpiled GPUs for trading research. Founder Liang Wenfeng spun out DeepSeek in 2023 to pursue general AI." },
+        { "type": "tf", "statement": "Mistral AI is based in France.", "answer": true, "why": "<b>True.</b> Founded in Paris in 2023 by former Google DeepMind and Meta researchers." }
       ]
     },
     {
       "title": "The DeepSeek shock",
       "cards": [
         { "type": "explainer", "title": "January 2025", "steps": [
-          { "h": "A strong open model", "p": "DeepSeek released R1, an open-weight reasoning model that rivaled OpenAI's o1 on many benchmarks." },
-          { "h": "A cheap headline number", "p": "A widely quoted figure put the training cost of its base model at about $5.6 million — a fraction of what rivals were assumed to spend." },
-          { "h": "Markets panicked", "p": "On January 27, NVIDIA lost about $590 billion in market value in a single day, the largest one-day loss in US market history." }
-        ], "aside": "Within weeks, the stock had recovered much of the drop as analysts reassessed." },
-        { "type": "tf", "statement": "DeepSeek's ~$5.6 million figure covered the full cost of developing the model.", "answer": false, "why": "<b>False.</b> It covered GPU rental time for the final training run of V3 only — not research, failed experiments, staff, data or the hardware itself. Total costs were far higher." },
-        { "type": "quiz", "q": "Why did cheap-training claims rattle chip stocks?", "options": ["DeepSeek sold chips", "They suggested AI might need far less spending on GPUs than expected", "NVIDIA was hacked", "Interest rates rose"], "answer": 1, "why": "<b>Demand fears.</b> Investors worried that efficient training would reduce the need for enormous GPU purchases." },
-        { "type": "quiz", "q": "The Jevons paradox suggests that making AI cheaper to run might…", "options": ["Reduce total computing demand", "Increase total demand, as cheaper AI gets used far more", "Have no effect", "Ban AI"], "answer": 1, "why": "<b>Efficiency can raise consumption.</b> Jevons observed that more efficient steam engines increased coal use. Many argued cheaper AI would expand usage enough to raise GPU demand." },
-        { "type": "fact", "title": "DeepSeek released R1's weights under the permissive MIT license.", "detail": "That allowed anyone to use, modify and commercialize it with almost no restrictions, and it quickly appeared on major cloud platforms." },
-        { "type": "tf", "statement": "DeepSeek's app briefly became the top free app on Apple's US App Store.", "answer": true, "why": "<b>True.</b> In late January 2025 it overtook ChatGPT in the App Store rankings, a striking moment for a little-known Chinese lab." }
+          { "h": "A strong, open model", "p": "Chinese lab DeepSeek released R1, a reasoning model rivalling OpenAI's best, free to download." },
+          { "h": "A cheap-sounding number", "p": "DeepSeek reported about $5.6 million of computing for the final training run of the model it was built on — tiny next to rivals' rumoured budgets." },
+          { "h": "But that's not the full bill", "p": "The figure excluded research, failed experiments, staff and the chips themselves — likely hundreds of millions overall.", "analogy": "Quoting the cost of the final exam, not the years of school before it." },
+          { "h": "Markets panicked", "p": "Investors wondered if AI would need far fewer chips. NVIDIA's market value fell by about $600 billion in one day.", "visual": { "kind": "flow", "items": ["\"AI trained for $5.6M!\"", "\"Maybe we need fewer GPUs\"", "Chip stocks fall sharply", "Later partly recovered"] } },
+          { "h": "Cheaper can mean more", "p": "The Jevons paradox: when something gets cheaper, people often use so much more of it that total demand rises." }
+        ] },
+        { "type": "tf", "statement": "DeepSeek's ~$5.6 million figure covered the full cost of developing the model.", "answer": false, "hint": "The final exam, not the schooling.", "why": "<b>False.</b> It covered the computing for the final training run only — not research, earlier experiments, staff or buying the hardware." },
+        { "type": "quiz", "q": "Why did cheap-training claims rattle chip stocks?", "options": ["They suggested AI might need far less spending on GPUs than expected", "Chips became illegal", "DeepSeek made its own GPUs", "GPUs stopped working"], "answer": 0, "why": "<b>Fear of lower demand.</b> If great models need far fewer chips, the boom in chip sales might slow." },
+        { "type": "quiz", "q": "The Jevons paradox suggests that making AI cheaper to run might…", "options": ["Increase total demand, as cheaper AI gets used far more", "End AI use completely", "Make chips more expensive to build", "Have no effect"], "answer": 0, "why": "<b>More total use.</b> Cheaper steam engines led to more coal burned, not less. Cheaper AI may similarly mean more chips." },
+        { "type": "fact", "title": "DeepSeek released R1 under the permissive MIT licence.", "detail": "That let anyone use, change and sell products built on it with almost no restrictions, and it quickly appeared on major cloud platforms." },
+        { "type": "tf", "statement": "DeepSeek's app briefly became the top free app on Apple's US App Store.", "answer": true, "why": "<b>True.</b> In late January 2025 it overtook ChatGPT there, briefly." }
       ]
     },
     {
       "title": "How AI makes money",
       "cards": [
-        { "type": "explainer", "title": "The economics", "steps": [
-          { "h": "Costs", "p": "Huge up-front training costs, then ongoing inference costs for every user query." },
-          { "h": "Revenue", "p": "Consumer subscriptions, per-token API pricing for developers, and enterprise contracts." },
-          { "h": "Falling prices", "p": "The price of a given level of capability has dropped dramatically, as competition and efficiency improve." }
-        ], "aside": "Cloud providers profit either way, by selling the computing that all of this runs on." },
-        { "type": "quiz", "q": "How has the price of reaching a fixed capability level, like GPT-4-class performance, changed since 2023?", "options": ["Risen steadily", "Stayed flat", "Fallen by orders of magnitude", "Doubled each year"], "answer": 2, "why": "<b>Collapsed.</b> Analyses such as Epoch AI's found prices for a given performance level falling between roughly 10× and several hundred times per year, depending on the task." },
-        { "type": "tf", "statement": "ChatGPT reached an estimated 100 million users about two months after launch.", "answer": true, "why": "<b>True</b>, according to a widely cited UBS analysis in early 2023 — then the fastest-growing consumer app on record." },
-        { "type": "quiz", "q": "Which two cloud giants made major investments in Anthropic?", "options": ["Apple and IBM", "Amazon and Google", "Oracle and Meta", "Microsoft and Tesla"], "answer": 1, "why": "<b>Amazon and Google.</b> Microsoft, by contrast, is OpenAI's biggest backer. These deals tie labs to the clouds that supply their compute." },
-        { "type": "fact", "title": "ChatGPT launched on November 30, 2022, as a \"low-key research preview\".", "detail": "OpenAI staff reportedly expected modest interest. It reached a million users in five days and triggered the generative AI boom." },
-        { "type": "tip", "title": "Read the source, not the headline", "body": "AI news is distorted fast. A model's own announcement, paper or system card tells you what was claimed, how it was measured, and what the limits are.", "challenge": "Pick one AI announcement from this week and read the original post instead of a summary of it." }
+        { "type": "explainer", "title": "The economics of AI", "steps": [
+          { "h": "Huge costs", "p": "Labs spend billions on chips, data centers, electricity and researchers. Training is expensive, and serving millions of users daily is too." },
+          { "h": "Where money comes in", "p": "Subscriptions (like $20-a-month plans), businesses paying per token through the API, and enterprise deals." },
+          { "h": "Prices keep falling", "p": "The cost of getting GPT-4-level performance has fallen by orders of magnitude since 2023, thanks to better models and hardware.", "visual": { "kind": "line", "points": [[2023, 100], [2024, 10], [2025, 1]], "x": "Year", "y": "Relative price", "caption": "Illustration: roughly 10× cheaper each year for the same ability." } },
+          { "h": "Record-fast growth", "p": "ChatGPT reached an estimated 100 million users about two months after launch — faster than any app before it." },
+          { "h": "The big question", "p": "Can revenue grow fast enough to justify hundreds of billions in spending? Investors are betting yes; sceptics warn of a bubble." }
+        ] },
+        { "type": "quiz", "q": "How has the price of reaching GPT-4-level performance changed since 2023?", "options": ["Fallen by orders of magnitude", "Doubled", "Stayed the same", "Risen a little"], "answer": 0, "hint": "Look at the line chart.", "why": "<b>Down 10× or more, repeatedly.</b> Smaller, better-trained models and cheaper hardware keep driving the price down." },
+        { "type": "tf", "statement": "ChatGPT reached an estimated 100 million users about two months after launch.", "answer": true, "why": "<b>True.</b> Analyst estimates put it at about two months — then the fastest-growing consumer app ever recorded." },
+        { "type": "quiz", "q": "Which two cloud giants made major investments in Anthropic?", "options": ["Amazon and Google", "Apple and Netflix", "Microsoft and Meta", "Samsung and Sony"], "answer": 0, "why": "<b>Amazon and Google.</b> Each invested billions, and Anthropic uses their cloud computing to train and serve Claude." },
+        { "type": "fact", "title": "ChatGPT launched on 30 November 2022 as a \"low-key research preview\".", "detail": "OpenAI staff reportedly expected modest interest. It reached a million users in five days and set off the generative AI boom." },
+        { "type": "tip", "title": "Read the source, not the headline", "body": "AI news often exaggerates — \"$5 million model\" or \"AI replaces X\". The original report usually has important caveats.", "challenge": "Pick one AI headline this week and find the original paper or announcement. Note one thing the headline left out." }
       ]
     }
   ]
