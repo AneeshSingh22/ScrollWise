@@ -3,66 +3,74 @@
   "slug": "ai-chips",
   "topic": "AI chips beyond GPUs",
   "cat": "tech",
-  "blurb": "TPUs, hyperscalers' custom silicon, inference startups and the AI chips in your phone and laptop.",
+  "blurb": "Google's TPU, big tech's own chips, speed-obsessed startups, and the little AI engine inside your phone.",
   "lessons": [
     {
       "title": "Google's TPU",
       "cards": [
         { "type": "explainer", "title": "A chip built for one job", "steps": [
-          { "h": "A looming cost", "p": "Around 2013, Google projected that if users spoke to voice search a few minutes a day, it would need to double its data centers." },
-          { "h": "A systolic array", "p": "The TPU's core is a grid of multiply-accumulate units. Data flows through it in waves, each unit passing results to its neighbor." },
-          { "h": "Pods", "p": "Later TPUs connect thousands of chips with dedicated links into pods that train one model together." }
-        ], "aside": "The first TPU went into Google's data centers in 2015 and was announced publicly in 2016." },
-        { "type": "quiz", "q": "Why is a systolic array efficient for matrix multiplication?", "options": ["It uses less silicon than a CPU", "Data is reused as it flows between neighboring units, avoiding repeated trips to memory", "It runs at higher clock speeds", "It needs no power"], "answer": 1, "why": "<b>Data reuse.</b> Each number read from memory is used by many units as it passes through, so arithmetic far outpaces memory access." },
-        { "type": "tf", "statement": "The first-generation TPU was designed only for inference, not training.", "answer": true, "why": "<b>True.</b> TPU v1 ran 8-bit integer math to serve models. Training support arrived with TPU v2 in 2017." },
-        { "type": "fact", "title": "Google's Ironwood TPU, announced in 2025, was its first designed specifically for inference at scale — and comes in pods of 9,216 chips.", "detail": "Google positioned it for the \"age of inference\", as serving models to users, especially reasoning models, overtakes training as the main compute demand." },
-        { "type": "tf", "statement": "You can buy Google's data-center TPUs to install in your own servers.", "answer": false, "why": "<b>False.</b> They are available through Google Cloud, not sold as standalone parts. (Google's small Edge TPU for embedded devices is a separate product.)" },
-        { "type": "quiz", "q": "What drove Google to start the TPU project?", "options": ["A chip shortage", "Projections that neural network workloads like speech recognition would otherwise require doubling its data centers", "A government contract", "Gaming"], "answer": 1, "why": "<b>Cost of scale.</b> A custom chip far more efficient for neural networks was cheaper than building many more data centers of general-purpose hardware." }
+          { "h": "A scary forecast", "p": "Around 2013 Google calculated that if people used voice search for a few minutes a day, running the neural networks could mean doubling its data centers." },
+          { "h": "Build a specialist", "p": "So Google designed the TPU — a chip that does almost nothing except the matrix maths neural networks need, and does it very efficiently.", "analogy": "A GPU is a Swiss Army knife; a TPU is a very sharp chef's knife." },
+          { "h": "The systolic array", "p": "Inside is a grid of thousands of tiny multiply-add units. Numbers pulse through the grid, each unit passing results to its neighbour — so data is reused instead of fetched again from memory.", "visual": { "kind": "flow", "items": ["Numbers enter one edge of the grid", "Each unit multiplies, adds, passes on", "Results flow out the other edge", "Few slow trips to memory"] } },
+          { "h": "Pods", "p": "TPUs are linked into \"pods\" of thousands of chips with fast custom connections, acting like one giant computer." },
+          { "h": "Only in Google's cloud", "p": "You can't buy TPUs for your own servers. You rent them through Google Cloud — Google keeps the hardware." }
+        ] },
+        { "type": "quiz", "q": "What drove Google to start the TPU project?", "options": ["A forecast that neural networks like speech recognition could otherwise need double the data centers", "A shortage of video games", "A government order", "Its phones running out of battery"], "answer": 0, "why": "<b>A cost crisis.</b> Building a custom chip was cheaper than building a second set of data centers." },
+        { "type": "quiz", "q": "Why is a systolic array efficient for matrix maths?", "options": ["Numbers are reused as they flow between neighbouring units, avoiding repeated trips to memory", "It runs at a higher temperature", "It skips half the calculations", "It uses light instead of electricity"], "answer": 0, "hint": "Look at the flow in step 3.", "why": "<b>Reuse, not re-fetch.</b> Fetching from memory costs far more energy than the maths itself, so passing numbers along is a big win." },
+        { "type": "tf", "statement": "The first TPU was designed only for running models, not for training them.", "answer": true, "why": "<b>True.</b> Version 1 (in use from 2015) only served models. Later generations added training." },
+        { "type": "fact", "title": "Google's Ironwood TPU (2025) was its first designed mainly for running models at scale — in pods of 9,216 chips.", "detail": "Google called it built for the \"age of inference\": answering users' questions, especially with reasoning models, now takes more computing than training." },
+        { "type": "tf", "statement": "You can buy Google's data-center TPUs to install in your own servers.", "answer": false, "why": "<b>False.</b> They're only available to rent through Google Cloud. That's a key difference from NVIDIA, which sells to everyone." }
       ]
     },
     {
       "title": "The custom silicon wave",
       "cards": [
         { "type": "explainer", "title": "Everyone builds their own", "steps": [
-          { "h": "Hyperscaler chips", "p": "Amazon (Trainium, Inferentia), Microsoft (Maia) and Meta (MTIA) design their own AI accelerators." },
-          { "h": "Why", "p": "Lower cost per workload, less dependence on NVIDIA's supply and pricing, and chips tuned to their own models." },
-          { "h": "The catch", "p": "Software ecosystems take years to mature, and NVIDIA's CUDA lead is hard to match." }
-        ], "aside": "Most of these chips are made by TSMC — the same foundry NVIDIA uses." },
-        { "type": "quiz", "q": "Amazon's custom chip for training AI models is called…", "options": ["Graviton", "Trainium", "Maia", "Ironwood"], "answer": 1, "why": "<b>Trainium.</b> Graviton is Amazon's general-purpose CPU, Maia is Microsoft's AI chip, and Ironwood is Google's TPU." },
-        { "type": "tf", "statement": "Anthropic uses Amazon's Trainium chips to train models.", "answer": true, "why": "<b>True.</b> Amazon's Project Rainier built a large Trainium cluster for Anthropic, which also uses Google TPUs and NVIDIA GPUs." },
-        { "type": "fact", "title": "Cerebras builds a single chip the size of an entire silicon wafer.", "detail": "Its Wafer Scale Engine 3 covers about 46,000 mm² with around 4 trillion transistors — roughly 50 times the area of a large GPU — keeping huge amounts of memory on-chip." },
-        { "type": "tf", "statement": "AMD's MI300X GPU carries more high-bandwidth memory than NVIDIA's H100.", "answer": true, "why": "<b>True.</b> 192 GB versus 80 GB. More memory per chip lets large models fit on fewer GPUs — a key selling point for inference." },
-        { "type": "quiz", "q": "What is the biggest obstacle for NVIDIA's competitors?", "options": ["Physics", "The maturity and familiarity of NVIDIA's software ecosystem", "Lack of factories", "Patents on silicon"], "answer": 1, "why": "<b>Software.</b> Matching raw hardware performance is feasible; getting every framework, library and developer workflow to run smoothly takes years." }
+          { "h": "Big tech's own chips", "p": "Amazon (Trainium, Inferentia), Microsoft (Maia), Meta (MTIA) and Google (TPU) all design AI chips for their own data centers." },
+          { "h": "Why bother?", "p": "NVIDIA's GPUs are expensive and in short supply. A chip tuned to your own workloads can be cheaper per answer and reduce dependence on one supplier.", "analogy": "A restaurant chain growing its own vegetables instead of paying a single supplier's prices." },
+          { "h": "Rival GPUs", "p": "AMD's MI300X competes directly with NVIDIA, with more memory per chip — useful for holding big models." },
+          { "h": "Wild designs", "p": "Cerebras makes one chip the size of a whole silicon wafer, keeping enormous amounts of memory right on the chip.", "visual": { "kind": "bars", "items": [ { "label": "Large GPU chip", "value": 814, "note": "~800 mm²" }, { "label": "Cerebras wafer chip", "value": 46225, "note": "~46,000 mm²" } ], "caption": "Chip area: about 50× larger." } },
+          { "h": "The catch: software", "p": "NVIDIA's real advantage is CUDA — years of software, tools and know-how built around its chips. Switching takes work." }
+        ] },
+        { "type": "quiz", "q": "Amazon's custom chip for training AI models is called…", "options": ["Trainium", "Tensorflow", "Alexa", "Graviton"], "answer": 0, "why": "<b>Trainium.</b> Its sibling Inferentia focuses on running models. Graviton is Amazon's general-purpose CPU." },
+        { "type": "tf", "statement": "Anthropic uses Amazon's Trainium chips to train models.", "answer": true, "why": "<b>True.</b> As part of Amazon's investment, Anthropic trains on large Trainium clusters such as Project Rainier, alongside other hardware." },
+        { "type": "fact", "title": "Cerebras builds a single chip the size of an entire silicon wafer.", "detail": "Its Wafer Scale Engine 3 covers about 46,000 mm² with around 4 trillion transistors — roughly 50 times the area of a large GPU." },
+        { "type": "tf", "statement": "AMD's MI300X carries more high-bandwidth memory than NVIDIA's H100.", "answer": true, "why": "<b>True.</b> 192 GB versus 80 GB, so a big model can fit on fewer chips." },
+        { "type": "quiz", "q": "What's the biggest obstacle for NVIDIA's competitors?", "options": ["How mature and familiar NVIDIA's software is", "NVIDIA's chips are the only ones that work", "Nobody else can make chips", "It's illegal to compete"], "answer": 0, "hint": "Look at step 5.", "why": "<b>Software habits.</b> Most AI code assumes CUDA. Rival chips can be fast, but moving code and tools over costs time and money." }
       ]
     },
     {
       "title": "Inference chips and startups",
       "cards": [
-        { "type": "explainer", "title": "Specialize to go faster", "steps": [
-          { "h": "General-purpose GPUs", "p": "GPUs handle training, inference, graphics and science — flexible but not optimal for any single task." },
-          { "h": "Inference specialists", "p": "Startups like Groq and Cerebras design chips that generate tokens extremely fast, often by keeping weights in on-chip memory." },
-          { "h": "The bet", "p": "Specialized chips win if workloads stay stable. If model architectures change, they risk obsolescence." }
-        ], "aside": "Flexibility versus efficiency is the oldest trade-off in chip design." },
-        { "type": "quiz", "q": "Groq's inference chips get their speed largely by keeping model weights in…", "options": ["Hard drives", "On-chip SRAM spread across many chips", "The cloud", "HBM only"], "answer": 1, "why": "<b>SRAM.</b> On-chip SRAM is far faster than off-chip HBM but holds much less, so a large model must be split across many chips." },
-        { "type": "tf", "statement": "A chip designed only to run transformers would struggle if the dominant AI architecture changed.", "answer": true, "why": "<b>True.</b> That is the risk of extreme specialization. Hard-wiring today's design gives big efficiency gains but little room to adapt." },
-        { "type": "quiz", "q": "Compared with a GPU, a custom ASIC for a fixed task is usually…", "options": ["More flexible and less efficient", "More efficient but less flexible", "Identical", "Slower and more expensive to run"], "answer": 1, "why": "<b>Efficiency for flexibility.</b> Dropping hardware for unneeded tasks saves power and area, but the chip can do less." },
-        { "type": "fact", "title": "Groq was founded by Jonathan Ross, who worked on the original Google TPU.", "detail": "Many AI chip startups trace back to the TPU team, which proved that custom silicon for neural networks could beat general-purpose hardware." },
-        { "type": "quiz", "q": "Why don't all chips just use SRAM instead of HBM?", "options": ["SRAM is slower", "SRAM is far less dense and more expensive per byte", "SRAM uses more power when idle only", "SRAM is banned"], "answer": 1, "why": "<b>Density and cost.</b> SRAM needs about six transistors per bit and lives on the expensive logic die. HBM stores far more per dollar." }
+        { "type": "explainer", "title": "Specialise to go faster", "steps": [
+          { "h": "GPUs do everything", "p": "GPUs are flexible: training, serving, graphics, science. Flexibility costs some efficiency." },
+          { "h": "Specialists for serving", "p": "Startups like Groq and Cerebras build chips just for running models, aiming for very fast replies." },
+          { "h": "Keep the weights close", "p": "Groq spreads a model across many chips and keeps its numbers in super-fast on-chip memory (SRAM), avoiding slow trips to separate memory.", "visual": { "kind": "compare", "left": { "title": "SRAM (on chip)", "points": ["Extremely fast", "Tiny and expensive"] }, "right": { "title": "HBM (beside chip)", "points": ["Fast", "Much bigger and cheaper per byte"] } } },
+          { "h": "Flexible vs efficient", "p": "A chip built for one task is usually more efficient — but if the task changes, it may be stuck.", "analogy": "A pizza oven makes perfect pizza fast; a normal oven can cook anything." },
+          { "h": "The bet", "p": "These startups bet that serving AI will be a huge market and that today's model designs are stable enough to build for." }
+        ] },
+        { "type": "quiz", "q": "Groq's chips get much of their speed by keeping the model's numbers in…", "options": ["Fast on-chip memory spread across many chips", "A hard drive", "The cloud", "The user's phone"], "answer": 0, "hint": "Look at the comparison in step 3.", "why": "<b>On-chip SRAM.</b> No waiting for separate memory means very fast replies — but it takes many chips to fit one model." },
+        { "type": "tf", "statement": "A chip designed only to run transformers would struggle if the main AI design changed.", "answer": true, "why": "<b>True.</b> That's the risk of specialising. GPUs adapt to new designs; a fixed-purpose chip may not." },
+        { "type": "quiz", "q": "Compared with a GPU, a chip designed for one fixed task is usually…", "options": ["More efficient but less flexible", "Slower and more flexible", "Identical", "Always cheaper to design"], "answer": 0, "hint": "The pizza oven.", "why": "<b>Efficient but narrow.</b> No wasted circuitry, but no room for other jobs." },
+        { "type": "fact", "title": "Groq was founded by Jonathan Ross, who worked on the original Google TPU.", "detail": "Many AI chip startups trace back to the TPU team, which proved custom chips for neural networks could beat general-purpose hardware." },
+        { "type": "quiz", "q": "Why don't all chips just use SRAM instead of HBM?", "options": ["SRAM holds far less per chip and costs much more per byte", "SRAM is slower", "SRAM can't store numbers", "HBM is newer"], "answer": 0, "why": "<b>Density and cost.</b> SRAM is fastest, but you'd need hundreds of chips to hold a big model." }
       ]
     },
     {
       "title": "AI on your devices",
       "cards": [
-        { "type": "explainer", "title": "Neural processing units", "steps": [
-          { "h": "A dedicated block", "p": "Phones and laptops now include NPUs — small accelerators for neural network math — beside the CPU and GPU." },
-          { "h": "Why local", "p": "On-device AI is private, works offline, responds instantly, and costs nothing per use." },
-          { "h": "Measured in TOPS", "p": "NPU speed is quoted in trillions of operations per second, usually at low precision." }
-        ], "aside": "Face unlock, photo processing, live captions and dictation often run on the NPU." },
-        { "type": "quiz", "q": "Microsoft's Copilot+ PC label requires an NPU of at least how much performance?", "options": ["4 TOPS", "40 TOPS", "400 TOPS", "4,000 TOPS"], "answer": 1, "why": "<b>40 TOPS.</b> Microsoft set that bar in 2024 for features like Recall and live captions to run locally." },
-        { "type": "tf", "statement": "Apple's Neural Engine first appeared in the A11 Bionic chip in the iPhone X in 2017.", "answer": true, "why": "<b>True.</b> It powered Face ID and Animoji. Apple's chips have included a Neural Engine ever since, growing much faster each generation." },
-        { "type": "quiz", "q": "TOPS stands for…", "options": ["Total operations per second", "Trillions of operations per second", "Tensor operations per sample", "Top output speed"], "answer": 1, "why": "<b>Trillions of operations per second</b>, usually measured with 8-bit integers. Comparisons across vendors are rough, as precision and real-world utilization differ." },
-        { "type": "fact", "title": "Face ID matches your face entirely on the iPhone, never sending it to Apple's servers.", "detail": "The Neural Engine compares a depth map of your face with a stored mathematical representation, all on-device — a privacy benefit of local AI." },
-        { "type": "tip", "title": "Find your laptop's NPU", "body": "On Windows 11, Task Manager's Performance tab lists an NPU if your laptop has a supported one, showing when it is in use.", "challenge": "Open Task Manager (Ctrl+Shift+Esc) → Performance, and check whether an NPU appears." }
+        { "type": "explainer", "title": "The AI engine in your pocket", "steps": [
+          { "h": "A dedicated block", "p": "Modern phone and laptop chips include an NPU — a small section built just for AI maths, sitting beside the CPU and GPU." },
+          { "h": "Why run AI locally?", "p": "Running on your device is private (data stays put), works offline, responds instantly and saves battery compared with general-purpose chips.", "visual": { "kind": "cells", "items": ["🔒", "✈️", "⚡", "🔋"], "labels": ["Private", "Offline", "Instant", "Efficient"] } },
+          { "h": "Everyday uses", "p": "Face unlock, photo enhancement, live captions, voice typing and small on-device chatbots all use the NPU." },
+          { "h": "Measured in TOPS", "p": "NPUs are rated in TOPS — trillions of operations per second. Microsoft requires 40+ for its Copilot+ PC label.", "analogy": "Like horsepower for car engines: a rough guide, not the full story." },
+          { "h": "Since 2017", "p": "Apple's Neural Engine first appeared in the iPhone X's A11 chip in 2017. Now nearly every new phone has one." }
+        ] },
+        { "type": "quiz", "q": "Microsoft's Copilot+ PC label requires an NPU of at least…", "options": ["40 TOPS", "4 TOPS", "400 TOPS", "1 TOPS"], "answer": 0, "why": "<b>40 TOPS.</b> Enough to run features like live translation and image tools locally." },
+        { "type": "tf", "statement": "Apple's Neural Engine first appeared in the A11 chip in the iPhone X in 2017.", "answer": true, "why": "<b>True.</b> It powered Face ID and camera features from day one." },
+        { "type": "quiz", "q": "TOPS stands for…", "options": ["Trillions of operations per second", "Total output power", "Top operating speed", "Tokens per second"], "answer": 0, "why": "<b>Trillions of operations per second.</b> A rough measure of peak speed — real performance also depends on memory and software." },
+        { "type": "fact", "title": "Face ID matches your face entirely on the iPhone, never sending it to Apple's servers.", "detail": "The Neural Engine compares a depth map of your face with a stored mathematical representation, all on the device — a privacy benefit of local AI." },
+        { "type": "tip", "title": "Find your laptop's NPU", "body": "On Windows, Task Manager's Performance tab shows an NPU if your computer has one. On a Mac, every Apple-chip model has a Neural Engine.", "challenge": "Check whether your laptop or phone has an NPU, and look up its TOPS rating." }
       ]
     }
   ]
