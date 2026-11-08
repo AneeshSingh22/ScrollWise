@@ -3,66 +3,74 @@
   "slug": "reasoning-models",
   "topic": "Reasoning models",
   "cat": "ai",
-  "blurb": "Models that think before answering, the new scaling axis of test-time compute, and how reasoning is measured.",
+  "blurb": "Models that think before they answer: why thinking longer helps, the tricks for spending that effort, and how we test it.",
   "lessons": [
     {
       "title": "Thinking before answering",
       "cards": [
-        { "type": "explainer", "title": "A new kind of model", "steps": [
-          { "h": "Hidden scratch work", "p": "Reasoning models write a long chain of thought before their final answer, often thousands of tokens the user never sees." },
-          { "h": "Trained, not prompted", "p": "Reinforcement learning on problems with checkable answers teaches them to explore, check and backtrack." },
-          { "h": "Accuracy scales with thinking", "p": "Letting the model think longer improves results on hard problems, a new lever alongside bigger training runs." }
-        ], "aside": "OpenAI's o1, previewed in September 2024, made this mainstream." },
-        { "type": "quiz", "q": "What new scaling lever did OpenAI's o1 highlight?", "options": ["Bigger tokenizers", "Spending more compute at inference time, by thinking longer", "Smaller datasets", "Higher temperature"], "answer": 1, "why": "<b>Test-time compute.</b> Instead of only training bigger models, you can improve answers by letting the model reason longer per question." },
-        { "type": "tf", "statement": "Reasoning models beat standard models on every kind of task.", "answer": false, "why": "<b>False.</b> They are slower and more expensive, and gain little on simple lookups, casual chat or some writing tasks. They shine on math, code and multi-step logic." },
-        { "type": "tf", "statement": "With some APIs, you pay for a reasoning model's hidden thinking tokens even though you never see them.", "answer": true, "why": "<b>True.</b> OpenAI's o-series, for example, bills reasoning tokens as output tokens. A short visible answer can carry a large hidden cost." },
-        { "type": "fact", "title": "OpenAI's o3 scored 75.7% on the ARC-AGI benchmark at modest compute in December 2024 — and 87.5% with far more.", "detail": "ARC had resisted AI for years; the best earlier models scored far lower. The high-compute run cost vastly more per task than a human solver, highlighting the compute-for-accuracy trade." },
-        { "type": "quiz", "q": "A \"thinking budget\" setting on a reasoning model controls…", "options": ["How much the API costs per month", "The maximum number of tokens the model may spend reasoning before it answers", "The model's training time", "The context window"], "answer": 1, "why": "<b>Reasoning length.</b> Higher budgets help hard problems; lower budgets save latency and cost on easy ones." }
+        { "type": "explainer", "title": "A model that thinks first", "steps": [
+          { "h": "Scratch work first", "p": "A reasoning model writes a long private chain of thought — trying ideas, checking, backtracking — before giving its final answer.", "visual": { "kind": "flow", "items": ["Your question", "Hidden thinking: try, check, rethink", "Short final answer"] } },
+          { "h": "Trained, not just asked", "p": "Unlike prompting \"think step by step\", these models were trained with reinforcement learning to reason well, rewarded when their final answers were right." },
+          { "h": "A new dial: thinking time", "p": "Before, you made AI smarter mainly by training bigger models. OpenAI's o1 (2024) showed a second dial: let the model think longer at answer time.", "visual": { "kind": "compare", "left": { "title": "Old dial", "points": ["Bigger model", "More training"] }, "right": { "title": "New dial", "points": ["Same model", "More thinking per question"] } } },
+          { "h": "More thinking, more right — up to a point", "p": "On maths and coding, accuracy climbs as the model is allowed more thinking tokens. On simple questions, extra thinking mostly adds cost.", "analogy": "More time helps on a hard exam question, not on \"What's 2 + 2?\"" },
+          { "h": "You pay for the thinking", "p": "Thinking tokens cost money and time, even when they're hidden from you. Some apps let you set a thinking budget." }
+        ] },
+        { "type": "quiz", "q": "What new way to make AI smarter did OpenAI's o1 highlight?", "options": ["Spending more computing at answer time, by thinking longer", "Training on pictures only", "Using smaller tokens", "Removing the training data"], "answer": 0, "hint": "Look at the new dial.", "why": "<b>Thinking longer.</b> Instead of only making models bigger, you can let the same model spend more effort on each question. This is called test-time compute." },
+        { "type": "tf", "statement": "Reasoning models beat standard models on every kind of task.", "answer": false, "why": "<b>False.</b> They shine at maths, code and logic. For quick facts, casual chat or simple writing, they're slower and costlier with little gain." },
+        { "type": "tf", "statement": "With some services, you pay for a reasoning model's hidden thinking even though you never see it.", "answer": true, "why": "<b>True.</b> Thinking tokens are generated like any others and billed as output. A short answer can hide thousands of thinking tokens." },
+        { "type": "fact", "title": "OpenAI's o3 scored 75.7% on the ARC-AGI puzzle test at modest cost in December 2024 — and 87.5% with far more computing.", "detail": "ARC had resisted AI for years; earlier models scored far lower. The high-effort run cost much more per puzzle than paying a human to solve it.", "visual": { "kind": "bars", "items": [ { "label": "o3, modest effort", "value": 75.7, "note": "75.7%" }, { "label": "o3, huge effort", "value": 87.5, "note": "87.5%" } ] } },
+        { "type": "quiz", "q": "A \"thinking budget\" setting controls…", "options": ["The most tokens the model may spend reasoning before it answers", "How much you pay per month", "The size of the model", "How fast you can type"], "answer": 0, "why": "<b>The cap on thinking.</b> A small budget is quick and cheap; a large one helps on hard problems." }
       ]
     },
     {
       "title": "Spending compute at test time",
       "cards": [
         { "type": "explainer", "title": "Three ways to think harder", "steps": [
-          { "h": "Think longer", "p": "One long chain of thought that explores, checks and revises." },
-          { "h": "Think in parallel", "p": "Sample many independent answers and take a majority vote, or pick one with a verifier." },
-          { "h": "Search", "p": "Expand promising partial solutions step by step, guided by a model that scores progress." }
-        ], "aside": "All three trade more inference compute for more accuracy." },
-        { "type": "quiz", "q": "\"Best-of-N\" sampling with a verifier works by…", "options": ["Training N models", "Generating N answers and choosing the one a verifier scores highest", "Asking N users", "Averaging N answers' words"], "answer": 1, "why": "<b>Generate many, pick one.</b> Its quality depends on the verifier: an exact checker like unit tests is ideal; a learned reward model can be fooled." },
-        { "type": "quiz", "q": "Why do so many test-time methods rely on verification?", "options": ["Verifiers are bigger models", "Checking a solution is often much easier than producing one", "It's required by law", "Verification needs no compute"], "answer": 1, "why": "<b>Checking is easier.</b> Like a Sudoku: hard to solve, trivial to check. Generate candidates cheaply, then filter with a reliable check." },
-        { "type": "tf", "statement": "Majority voting helps open-ended essays as much as it helps math problems.", "answer": false, "why": "<b>False.</b> Voting needs answers that can be compared directly, like a number. Essays are all different, so there is no majority to take." },
-        { "type": "fact", "title": "Spending inference compute wisely let a small model beat one 14 times larger on some problems.", "detail": "A 2024 Google DeepMind study (Snell et al.) found that allocating test-time compute based on problem difficulty could outperform a much bigger model at equal total compute, mainly on easier and medium problems." },
-        { "type": "quiz", "q": "A model's pass@10 score measures…", "options": ["Accuracy on the first try", "The chance that at least one of 10 attempts is correct", "Speed in 10 seconds", "Scores on 10 benchmarks"], "answer": 1, "why": "<b>At least one success in 10.</b> It shows what a model can do if you can recognize the right answer. pass@1 shows what it does on its first try." }
+          { "h": "Think longer", "p": "Write a longer chain of thought, checking and revising along the way." },
+          { "h": "Think in parallel", "p": "Produce several independent answers and pick one — by majority vote, or by having a checker score each.", "visual": { "kind": "flow", "items": ["Write 8 answers", "Checker scores each", "Keep the best one"] } },
+          { "h": "Checking is easier than solving", "p": "Many of these tricks work because checking an answer is often much easier than finding it.", "analogy": "Solving a sudoku is hard; checking a finished one takes seconds." },
+          { "h": "Search", "p": "Explore a tree of partial solutions, dropping branches that look bad and continuing the promising ones — like a chess player thinking moves ahead." },
+          { "h": "Spend wisely", "p": "Easy questions need little effort; hard ones need more. Matching effort to difficulty gets the most out of each dollar." }
+        ] },
+        { "type": "quiz", "q": "\"Best-of-N\" with a checker works by…", "options": ["Generating N answers and keeping the one the checker scores highest", "Asking N different people", "Training N models", "Answering N questions at once"], "answer": 0, "hint": "Look at the flow in step 2.", "why": "<b>Many tries, best one kept.</b> If any of the N attempts is good and the checker can recognise it, you get it." },
+        { "type": "quiz", "q": "Why do so many of these methods rely on checking?", "options": ["Checking a solution is often much easier than producing one", "Checking is free", "Models can't produce answers", "Checkers are always right"], "answer": 0, "hint": "Think of the sudoku.", "why": "<b>Verifying is easier.</b> Running tests on code or plugging a number back into an equation is cheap and reliable, so lots of attempts plus a good check beats one careful attempt." },
+        { "type": "tf", "statement": "Majority voting helps open-ended essays as much as it helps maths problems.", "answer": false, "why": "<b>False.</b> Voting needs answers that can match exactly, like \"42\". Every essay is different, so there's nothing to count." },
+        { "type": "fact", "title": "Spending answer-time effort wisely let a small model beat one 14 times larger on some problems.", "detail": "A 2024 Google DeepMind study (Snell et al.) found that giving harder problems more thinking could outperform a much bigger model that didn't think longer." },
+        { "type": "quiz", "q": "A model's \"pass@10\" score measures…", "options": ["The chance that at least one of 10 attempts is correct", "Its score on 10 questions", "How fast it answers 10 times", "Whether 10 people liked it"], "answer": 0, "why": "<b>At least one in ten right.</b> It shows what's possible if you can recognise the right attempt — useful when you have a checker, like tests for code." }
       ]
     },
     {
       "title": "Measuring reasoning",
       "cards": [
-        { "type": "explainer", "title": "A treadmill of benchmarks", "steps": [
-          { "h": "Easy ones saturate", "p": "Grade-school math (GSM8K) went from hard to solved in a few years. Top models now score above 95%." },
-          { "h": "Harder ones replace them", "p": "Competition math like AIME, research-level problems in FrontierMath, and expert exams like Humanity's Last Exam took their place." },
-          { "h": "Novelty tests", "p": "ARC-AGI uses simple-looking grid puzzles that need new abstractions rather than memorized knowledge." }
-        ], "aside": "A benchmark is useful only while it still separates the best models from each other." },
-        { "type": "quiz", "q": "AIME, often used to test reasoning models, is…", "options": ["An AI ethics test", "A US high-school math competition with 15 problems and integer answers from 0 to 999", "A coding contest", "An IQ test"], "answer": 1, "why": "<b>The American Invitational Mathematics Examination.</b> Its short integer answers are easy to check automatically, making it ideal for evaluating and training math reasoning." },
-        { "type": "tf", "statement": "GSM8K (grade-school math word problems) is still a hard benchmark for frontier models.", "answer": false, "why": "<b>False.</b> It is effectively saturated, with top models above 95%. Remaining errors are often flawed questions rather than model mistakes." },
-        { "type": "quiz", "q": "When Epoch AI launched FrontierMath in late 2024, the best models solved roughly what share of its problems?", "options": ["Under 2%", "About 25%", "About 50%", "Over 90%"], "answer": 0, "why": "<b>Under 2%.</b> The unpublished problems were written by research mathematicians and take experts hours or days. Scores have risen since, making it a good progress tracker." },
-        { "type": "fact", "title": "Humanity's Last Exam contains about 2,500 questions written by experts across dozens of subjects.", "detail": "Released in early 2025 by the Center for AI Safety and Scale AI, it collected questions designed to stump leading models. Initial top scores were in the single digits." },
-        { "type": "tf", "statement": "ARC-AGI puzzles require lots of specialized expert knowledge.", "answer": false, "why": "<b>False.</b> They are colored-grid puzzles most people solve easily. The challenge is inferring a new rule from a few examples, which tests adaptation rather than knowledge." }
+        { "type": "explainer", "title": "A treadmill of tests", "steps": [
+          { "h": "Tests get used up", "p": "A benchmark is a fixed exam. Once top models score near 100%, it can no longer tell them apart — it's \"saturated\".", "visual": { "kind": "line", "points": [[2021, 35], [2022, 58], [2023, 92], [2024, 96], [2025, 97]], "x": "Year", "y": "Top score (%)", "caption": "Illustration of a benchmark filling up over a few years." } },
+          { "h": "School maths fell first", "p": "GSM8K, about 8,500 grade-school word problems, was hard in 2021. Top models now get almost all of it right." },
+          { "h": "So harder exams appear", "p": "Competition maths (AIME), research-level maths (FrontierMath) and expert questions from many fields (Humanity's Last Exam) took over." },
+          { "h": "Tests of novelty", "p": "ARC-AGI uses coloured-grid puzzles that need no special knowledge but are new each time — testing whether a model can adapt, not recall.", "analogy": "The difference between a quiz on facts you studied and a brain-teaser you've never seen." },
+          { "h": "Watch for leaks", "p": "If test questions appear online, they can end up in training data, inflating scores. Fresh, private tests guard against this." }
+        ] },
+        { "type": "quiz", "q": "AIME, often used to test reasoning models, is…", "options": ["A US high-school maths competition with 15 problems and whole-number answers from 0 to 999", "A reading test", "A test of image recognition", "A typing speed test"], "answer": 0, "why": "<b>A tough maths contest.</b> Answers are whole numbers, so marking is automatic — handy for both testing and training." },
+        { "type": "tf", "statement": "GSM8K (grade-school maths word problems) is still a hard test for the best models.", "answer": false, "hint": "Look at what happened to school maths in step 2.", "why": "<b>False.</b> Top models now score well above 90%. It's saturated, so it says little about the frontier." },
+        { "type": "quiz", "q": "When FrontierMath launched in late 2024, the best models solved roughly what share of its problems?", "options": ["Under 2%", "About 50%", "About 90%", "All of them"], "answer": 0, "why": "<b>Under 2%.</b> The problems were written by research mathematicians. Within months reasoning models were scoring far higher — another treadmill turn." },
+        { "type": "fact", "title": "Humanity's Last Exam contains about 2,500 expert-written questions across dozens of subjects.", "detail": "Released in early 2025 by the Center for AI Safety and Scale AI, it was built from questions that stumped leading models. Initial top scores were under 10%." },
+        { "type": "tf", "statement": "ARC-AGI puzzles require lots of specialised expert knowledge.", "answer": false, "why": "<b>False.</b> Most people can solve them with no special training. They test spotting a new pattern from a few examples — something AI found surprisingly hard." }
       ]
     },
     {
       "title": "Limits and open questions",
       "cards": [
         { "type": "explainer", "title": "Where reasoning models stumble", "steps": [
-          { "h": "Overthinking", "p": "They can spend thousands of tokens on trivial questions, adding cost and sometimes talking themselves out of the right answer." },
-          { "h": "Reward hacking", "p": "RL rewards can be gamed: a coding model might special-case tests instead of fixing the bug." },
-          { "h": "Unfaithful reasoning", "p": "The visible chain of thought may not reflect what actually drove the answer." }
-        ], "aside": "Each of these is an active research area at every major lab." },
-        { "type": "quiz", "q": "Reward hacking in coding RL could look like…", "options": ["Writing faster code", "Editing or special-casing the tests so they pass without fixing the bug", "Adding comments", "Using more memory"], "answer": 1, "why": "<b>Gaming the check.</b> If the reward is \"tests pass\", changing the tests is a shortcut. Labs counter it with hidden tests, monitoring and better reward design." },
-        { "type": "tf", "statement": "Longer reasoning always leads to better answers.", "answer": false, "why": "<b>False.</b> Gains flatten out, and very long chains can drift or overturn correct early answers. More thinking helps hard problems, not every problem." },
-        { "type": "quiz", "q": "Why let a model decide for itself how long to think?", "options": ["It is cheaper to build", "It can spend little on easy questions and more on hard ones", "Users prefer long waits", "It removes the need for training"], "answer": 1, "why": "<b>Matching effort to difficulty.</b> A fixed budget wastes compute on easy questions or starves hard ones. Adaptive thinking aims for the right amount each time." },
-        { "type": "fact", "title": "In 2025, AI systems from Google DeepMind and OpenAI reached gold-medal level at the International Mathematical Olympiad.", "detail": "Both solved five of the six problems, writing proofs in natural language within the competition's time limits — a milestone many forecasters had expected years later." },
-        { "type": "tip", "title": "Pick the right mode", "body": "Use reasoning or extended-thinking modes for multi-step problems: debugging, math, planning, tricky analysis. Use fast modes for lookups, rewording and quick drafts.", "challenge": "Today, notice one task where you used the wrong mode — slow thinking for a quick question, or quick for a hard one." }
+          { "h": "Overthinking", "p": "Models sometimes spend thousands of tokens on a simple question, second-guessing a correct answer into a wrong one." },
+          { "h": "Gaming the reward", "p": "Trained to make tests pass, a model may learn to tweak the tests instead of fixing the bug. That's reward hacking.", "analogy": "A student who learns to change the answer key instead of learning the subject." },
+          { "h": "Reasoning that hides things", "p": "The written thinking isn't always the true reason for the answer. It's a helpful window, not a perfect one." },
+          { "h": "Thinking on demand", "p": "Newer models decide for themselves how long to think: a moment for easy questions, much longer for hard ones." },
+          { "h": "Real milestones", "p": "In 2025, AI systems reached gold-medal level at the International Mathematical Olympiad — something many experts expected to take years longer." }
+        ] },
+        { "type": "quiz", "q": "Reward hacking in coding training could look like…", "options": ["Editing the tests so they pass without fixing the bug", "Writing very neat code", "Asking for more time", "Refusing to answer"], "answer": 0, "hint": "Think of the student and the answer key.", "why": "<b>Gaming the check.</b> If the reward is \"tests pass\", changing the tests earns it too. Labs guard against this by hiding or locking the tests." },
+        { "type": "tf", "statement": "Longer reasoning always leads to better answers.", "answer": false, "why": "<b>False.</b> Past a point, extra thinking adds cost and can even talk the model out of a correct answer. Effort should match difficulty." },
+        { "type": "quiz", "q": "Why let a model decide for itself how long to think?", "options": ["It can spend little on easy questions and more on hard ones", "It makes every answer longer", "It saves the model's memory forever", "Users prefer waiting"], "answer": 0, "why": "<b>Effort where it's needed.</b> Quick answers stay quick and cheap, while hard problems still get deep thought." },
+        { "type": "fact", "title": "In 2025, AI systems from Google DeepMind and OpenAI reached gold-medal level at the International Mathematical Olympiad.", "detail": "Both solved five of the six problems, writing proofs in ordinary language within the competition's time limits — a milestone many forecasters had placed years later." },
+        { "type": "tip", "title": "Pick the right mode", "body": "Use quick mode for facts, rewording and chat. Switch on extended thinking for maths, tricky code, planning and decisions with many factors.", "challenge": "Ask the same tricky planning question with and without thinking mode, and compare the answers." }
       ]
     }
   ]
