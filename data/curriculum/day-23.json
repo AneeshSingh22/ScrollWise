@@ -3,66 +3,74 @@
   "slug": "reinforcement-learning",
   "topic": "Reinforcement learning",
   "cat": "ai",
-  "blurb": "Learning from reward: exploration, deep RL on Atari, AlphaGo, and RL leaving the lab.",
+  "blurb": "Learning by trial and error: rewards, Atari, AlphaGo's famous moves, and taking it out of games into the real world.",
   "lessons": [
     {
       "title": "Learning from reward",
       "cards": [
-        { "type": "explainer", "title": "Trial and error", "steps": [
-          { "h": "Agent and environment", "p": "An agent observes a situation, takes an action and receives a reward and a new situation." },
-          { "h": "Maximize the total", "p": "The goal is not the next reward but the sum of rewards over time, which can mean sacrificing now for later." },
-          { "h": "Learn a policy", "p": "Through many episodes, the agent learns which actions lead to the most reward in each situation." }
-        ], "aside": "No one tells the agent the right move — only, eventually, how well it did." },
-        { "type": "quiz", "q": "The exploration-exploitation trade-off is about choosing between…", "options": ["Two different models", "Trying new actions to learn more versus using the best action known so far", "Training and testing", "Speed and memory"], "answer": 1, "why": "<b>Learn or earn.</b> Always exploiting may miss better options; always exploring wastes reward. Good agents balance both, like trying a new restaurant occasionally." },
-        { "type": "tf", "statement": "In reinforcement learning, the agent is told the correct action at each step.", "answer": false, "why": "<b>False.</b> That is supervised learning. An RL agent only gets reward signals, often delayed, and must work out which actions earned them." },
-        { "type": "quiz", "q": "A discount factor of 0.99 means a reward 100 steps in the future is worth about what fraction of an immediate one?", "options": ["99%", "About 37%", "1%", "0%"], "answer": 1, "why": "<b>0.99¹⁰⁰ ≈ 0.37.</b> Discounting makes nearer rewards count more, keeps infinite sums finite, and encodes uncertainty about the far future." },
-        { "type": "fact", "title": "In 1992, a program called TD-Gammon taught itself backgammon to near world-champion level by playing against itself.", "detail": "Gerald Tesauro's network learned from self-play using temporal-difference learning, and even changed how experts played some opening moves." },
-        { "type": "quiz", "q": "The \"credit assignment problem\" asks…", "options": ["Who gets paid for the model", "Which of many earlier actions deserve credit for a later reward", "How to assign GPUs", "How to label data"], "answer": 1, "why": "<b>Which move mattered?</b> A chess win comes at the end; RL must figure out which moves along the way actually contributed." }
+        { "type": "explainer", "title": "Trial and error, done by a computer", "steps": [
+          { "h": "Agent and world", "p": "Reinforcement learning has an agent (the learner) in an environment (a game, a robot's room). It acts, the world changes, and it sometimes gets a reward.", "visual": { "kind": "flow", "items": ["Agent sees the situation", "Takes an action", "World changes, maybe a reward", "Agent adjusts what it does next time"] } },
+          { "h": "No one gives the answer", "p": "Unlike learning from examples, nobody says what the right move was. The agent only learns from how much reward it eventually gets.", "analogy": "Training a dog with treats: you can't explain \"sit\", you just reward it when it happens." },
+          { "h": "Rewards now vs later", "p": "Agents aim for the most total reward, with future rewards counted slightly less — a \"discount\". At 0.99 per step, a reward 100 steps away is worth about 37% of one now.", "visual": { "kind": "line", "points": [[0, 100], [25, 78], [50, 61], [75, 47], [100, 37]], "x": "Steps into the future", "y": "Value of reward (%)" } },
+          { "h": "Explore or exploit?", "p": "Should it use the best move it knows, or try something new that might be better? Too little exploring and it never finds better options.", "analogy": "Your favourite restaurant vs trying the new place that might be even better." },
+          { "h": "Who gets the credit?", "p": "When a reward comes after many moves, which ones earned it? That's the credit assignment problem — the heart of RL's difficulty." }
+        ] },
+        { "type": "quiz", "q": "The explore–exploit trade-off is about choosing between…", "options": ["Trying new actions to learn more vs using the best action known so far", "Fast and slow computers", "Two different rewards", "Training and testing"], "answer": 0, "hint": "The favourite restaurant vs the new one.", "why": "<b>Learn more vs cash in.</b> Explore too little and you miss better options; too much and you waste time on bad ones." },
+        { "type": "tf", "statement": "In reinforcement learning, the agent is told the correct action at each step.", "answer": false, "why": "<b>False.</b> It only gets rewards, often long after the action. Working out which actions were good is its job." },
+        { "type": "quiz", "q": "With a discount of 0.99 per step, a reward 100 steps away is worth about what fraction of an immediate one?", "options": ["About 37%", "About 99%", "About 1%", "Exactly 50%"], "answer": 0, "hint": "Look at the line chart.", "why": "<b>About 37%.</b> 0.99 multiplied by itself 100 times ≈ 0.37. Distant rewards still count, just less." },
+        { "type": "fact", "title": "In 1992, TD-Gammon taught itself backgammon to near world-champion level by playing against itself.", "detail": "Gerald Tesauro's network learned from self-play alone, and even changed how human experts played some opening moves." },
+        { "type": "quiz", "q": "The \"credit assignment problem\" asks…", "options": ["Which of many earlier actions deserve credit for a later reward", "Who pays for the computing", "How to get a loan", "Which researcher gets credit for a paper"], "answer": 0, "why": "<b>Which moves mattered?</b> A chess win comes at the end; the brilliant move might have been 30 turns earlier." }
       ]
     },
     {
       "title": "Deep RL plays Atari",
       "cards": [
-        { "type": "explainer", "title": "DQN", "steps": [
-          { "h": "Pixels in, actions out", "p": "DeepMind's Deep Q-Network took raw screen pixels and the score, and output the value of each joystick action." },
-          { "h": "Experience replay", "p": "It stored past moments in a memory and trained on random samples, breaking up correlated consecutive frames." },
-          { "h": "A stable target", "p": "A slowly updated copy of the network provided training targets, preventing the learning from chasing itself." }
-        ], "aside": "Published in Nature in 2015, DQN helped make DeepMind famous and led to Google acquiring it." },
-        { "type": "tf", "statement": "DQN used the same architecture and settings across all 49 Atari games it was tested on.", "answer": true, "why": "<b>True.</b> That generality was the point: one algorithm, no game-specific tuning, reaching human-level play on many games." },
-        { "type": "quiz", "q": "Why does experience replay help training?", "options": ["It saves memory", "Sampling randomly from past experience breaks the strong correlation between consecutive frames", "It speeds up the game", "It removes rewards"], "answer": 1, "why": "<b>Decorrelation.</b> Training on consecutive frames is like studying one page over and over. Random replay gives more varied, stable updates." },
-        { "type": "fact", "title": "The original DQN scored zero on Montezuma's Revenge.", "detail": "The game requires long sequences of precise moves before any reward appears. Random exploration almost never stumbled onto points, making it a famous benchmark for exploration research." },
-        { "type": "tf", "statement": "Sparse rewards make reinforcement learning easier.", "answer": false, "why": "<b>False.</b> With rewards far apart, the agent gets almost no feedback. Researchers add curiosity bonuses, demonstrations or shaped rewards to help." },
-        { "type": "quiz", "q": "A Q-value estimates…", "options": ["The quality of the graphics", "The expected total future reward of taking an action in a given state", "The number of steps left", "The game's difficulty"], "answer": 1, "why": "<b>Expected future reward.</b> If you know Q for every action, picking the highest is the optimal policy." }
+        { "type": "explainer", "title": "DQN: learning games from the screen", "steps": [
+          { "h": "Pixels in, joystick out", "p": "In 2013–15 DeepMind's DQN learned dozens of Atari games from just the screen pixels and the score — no game rules given.", "visual": { "kind": "flow", "items": ["Screen pixels", "Neural network", "Score for each joystick move", "Pick the best move"] } },
+          { "h": "Q-values", "p": "The network estimates a Q-value for each possible move: how much total future reward it expects from making that move now.", "analogy": "Like a sat-nav estimating the remaining journey time for each possible turn." },
+          { "h": "Replay old memories", "p": "Learning from consecutive frames is unstable because they're so similar. DQN stores past experiences and learns from a random mix of them." },
+          { "h": "A steady target", "p": "It also learns against a slowly updated copy of itself, so it isn't chasing a target that moves with every step." },
+          { "h": "Where it failed", "p": "Games with rare rewards stumped it. In Montezuma's Revenge, random button-pressing almost never finds any points to learn from." }
+        ] },
+        { "type": "tf", "statement": "DQN used the same design and settings across all 49 Atari games it was tested on.", "answer": true, "why": "<b>True.</b> That was the breakthrough: one general learner, not 49 hand-built programs. It beat human testers on many games." },
+        { "type": "quiz", "q": "Why does replaying old experiences help training?", "options": ["Learning from a random mix breaks up the strong similarity between consecutive frames", "It saves memory", "It makes the game run faster", "It lets humans watch"], "answer": 0, "why": "<b>Less lopsided learning.</b> Thirty nearly identical frames in a row would push the network too hard one way. A random mix gives balanced lessons." },
+        { "type": "quiz", "q": "A Q-value estimates…", "options": ["The total future reward expected from taking an action in a situation", "The quality of the graphics", "How many questions it answered", "The game's difficulty"], "answer": 0, "hint": "Like a sat-nav's time estimate for each turn.", "why": "<b>Expected future reward.</b> Pick the action with the highest Q-value and you're picking what it thinks will pay off most." },
+        { "type": "fact", "title": "The original DQN scored zero on Montezuma's Revenge.", "detail": "The game needs long sequences of precise moves before any reward appears. Random exploration almost never found points, making it a famous benchmark for exploration." },
+        { "type": "tf", "statement": "Rare rewards make reinforcement learning easier.", "answer": false, "why": "<b>False.</b> With rare rewards the agent gets almost no signal about what's working. Frequent feedback makes learning much easier." }
       ]
     },
     {
       "title": "AlphaGo and beyond",
       "cards": [
         { "type": "explainer", "title": "Mastering Go", "steps": [
-          { "h": "Too many possibilities", "p": "Go has more possible positions than atoms in the observable universe, so brute-force search was hopeless." },
-          { "h": "Networks guide search", "p": "AlphaGo used a policy network to suggest moves and a value network to judge positions, steering Monte Carlo tree search." },
-          { "h": "Self-play takes over", "p": "AlphaGo Zero then learned from scratch by playing itself, and surpassed the original within days." }
-        ], "aside": "In March 2016, AlphaGo beat world champion Lee Sedol 4–1 in Seoul." },
-        { "type": "quiz", "q": "AlphaGo's famous Move 37 in game two was striking because…", "options": ["It was illegal", "Its own model estimated a human would play it about 1 in 10,000 times — yet it was strong", "It ended the game", "It was played randomly"], "answer": 1, "why": "<b>Creative, not copied.</b> Commentators first thought it was a mistake. It showed AlphaGo had found ideas beyond human practice." },
-        { "type": "tf", "statement": "AlphaGo Zero learned from databases of human games.", "answer": false, "why": "<b>False.</b> \"Zero\" meant zero human data: it started from random play and learned only by playing itself, then beat the original AlphaGo 100–0." },
+          { "h": "Too many possibilities", "p": "Go has more possible board positions than atoms in the observable universe. Checking every move, as chess programs partly did, is hopeless." },
+          { "h": "Intuition + calculation", "p": "AlphaGo combined two networks — one suggesting promising moves, one judging who's winning — with a search that plays out likely futures.", "analogy": "A strong player's gut instinct narrowing the options, then careful reading of a few lines." },
+          { "h": "Look ahead by simulating", "p": "Monte Carlo tree search explores promising move sequences many times, guided by the networks, to pick the best move.", "visual": { "kind": "flow", "items": ["Policy network: suggest moves", "Search: play out promising lines", "Value network: who's winning?", "Pick the best move"] } },
+          { "h": "2016: beating a champion", "p": "AlphaGo beat Lee Sedol 4–1. Its Move 37 in game two was so unusual experts first thought it was a mistake." },
+          { "h": "No humans needed", "p": "AlphaGo Zero learned purely by playing itself, from scratch, and beat the original. MuZero then learned even without being told the rules." }
+        ] },
+        { "type": "quiz", "q": "AlphaGo's Move 37 in game two was striking because…", "options": ["Its own estimate said a human would play it only about 1 in 10,000 times — yet it was strong", "It broke the rules", "It was the first move", "It lost the game"], "answer": 0, "why": "<b>Unhuman but brilliant.</b> It showed the system had found ideas beyond human tradition, not just copied them." },
+        { "type": "tf", "statement": "AlphaGo Zero learned from databases of human games.", "answer": false, "hint": "\"Zero\" human knowledge.", "why": "<b>False.</b> It started from random play and learned only by playing itself — and became stronger than the version trained on human games." },
         { "type": "fact", "title": "Lee Sedol won one game against AlphaGo, with a brilliant move later called \"the divine move\".", "detail": "His Move 78 in game four confused AlphaGo. He retired in 2019, saying AI was \"an entity that cannot be defeated\"." },
-        { "type": "quiz", "q": "MuZero (2019) extended AlphaZero by…", "options": ["Playing only chess", "Learning to plan without being told the game's rules", "Using human data", "Running on phones"], "answer": 1, "why": "<b>Learning the rules.</b> MuZero learned its own model of the environment's dynamics and planned with it, mastering Go, chess, shogi and Atari." },
-        { "type": "quiz", "q": "What role did Monte Carlo tree search play in AlphaGo?", "options": ["Rendering the board", "Looking ahead by simulating promising move sequences guided by the neural networks", "Choosing random moves", "Storing past games"], "answer": 1, "why": "<b>Guided look-ahead.</b> The networks narrowed which moves to explore and how good positions were, so search focused on a tiny promising slice of the game tree." }
+        { "type": "quiz", "q": "MuZero (2019) went beyond AlphaZero by…", "options": ["Learning to plan without being told the game's rules", "Playing only chess", "Using human games", "Running without computers"], "answer": 0, "why": "<b>No rulebook.</b> It learned its own internal model of how the game works, then planned with it — mastering Go, chess and Atari." },
+        { "type": "quiz", "q": "What role did tree search play in AlphaGo?", "options": ["Looking ahead by simulating promising move sequences, guided by the networks", "Drawing the board", "Storing old games", "Choosing the colour of stones"], "answer": 0, "hint": "Look at the flow in step 3.", "why": "<b>Looking ahead.</b> The networks gave instinct; the search checked those instincts by playing out futures." }
       ]
     },
     {
       "title": "RL in the real world",
       "cards": [
         { "type": "explainer", "title": "Leaving the game board", "steps": [
-          { "h": "Simulation first", "p": "Real-world trial and error is slow and risky, so agents usually train in simulators." },
-          { "h": "The reality gap", "p": "Policies that work in simulation often fail on real hardware because physics and sensors never match perfectly." },
-          { "h": "Randomize to generalize", "p": "Varying friction, lighting and masses in simulation forces policies robust enough to survive reality." }
-        ], "aside": "RL's biggest real-world use today is arguably training language models." },
-        { "type": "quiz", "q": "DeepMind's reinforcement learning system cut energy used for cooling Google's data centers by up to…", "options": ["4%", "40%", "90%", "100%"], "answer": 1, "why": "<b>About 40%</b>, Google reported in 2016, by learning how to set cooling equipment based on sensor data." },
-        { "type": "tf", "statement": "OpenAI Five beat the reigning world champion team at Dota 2.", "answer": true, "why": "<b>True.</b> In April 2019 it beat OG, then world champions, in a best-of-three — after training on the equivalent of thousands of years of games." },
-        { "type": "quiz", "q": "\"Domain randomization\" helps robots by…", "options": ["Picking random tasks", "Varying simulation conditions widely so the learned policy copes with real-world differences", "Randomizing the robot's code", "Using random rewards"], "answer": 1, "why": "<b>Robustness through variety.</b> If a policy works across thousands of simulated variations, the real world looks like just one more." },
-        { "type": "fact", "title": "OpenAI trained a robot hand to solve a Rubik's Cube using only simulated practice.", "detail": "The 2019 project relied on heavy domain randomization. The hand still succeeded only part of the time on the hardest scrambles, showing how hard real dexterity is." },
-        { "type": "tip", "title": "Spot reward hacking at work", "body": "People respond to rewards like RL agents: a team measured on tickets closed will close tickets, solved or not. Seeing the incentive explains the behavior.", "challenge": "Name one metric at work or school that people optimize in a way that misses its real purpose." }
+          { "h": "Practise in simulation", "p": "Real robots break and real time is slow, so agents practise millions of times in a simulated world first." },
+          { "h": "The reality gap", "p": "Simulations are never perfect — friction, lighting, motors differ. A policy that works in simulation can fail in reality.", "analogy": "Learning to drive in a video game, then getting into a real car." },
+          { "h": "Randomise everything", "p": "Domain randomisation varies the simulation wildly — weights, colours, friction — so the real world looks like just another variation.", "visual": { "kind": "cells", "items": ["🧊", "🪵", "🪨", "🧽", "🌍"], "labels": ["slippery", "rough", "heavy", "soft", "real?"] } },
+          { "h": "Real wins", "p": "RL has cut data-center cooling energy, beaten world champions at the video game Dota 2, and controlled robot hands." },
+          { "h": "And chatbots", "p": "RL is also how chatbots learn from feedback (RLHF) and how reasoning models learn to think — see Days 7 and 12." }
+        ] },
+        { "type": "quiz", "q": "DeepMind's RL system cut energy used for cooling Google's data centers by up to…", "options": ["40%", "4%", "90%", "400%"], "answer": 0, "why": "<b>Up to 40%.</b> It learned better settings for fans, pumps and chillers than human operators' rules." },
+        { "type": "tf", "statement": "OpenAI Five beat the reigning world-champion team at the video game Dota 2.", "answer": true, "why": "<b>True.</b> In April 2019 it beat OG, then world champions, after training on the equivalent of thousands of years of games against itself." },
+        { "type": "quiz", "q": "\"Domain randomisation\" helps robots by…", "options": ["Varying the simulation widely so the policy copes with real-world differences", "Choosing a random robot", "Making the robot move randomly forever", "Randomly deleting training data"], "answer": 0, "hint": "Look at the cells in step 3.", "why": "<b>Prepared for anything.</b> If it has handled a thousand slightly different worlds, the real one is just one more." },
+        { "type": "fact", "title": "OpenAI trained a robot hand to solve a Rubik's Cube using only simulated practice.", "detail": "The 2019 project relied on heavy domain randomisation. The hand still succeeded only part of the time on the hardest scrambles — showing how hard the real world is." },
+        { "type": "tip", "title": "Spot reward hacking at work", "body": "People game metrics too: call centres rushing calls to hit a time target, or schools teaching to the test.", "challenge": "Think of one target at your work or school. How could someone hit the number without achieving the real goal?" }
       ]
     }
   ]
