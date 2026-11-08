@@ -282,5 +282,6 @@
  {"term": "ETF", "full": "Exchange-Traded Fund", "means": "A fund you can buy like a share that holds many investments at once, often a whole stock index."},
  {"term": "index fund", "means": "A fund that simply buys everything in a market index (like the S&P 500), so you own a slice of all of it at low cost.", "aka": ["index funds"]},
  {"term": "inflation", "means": "Prices rising over time, so the same money buys less."},
- {"term": "compound interest", "means": "Earning interest on your interest, so growth snowballs over time."}
+ {"term": "compound interest", "means": "Earning interest on your interest, so growth snowballs over time."},
+ {"term": "USB", "full": "Universal Serial Bus", "means": "The standard plug and cable for connecting devices like keyboards, drives and phone chargers."}
 ]
