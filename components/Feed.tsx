@@ -10,6 +10,8 @@ import type { Card, IntroCard } from "@/types/card";
 import { CardView, type CardCallbacks, type LearnContext } from "./CardView";
 import { Header } from "./Header";
 import { SavedSheet } from "./SavedSheet";
+import { GlossContext, TermSheet } from "./rich/Rich";
+import type { GlossaryEntry } from "@/lib/glossary";
 import type { SessionStats } from "./cards/SummaryBody";
 
 type Float = { id: number; amount: number; left: number; top: number };
@@ -32,7 +34,7 @@ const COURSE_CARD: IntroCard = { id: "course", cat: "intro", type: "intro" };
 
 /** Cards that are UI chrome, not content: never counted as seen. */
 function isChromeId(id: string): boolean {
-  return id === "intro" || id === "course" || id.startsWith("summary");
+  return id === "intro" || id === "course" || id.startsWith("summary") || id.startsWith("terms-");
 }
 
 export function Feed() {
@@ -64,6 +66,9 @@ export function Feed() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [floats, setFloats] = useState<Float[]>([]);
+  // The glossary term being explained, if any.
+  const [term, setTerm] = useState<GlossaryEntry | null>(null);
+  const gloss = useMemo(() => ({ open: setTerm }), []);
 
   const feedRef = useRef<HTMLElement | null>(null);
   const xpPillRef = useRef<HTMLSpanElement | null>(null);
@@ -315,6 +320,7 @@ export function Feed() {
           }
           onOpenLearn={onOpenCourse}
         />
+        <GlossContext.Provider value={gloss}>
         <main className="feed" aria-label="Learning feed" ref={feedRef}>
           {cards.map((card) => (
             <CardView
@@ -328,7 +334,10 @@ export function Feed() {
             />
           ))}
         </main>
+        </GlossContext.Provider>
       </div>
+
+      {term && <TermSheet entry={term} onClose={() => setTerm(null)} />}
 
       {sheetOpen && (
         <SavedSheet

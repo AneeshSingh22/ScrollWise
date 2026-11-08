@@ -11,9 +11,11 @@ import {
   FactBody,
   IntroBody,
   NewsBody,
+  TermsBody,
   TipBody,
   TrickBody,
 } from "./cards/SimpleBodies";
+import { goToSibling } from "./rich/next";
 import { SprintBody } from "./cards/SprintBody";
 import { SummaryBody, type SessionStats } from "./cards/SummaryBody";
 import { LearnBody } from "./cards/LearnBody";
@@ -67,7 +69,8 @@ export function CardView({ card, liked, saved, stats, cb, learn }: Props) {
   const lastTap = useRef(0);
   const burstId = useRef(0);
 
-  const isChrome = card.type === "intro" || card.type === "summary";
+  const isChrome = card.type === "intro" || card.type === "summary" || card.type === "terms";
+  const swipe = useRef<{ y: number; atTop: boolean; atBottom: boolean; scrolls: boolean } | null>(null);
 
   function addBurst(x: number, y: number) {
     const id = ++burstId.current;
@@ -94,9 +97,33 @@ export function CardView({ card, liked, saved, stats, cb, learn }: Props) {
   return (
     <section className={`card c-${card.cat}`} data-id={card.id} onClick={onCardClick}>
       <div className="glow" />
-      <div className="content">
+      <div
+        className="content"
+        onTouchStart={(e) => {
+          // Long cards scroll inside themselves. iOS often keeps a swipe
+          // that starts at the end of that inner scroll for itself (a rubber
+          // band) instead of moving the feed, so the next card seems stuck.
+          // Remember where the swipe began; onTouchEnd finishes the job.
+          const c = e.currentTarget;
+          swipe.current = {
+            y: e.touches[0].clientY,
+            scrolls: c.scrollHeight > c.clientHeight + 2,
+            atTop: c.scrollTop <= 2,
+            atBottom: c.scrollTop + c.clientHeight >= c.scrollHeight - 2,
+          };
+        }}
+        onTouchEnd={(e) => {
+          const s = swipe.current;
+          swipe.current = null;
+          if (!s?.scrolls) return; // short cards: the feed handles it natively
+          const dy = s.y - e.changedTouches[0].clientY;
+          if (dy > 50 && s.atBottom) goToSibling(e.currentTarget, 1);
+          else if (dy < -50 && s.atTop) goToSibling(e.currentTarget, -1);
+        }}
+      >
         <div className="meta">
           {!isChrome && <span className="tag">{CATS[card.cat]}</span>}
+          {card.type === "terms" && <span className="tag">{CATS[card.cat]}</span>}
           <span className="kind">{KIND[card.type]}</span>
           {card.review && <span className="tag review">Review</span>}
         </div>
@@ -191,6 +218,8 @@ function Body({
       ) : (
         <SummaryBody stats={stats} onAnother={cb.onAnother} />
       );
+    case "terms":
+      return <TermsBody card={card} />;
     case "quiz":
       return <QuizBody card={card} onAnswer={(ok) => cb.onAnswer(card, ok)} />;
     case "tf":

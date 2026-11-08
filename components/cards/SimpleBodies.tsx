@@ -6,9 +6,13 @@ import type {
   FactCard,
   IntroCard,
   NewsCard,
+  TermsCard,
   TipCard,
   TrickCard,
 } from "@/types/card";
+import { Rich } from "../rich/Rich";
+import { Visual } from "../rich/Visual";
+import { NextButton } from "./QuizBody";
 
 export function IntroBody(_: { card: IntroCard }) {
   return (
@@ -35,7 +39,7 @@ export function FactBody({
 
   return (
     <div className="body">
-      <h2 className="big">{card.title}</h2>
+      <Rich as="h2" className="big" text={card.title} />
       {!shown && (
         <button
           className="btn reveal"
@@ -47,7 +51,13 @@ export function FactBody({
           Why?
         </button>
       )}
-      {shown && <p className="why">{card.detail}</p>}
+      {shown && (
+        <div className="explain">
+          <Rich as="p" className="why" text={card.detail} />
+          {card.visual && <Visual v={card.visual} />}
+          <NextButton />
+        </div>
+      )}
     </div>
   );
 }
@@ -63,10 +73,12 @@ export function NewsBody({
 
   return (
     <div className="body">
-      <h2 className="big">{card.headline}</h2>
+      <Rich as="h2" className="big" text={card.headline} />
       <ul className="bullets">
         {card.bullets.map((b, i) => (
-          <li key={i}>{b}</li>
+          <li key={i}>
+            <Rich text={b} />
+          </li>
         ))}
       </ul>
       {!shown && (
@@ -80,7 +92,7 @@ export function NewsBody({
           Why it matters
         </button>
       )}
-      {shown && <p className="why">{card.why_it_matters}</p>}
+      {shown && <Rich as="p" className="why" text={card.why_it_matters} />}
     </div>
   );
 }
@@ -95,11 +107,12 @@ export function ExplainerBody({
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const last = step === card.steps.length - 1;
+  const s = card.steps[step];
 
   function next() {
     if (last) {
+      if (!done) onDone();
       setDone(true);
-      onDone();
       return;
     }
     setStep(step + 1);
@@ -112,15 +125,59 @@ export function ExplainerBody({
           <i key={i} className={i <= step ? "on" : ""} />
         ))}
       </div>
-      <h2 className="q">{card.title}</h2>
-      <div className="step">
-        <h3>{card.steps[step].h}</h3>
-        <p>{card.steps[step].p}</p>
+      <Rich as="h2" className="q" text={card.title} />
+      <div className="step" key={step}>
+        <p className="step-n">
+          Step {step + 1} of {card.steps.length}
+        </p>
+        <Rich as="h3" text={s.h} />
+        <Rich as="p" text={s.p} />
+        {s.visual && <Visual v={s.visual} />}
+        {s.analogy && (
+          <p className="analogy">
+            <span>Think of it like this</span>
+            <Rich text={s.analogy} />
+          </p>
+        )}
       </div>
-      {last && card.aside && <p className="aside">{card.aside}</p>}
-      <button className="btn next" onClick={next} disabled={done}>
-        {last ? "Got it" : "Next step"}
-      </button>
+      {last && card.aside && <Rich as="p" className="aside" text={card.aside} />}
+      <div className="actions">
+        {step > 0 && (
+          <button className="btn ghost" onClick={() => setStep(step - 1)}>
+            Back
+          </button>
+        )}
+        {done ? (
+          <NextButton />
+        ) : (
+          <button className="btn next" onClick={next}>
+            {last ? "Got it" : "Next step"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Opens a lesson: the words it uses, explained before you need them. */
+export function TermsBody({ card }: { card: TermsCard }) {
+  return (
+    <div className="body">
+      <p className="eyebrow">Before you start</p>
+      <h2 className="q">Words you&apos;ll meet in this lesson</h2>
+      <dl className="glossary">
+        {card.terms.map((t) => (
+          <div key={t.term}>
+            <dt>
+              {t.term}
+              {t.full && <small> · {t.full}</small>}
+            </dt>
+            <dd>{t.means}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="aside">Forgot one later? Tap any underlined word for its meaning.</p>
+      <NextButton label="Start the lesson" />
     </div>
   );
 }
@@ -136,11 +193,11 @@ export function TipBody({
 
   return (
     <div className="body">
-      <h2 className="big">{card.title}</h2>
-      <p className="lead">{card.body}</p>
+      <Rich as="h2" className="big" text={card.title} />
+      <Rich as="p" className="lead" text={card.body} />
       <div className="challenge">
         <p className="eyebrow">Try it today</p>
-        <p>{card.challenge}</p>
+        <Rich as="p" text={card.challenge} />
         <button
           className="btn accept"
           disabled={accepted}
@@ -159,8 +216,8 @@ export function TipBody({
 export function TrickBody({ card }: { card: TrickCard }) {
   return (
     <div className="body">
-      <h2 className="big">{card.title}</h2>
-      <p className="lead">{card.body}</p>
+      <Rich as="h2" className="big" text={card.title} />
+      <Rich as="p" className="lead" text={card.body} />
       <div className="example">
         {card.example}
         <small>With a carry: {card.example2}</small>

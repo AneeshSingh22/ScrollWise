@@ -237,3 +237,66 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ADDED: learning-from-scratch additions. Built from the prototype's
+   primitives (.why's dark fill, .opt's radius and hairline, --acc accents,
+   the mono numerals) so they read as part of the same design. */
+
+/* Tappable jargon: a dotted underline in the card's accent color. */
+.term{all:unset;cursor:pointer;text-decoration:underline dotted;text-decoration-color:var(--acc);text-decoration-thickness:2px;text-underline-offset:3px}
+.term:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:3px}
+.term-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);font-weight:600}
+.term-chip{border:1px dashed color-mix(in srgb,var(--acc) 70%,transparent);background:transparent;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:700;color:var(--acc);min-height:32px}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:24}
+.term-sheet h3{font-size:24px;margin-bottom:4px}
+.term-full{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink-dim)}
+.term-means{margin:0;font-size:17px;line-height:1.5}
+
+/* Explainer extras */
+.step-n{margin:0 0 6px;font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink-dim)}
+.step{display:flex;flex-direction:column;gap:12px;animation:stepin .25s ease}
+.step h3{margin:0}
+@keyframes stepin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.analogy{margin:0;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--acc) 12%,transparent);border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);font-size:15px;line-height:1.5}
+.analogy span{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:4px}
+.hint{margin:0;padding:10px 14px;border-radius:12px;border:1.5px dashed var(--line);font-size:15px;line-height:1.45}
+.hint span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+.btn.small{padding:8px 14px;font-size:13px}
+.explain{display:flex;flex-direction:column;gap:12px}
+.btn.next-card{align-self:flex-start}
+
+/* "Key words" card */
+.glossary{margin:0;display:flex;flex-direction:column;gap:8px}
+.glossary div{padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.glossary dt{font-weight:800;font-size:16px;color:var(--acc)}
+.glossary dt small{font-weight:600;font-size:12px;color:var(--ink-dim)}
+.glossary dd{margin:3px 0 0;font-size:14.5px;line-height:1.45}
+
+/* Diagrams */
+.vis{margin:0;padding:14px;border-radius:14px;background:rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px}
+.vis figcaption{font-size:13px;line-height:1.4;color:var(--ink-dim)}
+.flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.flow li{display:flex;flex-direction:column;align-items:center;gap:2px}
+.flow-box{width:100%;text-align:center;padding:8px 10px;border-radius:10px;border:1.5px solid color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 10%,transparent);font-size:14px;font-weight:700;line-height:1.3}
+.flow-arrow{color:var(--acc);font-weight:800;line-height:1}
+.bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.bars li{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:4px;align-items:baseline}
+.bars .bar-track{grid-column:1/-1}
+.bar-label{font-size:13px;font-weight:700}
+.bar-track{display:flex;align-items:center;height:12px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar-track i{display:block;height:100%;border-radius:6px;background:var(--acc)}
+.bar-val{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink-dim)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.compare-side{padding:10px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;flex-direction:column;gap:6px}
+.compare-side b{font-size:14px;color:var(--acc)}
+.compare-side ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.35}
+.cells{display:flex;flex-wrap:wrap;gap:6px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:3px}
+.cell b{min-width:34px;padding:7px 8px;text-align:center;border-radius:8px;border:1.5px solid color-mix(in srgb,var(--acc) 60%,transparent);background:color-mix(in srgb,var(--acc) 12%,transparent);font-family:var(--font-mono);font-size:15px}
+.cell small{font-size:10.5px;font-weight:600;color:var(--ink-dim)}
+.picture{font-size:40px;line-height:1.2;text-align:center;letter-spacing:.08em}
+.line{width:100%;height:auto;display:block}
+.line .axis{stroke:var(--line);stroke-width:1.5}
+.line .trace{fill:none;stroke:var(--acc);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.line .dot{fill:var(--acc)}
+.line text{fill:var(--ink-dim);font-size:10px;font-weight:700;font-family:var(--font-body)}

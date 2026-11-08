@@ -18,7 +18,8 @@ export type CardType =
   | "trick"
   | "sprint"
   | "intro"
-  | "summary";
+  | "summary"
+  | "terms";
 
 type Common = {
   id: string;
@@ -31,7 +32,26 @@ type Common = {
   tags?: string[];
 };
 
+/**
+ * A simple picture drawn by the app (no image files): a flow of boxes, a bar
+ * chart, a side-by-side comparison, a row of cells (bits, tokens…), a big
+ * emoji scene, or a line chart. Kept deliberately basic and readable.
+ */
+export type Visual =
+  | { kind: "flow"; items: string[]; caption?: string }
+  | { kind: "bars"; items: { label: string; value: number; note?: string }[]; unit?: string; caption?: string }
+  | { kind: "compare"; left: { title: string; points: string[] }; right: { title: string; points: string[] }; caption?: string }
+  | { kind: "cells"; items: string[]; labels?: string[]; caption?: string }
+  | { kind: "picture"; icons: string; caption: string }
+  | { kind: "line"; points: [number, number][]; x: string; y: string; caption?: string };
+
 export type IntroCard = Common & { type: "intro" };
+
+/** UI-made: opens a lesson with the jargon it uses, in plain words. */
+export type TermsCard = Common & {
+  type: "terms";
+  terms: { term: string; full?: string; means: string }[];
+};
 export type SummaryCard = Common & { type: "summary" };
 
 export type NewsCard = Common & {
@@ -49,6 +69,10 @@ export type QuizCard = Common & {
   answer: number;
   /** May contain <b> for the lead-in, as in the prototype. */
   why: string;
+  /** A nudge shown on request before answering. */
+  hint?: string;
+  /** Shown with the explanation after answering. */
+  visual?: Visual;
 };
 
 export type TfCard = Common & {
@@ -56,15 +80,24 @@ export type TfCard = Common & {
   statement: string;
   answer: boolean;
   why: string;
+  hint?: string;
+  visual?: Visual;
 };
 
 export type FactCard = Common & {
   type: "fact";
   title: string;
   detail: string;
+  visual?: Visual;
 };
 
-export type ExplainerStep = { h: string; p: string };
+export type ExplainerStep = {
+  h: string;
+  p: string;
+  /** "Think of it like…": an everyday comparison. */
+  analogy?: string;
+  visual?: Visual;
+};
 
 export type ExplainerCard = Common & {
   type: "explainer";
@@ -93,6 +126,7 @@ export type SprintCard = Common & { type: "sprint" };
 export type Card =
   | IntroCard
   | SummaryCard
+  | TermsCard
   | NewsCard
   | QuizCard
   | TfCard

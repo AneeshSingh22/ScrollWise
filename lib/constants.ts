@@ -23,6 +23,7 @@ export const KIND: Record<CardType, string> = {
   sprint: "Sprint",
   intro: "",
   summary: "",
+  terms: "Key words",
 };
 
 /** Chip order in the header. */

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { unknownAbbreviations } from "./glossary";
 
 /**
  * Validation for authored and generated content (CLAUDE.md: every generated
@@ -24,6 +25,42 @@ const base = {
   source_url: z.string().url().startsWith("https://").optional(),
 };
 
+const short = z.string().trim().min(1).max(60);
+
+/** Simple app-drawn pictures (types/card.ts Visual). */
+export const VisualSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("flow"), items: z.array(short).min(2).max(6), caption: z.string().optional() }),
+  z.object({
+    kind: z.literal("bars"),
+    items: z
+      .array(z.object({ label: short, value: z.number().nonnegative(), note: z.string().max(24).optional() }))
+      .min(2)
+      .max(6),
+    unit: z.string().max(24).optional(),
+    caption: z.string().optional(),
+  }),
+  z.object({
+    kind: z.literal("compare"),
+    left: z.object({ title: short, points: z.array(short).min(1).max(4) }),
+    right: z.object({ title: short, points: z.array(short).min(1).max(4) }),
+    caption: z.string().optional(),
+  }),
+  z.object({
+    kind: z.literal("cells"),
+    items: z.array(z.string().trim().min(1).max(14)).min(1).max(12),
+    labels: z.array(z.string().max(14)).optional(),
+    caption: z.string().optional(),
+  }),
+  z.object({ kind: z.literal("picture"), icons: z.string().trim().min(1).max(40), caption: text }),
+  z.object({
+    kind: z.literal("line"),
+    points: z.array(z.tuple([z.number(), z.number()])).min(2).max(12),
+    x: short,
+    y: short,
+    caption: z.string().optional(),
+  }),
+]);
+
 export const QuizSchema = z.object({
   ...base,
   type: z.literal("quiz"),
@@ -31,6 +68,8 @@ export const QuizSchema = z.object({
   options: z.array(text).length(4),
   answer: z.number().int().min(0).max(3),
   why: text,
+  hint: z.string().optional(),
+  visual: VisualSchema.optional(),
 });
 
 export const TfSchema = z.object({
@@ -39,15 +78,33 @@ export const TfSchema = z.object({
   statement: text,
   answer: z.boolean(),
   why: text,
+  hint: z.string().optional(),
+  visual: VisualSchema.optional(),
 });
 
-export const FactSchema = z.object({ ...base, type: z.literal("fact"), title: text, detail: text });
+export const FactSchema = z.object({
+  ...base,
+  type: z.literal("fact"),
+  title: text,
+  detail: text,
+  visual: VisualSchema.optional(),
+});
 
 export const ExplainerSchema = z.object({
   ...base,
   type: z.literal("explainer"),
   title: text,
-  steps: z.array(z.object({ h: text, p: text })).min(2).max(5),
+  steps: z
+    .array(
+      z.object({
+        h: text,
+        p: text,
+        analogy: z.string().optional(),
+        visual: VisualSchema.optional(),
+      }),
+    )
+    .min(2)
+    .max(7),
   aside: z.string().optional(),
 });
 
@@ -80,7 +137,7 @@ export const LessonCardSchema = z.discriminatedUnion("type", [
 
 export const LessonSchema = z.object({
   title: text,
-  cards: z.array(LessonCardSchema).min(4).max(10),
+  cards: z.array(LessonCardSchema).min(4).max(12),
 });
 
 export const DaySchema = z.object({
@@ -111,13 +168,20 @@ export function words(s: string): number {
   return s.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
 }
 
-/** SPEC section 5 limits, in words. */
+/**
+ * Limits, in words. Lessons explain things from scratch, so explanations get
+ * more room than SPEC section 5's original feed limits (why 45, step 35);
+ * nothing here is copied from a source, so the copyright reason for the
+ * tight limit doesn't apply to hand-written lessons.
+ */
 export const LIMITS = {
-  why: 45,
+  why: 70,
   factTitle: 25,
-  factDetail: 45,
-  stepText: 35,
-  tipBody: 40,
+  factDetail: 60,
+  stepText: 60,
+  analogy: 40,
+  hint: 25,
+  tipBody: 50,
   option: 20,
   question: 35,
 } as const;
@@ -138,6 +202,7 @@ export function ruleProblems(c: LessonCardInput): string[] {
   switch (c.type) {
     case "quiz": {
       over("question", c.q, LIMITS.question);
+      if (c.hint) over("hint", c.hint, LIMITS.hint);
       over("why", c.why, LIMITS.why);
       markup("why", c.why);
       c.options.forEach((o, i) => over(`option ${i + 1}`, o, LIMITS.option));
@@ -148,6 +213,7 @@ export function ruleProblems(c: LessonCardInput): string[] {
     }
     case "tf":
       over("statement", c.statement, LIMITS.question);
+      if (c.hint) over("hint", c.hint, LIMITS.hint);
       over("why", c.why, LIMITS.why);
       markup("why", c.why);
       {
@@ -163,7 +229,10 @@ export function ruleProblems(c: LessonCardInput): string[] {
       over("detail", c.detail, LIMITS.factDetail);
       break;
     case "explainer":
-      c.steps.forEach((s, i) => over(`step ${i + 1}`, s.p, LIMITS.stepText));
+      c.steps.forEach((s, i) => {
+        over(`step ${i + 1}`, s.p, LIMITS.stepText);
+        if (s.analogy) over(`step ${i + 1} analogy`, s.analogy, LIMITS.analogy);
+      });
       break;
     case "tip":
       over("body", c.body, LIMITS.tipBody);
@@ -182,5 +251,9 @@ export function lessonProblems(cards: LessonCardInput[]): string[] {
   const questions = cards.filter((c) => c.type === "quiz" || c.type === "tf").length;
   if (questions < 2) out.push(`only ${questions} question card(s); a lesson needs at least 2`);
   if (new Set(cards.map((c) => c.type)).size < 3) out.push("needs at least 3 different card types");
+  const unknown = new Set(cards.flatMap((c) => unknownAbbreviations(JSON.stringify(c))));
+  if (unknown.size) {
+    out.push(`abbreviations not in data/glossary.json: ${[...unknown].join(", ")} — add a plain-English entry for each`);
+  }
   return out;
 }

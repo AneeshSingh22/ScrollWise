@@ -82,8 +82,8 @@ describe("rule checks", () => {
     expect(ruleProblems(quiz())).toEqual([]);
   });
 
-  it("flags an explanation over 45 words", () => {
-    const long = `<b>Yes.</b> ${"word ".repeat(50)}`;
+  it("flags an explanation over 70 words", () => {
+    const long = `<b>Yes.</b> ${"word ".repeat(75)}`;
     expect(ruleProblems(quiz({ why: long })).join()).toMatch(/why is \d+ words/);
   });
 
@@ -102,12 +102,41 @@ describe("rule checks", () => {
     expect(ruleProblems(tf(false, "It is blue.")).join()).toMatch(/bold verdict/);
   });
 
-  it("flags an explainer step over 35 words", () => {
+  it("flags an explainer step over 60 words", () => {
     const card: LessonCardInput = {
       ...explainer,
-      steps: [{ h: "Long", p: "word ".repeat(40) }, ...explainer.steps.slice(1)],
+      steps: [{ h: "Long", p: "word ".repeat(65) }, ...explainer.steps.slice(1)],
     } as LessonCardInput;
-    expect(ruleProblems(card).join()).toMatch(/step 1 is 40 words/);
+    expect(ruleProblems(card).join()).toMatch(/step 1 is 65 words/);
+  });
+
+  it("flags a long analogy and a long hint", () => {
+    const card = {
+      ...explainer,
+      steps: [{ h: "A", p: "b", analogy: "word ".repeat(45) }, ...explainer.steps.slice(1)],
+    } as LessonCardInput;
+    expect(ruleProblems(card).join()).toMatch(/analogy is 45 words/);
+    expect(ruleProblems(quiz({ hint: "word ".repeat(30) })).join()).toMatch(/hint is 30 words/);
+  });
+
+  it("accepts each kind of visual and rejects a malformed one", () => {
+    const visuals = [
+      { kind: "flow", items: ["Text", "Tokens"] },
+      { kind: "bars", items: [{ label: "A", value: 1 }, { label: "B", value: 3 }], unit: "GB" },
+      { kind: "compare", left: { title: "L", points: ["x"] }, right: { title: "R", points: ["y"] } },
+      { kind: "cells", items: ["0", "1"], labels: ["off", "on"] },
+      { kind: "picture", icons: "📚➡️🧠", caption: "Reading builds knowledge" },
+      { kind: "line", points: [[1, 2], [2, 3]], x: "Compute", y: "Skill" },
+    ];
+    for (const visual of visuals) {
+      expect(LessonCardSchema.safeParse({ ...fact, visual }).success, visual.kind).toBe(true);
+    }
+    expect(LessonCardSchema.safeParse({ ...fact, visual: { kind: "flow", items: ["one"] } }).success).toBe(false);
+  });
+
+  it("flags abbreviations the glossary doesn't explain", () => {
+    const card = { ...fact, title: "The ZQX chip is fast." } as LessonCardInput;
+    expect(lessonProblems([explainer, quiz(), tf(false, "<b>False.</b> Blue."), card]).join()).toMatch(/ZQX/);
   });
 
   it("requires two questions and three card types per lesson", () => {

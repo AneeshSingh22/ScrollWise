@@ -1,4 +1,5 @@
-import type { Card, Category, SummaryCard } from "@/types/card";
+import type { Card, Category, SummaryCard, TermsCard, Visual } from "@/types/card";
+import { termsIn } from "./glossary";
 import { dayKey } from "./store";
 import { RAW_DAYS } from "./curriculum-data";
 import { RAW_TOPICS } from "./topics-data";
@@ -173,12 +174,72 @@ export function todayDayNumber(now: Date = new Date()): number {
   return Math.min(Math.max(diff + 1, 1), Math.max(DAYS.length, 1));
 }
 
-/** A lesson's cards for the feed, closed by its finish card. */
+/** Most key words shown on a lesson's opening card. */
+export const MAX_KEY_WORDS = 8;
+
+function visualText(v?: Visual): string[] {
+  if (!v) return [];
+  switch (v.kind) {
+    case "flow":
+    case "cells":
+      return [...v.items, v.caption ?? ""];
+    case "bars":
+      return [...v.items.map((i) => i.label), v.caption ?? ""];
+    case "compare":
+      return [v.left.title, ...v.left.points, v.right.title, ...v.right.points, v.caption ?? ""];
+    case "picture":
+      return [v.caption];
+    case "line":
+      return [v.x, v.y, v.caption ?? ""];
+  }
+}
+
+/** All the words a reader sees on a card, for finding its jargon. */
+export function cardText(c: Card): string[] {
+  switch (c.type) {
+    case "quiz":
+      return [c.q, ...c.options, c.hint ?? "", c.why, ...visualText(c.visual)];
+    case "tf":
+      return [c.statement, c.hint ?? "", c.why, ...visualText(c.visual)];
+    case "fact":
+      return [c.title, c.detail, ...visualText(c.visual)];
+    case "explainer":
+      return [
+        c.title,
+        ...c.steps.flatMap((s) => [s.h, s.p, s.analogy ?? "", ...visualText(s.visual)]),
+        c.aside ?? "",
+      ];
+    case "tip":
+      return [c.title, c.body, c.challenge];
+    case "trick":
+      return [c.title, c.body, c.example, c.example2];
+    case "news":
+      return [c.headline, ...c.bullets, c.why_it_matters];
+    default:
+      return [];
+  }
+}
+
+/** The opening "Key words" card for a lesson, or null if it uses little jargon. */
+export function keyWordsCard(lessonId: string, cards: Card[], cat: Category): TermsCard | null {
+  const terms = termsIn(cards.flatMap(cardText)).slice(0, MAX_KEY_WORDS);
+  if (terms.length < 2) return null;
+  return {
+    id: `terms-${lessonId}`,
+    cat,
+    type: "terms",
+    terms: terms.map(({ term, full, means }) => ({ term, full, means })),
+  };
+}
+
+/** A lesson's cards for the feed: key words first, closed by its finish card. */
 export function buildLesson(id: string): Card[] {
   const l = lessonById(id);
   if (!l) return [];
+  const unit = unitByKey(l.unit);
+  const words = keyWordsCard(id, l.cards, unit?.cat ?? "ai");
   const finish: SummaryCard = { id: `summary-${id}`, cat: "intro", type: "summary" };
-  return [...l.cards, finish];
+  return [...(words ? [words] : []), ...l.cards, finish];
 }
 
 /** Lessons finished in a unit. */

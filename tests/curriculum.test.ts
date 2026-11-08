@@ -162,7 +162,8 @@ describe("lessons and progress", () => {
   it("builds a lesson closed by its own finish card", () => {
     const built = buildLesson("d01-l1");
     const lesson = lessonById("d01-l1")!;
-    expect(built).toHaveLength(lesson.cards.length + 1);
+    expect(built).toHaveLength(lesson.cards.length + 2);
+    expect(built[0]).toMatchObject({ type: "terms", id: "terms-d01-l1" });
     expect(built[built.length - 1]).toMatchObject({ type: "summary", id: "summary-d01-l1" });
   });
 
