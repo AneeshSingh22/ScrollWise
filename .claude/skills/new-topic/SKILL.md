@@ -22,8 +22,8 @@ Request: **$ARGUMENTS**
      instead of creating a duplicate — unless the user clearly wants a new one.
    - If the 30-day AI course already covers it, make the new topic go deeper or
      come at it from a different angle, and say so in the blurb.
-3. Read `data/topics/quantum-computing.json` as the reference example of tone,
-   difficulty and format.
+3. Read `data/curriculum/day-06.json` as the reference example of tone,
+   depth and format (step-by-step explainers with analogies, pictures, hints).
 
 ## 2. Plan the topic
 
@@ -38,8 +38,10 @@ Request: **$ARGUMENTS**
   `ai` (AI), `tech` (how technology works, engineering, computing),
   `world` (science, geography, history, society), `life` (skills, health,
   money, psychology), `math` (math, logic, statistics).
-- **Level**: smart, curious adult. Brain-stimulating, not trivia. Default to
-  "explain from scratch, then get properly deep" unless told otherwise.
+- **Level**: smart, curious adult who is meeting the subject **for the first
+  time**. Explain from scratch — never assume they know a term — then get
+  properly deep. The user's main complaint about old lessons: "just 2
+  sentences then Next", and jargon they'd never heard of in the questions.
 
 ## 3. Write the file
 
@@ -60,23 +62,52 @@ Card types and their exact fields:
 
 | type | fields |
 |---|---|
-| `explainer` | `title`, `steps` (3 × `{ "h": heading, "p": text }`), optional `aside` |
-| `quiz` | `q`, `options` (exactly 4), `answer` (index 0–3), `why` |
-| `tf` | `statement`, `answer` (true/false), `why` |
-| `fact` | `title` (the surprising fact), `detail` (why it's true) |
+| `explainer` | `title`, `steps` (4–6 × `{ "h", "p", "analogy"?, "visual"? }`), optional `aside` |
+| `quiz` | `q`, `options` (exactly 4), `answer` (index 0–3), `why`, optional `hint`, `visual` |
+| `tf` | `statement`, `answer` (true/false), `why`, optional `hint`, `visual` |
+| `fact` | `title` (the surprising fact), `detail` (why it's true), optional `visual` |
 | `tip` | `title`, `body`, `challenge` (one concrete thing to try today) |
 | `trick` | `title`, `body`, `example`, `example2` (for mental-math style tricks) |
 
-**Each lesson: 6 cards.** Open with an `explainer`, then mix: at least 2
-questions (`quiz`/`tf`), a `fact`, and 3+ different types overall. End the
-topic's last lesson with a `tip` when there's a natural real-world action.
+**Each lesson: 7 cards.** Open with an `explainer` of **4–6 steps** that builds
+the idea from zero, one small step at a time. Then mix: at least 3 questions
+(`quiz`/`tf`), a `fact`, and 3+ different types overall. End the topic's last
+lesson with a `tip` when there's a natural real-world action.
+
+**Make it visual and concrete** (this is what makes lessons not boring):
+- Give **most explainer steps** an `analogy` ("Think of it like this" box) —
+  an everyday comparison: a chef fetching ingredients, rounding prices…
+- Give **at least 2 steps per explainer** a `visual`, and add one to some
+  facts and quiz explanations. Visuals are drawn by the app from data:
+
+```json
+{ "kind": "flow", "items": ["Step one", "Step two", "Step three"], "caption": "optional" }
+{ "kind": "bars", "items": [{ "label": "A", "value": 41, "note": "41%" }, { "label": "B", "value": 22 }], "unit": "GB" }
+{ "kind": "compare", "left": { "title": "Before", "points": ["…"] }, "right": { "title": "After", "points": ["…"] } }
+{ "kind": "cells", "items": ["0", "1", "1"], "labels": ["off", "on", "on"] }
+{ "kind": "picture", "icons": "🌐 🕷️ 📄📄📄", "caption": "required for pictures" }
+{ "kind": "line", "points": [[1, 5], [2, 4], [3, 3.2]], "x": "Compute", "y": "Loss" }
+```
+  flow 2–6 items, bars 2–6, compare 1–4 points a side, cells ≤ 12 (≤ 14
+  chars each), line 2–12 points. Labels ≤ 60 chars. If numbers in a chart
+  are illustrative, say "Illustration" in the caption.
+- Give most questions a `hint` that points at the explainer without giving
+  the answer away ("Look at the bar chart in step 2").
+- Questions should be answerable by someone who just read this lesson.
+
+**Jargon:** every abbreviation (any ALL-CAPS word like GPU, QAM) must have an
+entry in `data/glossary.json` — `npm run content` fails otherwise. Add missing
+ones as `{ "term": "QAM", "full": "Quadrature Amplitude Modulation", "means": "plain-English meaning, ≤ 30 words" }`
+(use `"aka": [...]` for plurals/spellings). Add important technical words too
+(not just abbreviations). The app underlines glossary words so a tap shows
+the meaning, and opens each lesson with a "Key words" card built from them.
 
 **Writing rules** (the checker enforces the word limits — don't fight it):
-- `why`: ≤ 45 words. Open with a bold verdict: `"<b>About 64.</b> …"`; for
+- `why`: ≤ 70 words. Open with a bold verdict: `"<b>About 64.</b> …"`; for
   true/false, `"<b>False.</b> …"` / `"<b>True.</b> …"` matching `answer`.
   Teach the reason, don't just restate the answer.
-- Explainer step text ≤ 35 words. Fact title ≤ 25, detail ≤ 45. Tip body ≤ 40.
-  Options ≤ 20 words each. Questions ≤ 35 words.
+- Explainer step text ≤ 60 words, analogy ≤ 40, hint ≤ 25. Fact title ≤ 25,
+  detail ≤ 60. Tip body ≤ 50. Options ≤ 20 words each. Questions ≤ 35 words.
 - Only `<b>` and `<i>` markup, and only in `why`.
 - Distractors must be plausible to a non-expert but clearly wrong to someone
   who read the explainer. No "all of the above", no joke options.
@@ -113,7 +144,7 @@ and rule — fix and re-run until it prints "✓ Content OK".
 ## 6. Publish
 
 ```bash
-git add data/topics lib/topics-data.ts
+git add data/topics data/glossary.json lib/topics-data.ts
 git commit -m "Add topic: <Topic name>"     # or "Update topic: …"
 git push origin HEAD:main
 ```
@@ -128,7 +159,7 @@ go live).
 
 ```
 ✅ "<Topic>" is live in ~1 minute.
-4 lessons · 24 cards
+4 lessons · 28 cards
 1. …  2. …  3. …  4. …
 Open Scrollwise → Learn → Your topics. (Pull down to refresh if it's not there yet.)
 ```
