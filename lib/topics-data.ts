@@ -4,9 +4,11 @@ import type { RawTopic } from "./curriculum";
 import t_how_phone_data_works from "@/data/topics/how-phone-data-works.json";
 import t_how_wifi_works from "@/data/topics/how-wifi-works.json";
 import t_quantum_computing from "@/data/topics/quantum-computing.json";
+import t_why_cheerleading_is_a_sport from "@/data/topics/why-cheerleading-is-a-sport.json";
 
 export const RAW_TOPICS = [
   t_how_phone_data_works,
   t_how_wifi_works,
   t_quantum_computing,
+  t_why_cheerleading_is_a_sport,
 ] as unknown as RawTopic[];

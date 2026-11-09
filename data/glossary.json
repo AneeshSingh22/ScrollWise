@@ -283,5 +283,13 @@
  {"term": "index fund", "means": "A fund that simply buys everything in a market index (like the S&P 500), so you own a slice of all of it at low cost.", "aka": ["index funds"]},
  {"term": "inflation", "means": "Prices rising over time, so the same money buys less."},
  {"term": "compound interest", "means": "Earning interest on your interest, so growth snowballs over time."},
- {"term": "USB", "full": "Universal Serial Bus", "means": "The standard plug and cable for connecting devices like keyboards, drives and phone chargers."}
+ {"term": "USB", "full": "Universal Serial Bus", "means": "The standard plug and cable for connecting devices like keyboards, drives and phone chargers."},
+ {"term":"NCAA","full":"National Collegiate Athletic Association","means":"The organisation that runs most US college sport, setting rules and running championships."},
+ {"term":"IOC","full":"International Olympic Committee","means":"The body that runs the Olympic Games and decides which sports and governing bodies it officially recognises."},
+ {"term":"ICU","full":"International Cheer Union","means":"The world governing body for cheerleading, which runs the cheer world championships and is recognised by the IOC."},
+ {"term":"AAP","full":"American Academy of Pediatrics","means":"A large US organisation of children's doctors that publishes health and safety advice."},
+ {"term":"Title IX","means":"A 1972 US law banning sex discrimination in education, including requiring equal sports opportunities for women and girls.","aka":["IX"]},
+ {"term":"flyer","means":"In cheerleading, the person who is lifted or thrown into the air during a stunt.","aka":["flyers"]},
+ {"term":"backspot","means":"In cheerleading, the teammate who stands behind a stunt, helps lift and protects the flyer's head and neck.","aka":["backspots"]},
+ {"term":"basket toss","means":"A cheer stunt where bases lock hands, throw the flyer high into the air, and catch them in their arms."}
 ]
